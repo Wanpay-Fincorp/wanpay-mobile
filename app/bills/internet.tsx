@@ -1,36 +1,18 @@
-import React, { useState } from 'react';
-import {
-  ActivityIndicator,
-  Alert,
-  FlatList,
-  KeyboardAvoidingView,
-  Modal,
-  Platform,
-  SafeAreaView,
-  ScrollView,
-  StatusBar,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import { DARK_BG } from '@/constants/customConstants';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
+import { StatusBar } from 'expo-status-bar';
+import React, { useState } from 'react';
+import {
+  ActivityIndicator, Alert, FlatList, KeyboardAvoidingView, Modal,
+  Platform, SafeAreaView, Text, TextInput, TouchableOpacity, View,
+} from 'react-native';
 import tw from 'twrnc';
+import { api } from '@/lib/api';
+import RefreshableScrollView from '@/components/RefreshableScrollView';
 
-interface InternetProvider {
-  id: string;
-  name: string;
-  color: string;
-}
-
-interface InternetPlan {
-  id: string;
-  name: string;
-  speed: string;
-  price: number;
-  validity: string;
-}
+interface InternetProvider { id: string; name: string; color: string; }
+interface InternetPlan { id: string; name: string; speed: string; price: number; validity: string; }
 
 export default function InternetScreen() {
   const router = useRouter();
@@ -40,8 +22,10 @@ export default function InternetScreen() {
   const [showPlans, setShowPlans] = useState(false);
   const [customerName, setCustomerName] = useState('');
   const [isValidating, setIsValidating] = useState(false);
+  const [pin, setPin] = useState('');
+  const [showPin, setShowPin] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [errors, setErrors] = useState({ provider: '', account: '', plan: '' });
+  const [errors, setErrors] = useState({ provider: '', account: '', plan: '', pin: '' });
 
   const internetProviders: InternetProvider[] = [
     { id: 'smile', name: 'Smile', color: '#FDB913' },
@@ -88,223 +72,177 @@ export default function InternetScreen() {
     if (accountNumber.length >= 8 && selectedProvider) {
       setIsValidating(true);
       try {
-        await new Promise((resolve) => setTimeout(resolve, 1000));
-        setCustomerName('John Doe');
-      } catch (error) {
+        const result = await api.post<any>('/bills/validate', {
+          category: 'internet',
+          providerCode: selectedProvider.id,
+          recipient: accountNumber,
+        });
+        setCustomerName(result.customerName || 'John Doe');
+      } catch {
         Alert.alert('Error', 'Invalid account number. Please check and try again.');
-      } finally {
-        setIsValidating(false);
-      }
+      } finally { setIsValidating(false); }
     }
   };
 
   const validateForm = () => {
-    const newErrors = { provider: '', account: '', plan: '' };
+    const newErrors = { provider: '', account: '', plan: '', pin: '' };
     let isValid = true;
-
-    if (!selectedProvider) {
-      newErrors.provider = 'Please select a provider';
-      isValid = false;
-    }
-
-    if (accountNumber.length < 8) {
-      newErrors.account = 'Account number must be at least 8 digits';
-      isValid = false;
-    }
-
-    if (!selectedPlan) {
-      newErrors.plan = 'Please select a plan';
-      isValid = false;
-    }
-
+    if (!selectedProvider) { newErrors.provider = 'Please select a provider'; isValid = false; }
+    if (accountNumber.length < 8) { newErrors.account = 'Account number must be at least 8 digits'; isValid = false; }
+    if (!selectedPlan) { newErrors.plan = 'Please select a plan'; isValid = false; }
+    if (pin.length !== 4) { newErrors.pin = 'PIN must be 4 digits'; isValid = false; }
     setErrors(newErrors);
     return isValid;
   };
 
   const handleSubmit = async () => {
     if (!validateForm()) return;
-
     setIsSubmitting(true);
     try {
-      await new Promise((resolve) => setTimeout(resolve, 1500));
+      await api.post('/bills/pay', {
+        category: 'internet',
+        providerCode: selectedProvider!.id,
+        recipient: accountNumber,
+        amount: selectedPlan!.price,
+        planId: selectedPlan!.id,
+        pin,
+      });
       Alert.alert('Success', `${selectedPlan?.name} internet plan has been activated`, [
         { text: 'Done', onPress: () => router.back() },
       ]);
-    } catch (error) {
-      Alert.alert('Error', 'Unable to process request. Please try again.');
-    } finally {
-      setIsSubmitting(false);
-    }
+    } catch (err: any) {
+      Alert.alert('Error', err.message || 'Unable to process request. Please try again.');
+    } finally { setIsSubmitting(false); }
   };
 
+  const isDisabled = isSubmitting || !selectedProvider || accountNumber.length < 8 || !selectedPlan || pin.length !== 4;
+  const providerPlans = selectedProvider ? internetPlans[selectedProvider.id] : [];
+
   return (
-    <SafeAreaView style={tw`flex-1 py-4 bg-white`}>
-      <StatusBar barStyle="dark-content" />
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={tw`flex-1`}
-      >
-        {/* Header */}
-        <View style={tw`px-6 py-4 border-b border-gray-100 bg-white`}>
+    <SafeAreaView style={[tw`flex-1 py-5`, { backgroundColor: DARK_BG }]}>
+      <StatusBar style="light" />
+      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={tw`flex-1`}>
+        <View style={tw`px-5 pt-4 pb-5 border-b border-white/7`}>
           <View style={tw`flex-row items-center`}>
-            <TouchableOpacity onPress={() => router.back()} style={tw`mr-4`} activeOpacity={0.7}>
-              <Ionicons name="arrow-back" size={24} color="#111827" />
+            <TouchableOpacity onPress={() => router.back()} style={tw`w-[38px] h-[38px] rounded-xl bg-white/7 items-center justify-center mr-4`} activeOpacity={0.7}>
+              <Ionicons name="arrow-back" size={20} color="rgba(255,255,255,0.75)" />
             </TouchableOpacity>
             <View>
-              <Text style={tw`text-xl font-bold text-gray-900`}>Internet/Broadband</Text>
-              <Text style={tw`text-xs text-gray-500`}>Subscribe to internet plans</Text>
+              <Text style={tw`text-white text-[20px] font-bold tracking-tight`}>Internet/Broadband</Text>
+              <Text style={tw`text-white/35 text-[12px] mt-0.5`}>Subscribe to internet plans</Text>
             </View>
           </View>
         </View>
 
-        <ScrollView style={tw`flex-1 px-6 pt-6`} showsVerticalScrollIndicator={false} contentContainerStyle={tw`pb-8`}>
-          {/* Select Provider */}
+        <RefreshableScrollView style={tw`flex-1 px-5 pt-6`} showsVerticalScrollIndicator={false} contentContainerStyle={tw`pb-10`}>
           <View style={tw`mb-6`}>
-            <Text style={tw`text-sm font-semibold text-gray-700 mb-3`}>Select Provider</Text>
+            <Text style={tw`text-white/55 text-[12px] font-semibold tracking-wide mb-3`}>Select Provider</Text>
             <View style={tw`flex-row gap-3 flex-wrap`}>
-              {internetProviders.map((provider) => (
-                <TouchableOpacity
-                  key={provider.id}
-                  style={[
-                    tw`w-[48%] p-4 rounded-2xl items-center border-2`,
-                    selectedProvider?.id === provider.id
-                      ? { borderColor: provider.color, backgroundColor: `${provider.color}20` }
-                      : tw`border-gray-200 bg-gray-50`,
-                  ]}
-                  onPress={() => {
-                    setSelectedProvider(provider);
-                    setSelectedPlan(null);
-                    if (errors.provider) setErrors((prev) => ({ ...prev, provider: '' }));
-                  }}
-                  activeOpacity={0.7}
-                >
-                  <Ionicons name="globe" size={32} color={provider.color} />
-                  <Text style={tw`text-sm font-semibold text-gray-900 text-center mt-2`}>
-                    {provider.name}
-                  </Text>
-                </TouchableOpacity>
-              ))}
+              {internetProviders.map((provider) => {
+                const isSelected = selectedProvider?.id === provider.id;
+                return (
+                  <TouchableOpacity
+                    key={provider.id}
+                    style={[
+                      tw`w-[48%] py-4 rounded-2xl items-center border`,
+                      isSelected
+                        ? { borderColor: provider.color, backgroundColor: `${provider.color}18` }
+                        : tw`border-white/10 bg-white/4`,
+                    ]}
+                    onPress={() => { setSelectedProvider(provider); setSelectedPlan(null); if (errors.provider) setErrors((prev) => ({ ...prev, provider: '' })); }}
+                    activeOpacity={0.75}
+                  >
+                    <View style={[tw`w-10 h-10 rounded-xl items-center justify-center mb-2`, { backgroundColor: `${provider.color}20` }]}>
+                      <Ionicons name="globe" size={20} color={provider.color} />
+                    </View>
+                    <Text style={[tw`text-[12px] font-semibold`, { color: isSelected ? provider.color : 'rgba(255,255,255,0.5)' }]}>{provider.name}</Text>
+                  </TouchableOpacity>
+                );
+              })}
             </View>
-            {errors.provider ? <Text style={tw`text-red-500 text-xs mt-1 ml-1`}>{errors.provider}</Text> : null}
+            {errors.provider ? <Text style={tw`text-red-400 text-[11px] mt-1.5 ml-1`}>{errors.provider}</Text> : null}
           </View>
 
-          {/* Account Number */}
           <View style={tw`mb-2`}>
-            <Text style={tw`text-sm font-semibold text-gray-700 mb-3`}>Account Number</Text>
-            <View
-              style={tw`border ${errors.account ? 'border-red-500' : 'border-gray-300'} rounded-xl px-4 py-3 flex-row items-center bg-gray-50`}
-            >
+            <Text style={tw`text-white/55 text-[12px] font-semibold tracking-wide mb-2`}>Account Number</Text>
+            <View style={tw`bg-white/5 border ${errors.account ? 'border-red-500/70' : 'border-white/10'} rounded-2xl px-4 h-[52px] flex-row items-center`}>
               <TextInput
-                style={tw`flex-1 text-base text-gray-900`}
+                style={tw`flex-1 text-[14px] text-white`}
                 placeholder="Enter account number"
-                placeholderTextColor="#9ca3af"
+                placeholderTextColor="rgba(255,255,255,0.2)"
                 keyboardType="number-pad"
                 value={accountNumber}
                 onChangeText={handleAccountChange}
                 onBlur={handleValidateAccount}
                 maxLength={15}
               />
-              {isValidating && <ActivityIndicator size="small" color="#06b6d4" />}
+              {isValidating && <ActivityIndicator size="small" color="#22d3ee" />}
             </View>
-            {errors.account ? <Text style={tw`text-red-500 text-xs mt-1 ml-1`}>{errors.account}</Text> : null}
+            {errors.account ? <Text style={tw`text-red-400 text-[11px] mt-1.5 ml-1`}>{errors.account}</Text> : null}
           </View>
-          {customerName && (
-            <View style={tw`bg-green-50 border border-green-200 p-3 rounded-xl mb-6 flex-row items-center`}>
-              <Ionicons name="checkmark-circle" size={20} color="#10b981" />
-              <Text style={tw`text-green-700 font-semibold ml-2`}>{customerName}</Text>
-            </View>
-          )}
-          {!customerName && <View style={tw`mb-6`} />}
 
-          {/* Select Plan */}
-          {selectedProvider && internetPlans[selectedProvider.id] && (
+          {customerName ? (
+            <View style={tw`bg-emerald-500/10 border border-emerald-500/20 p-3 rounded-2xl mb-5 flex-row items-center gap-2`}>
+              <Ionicons name="checkmark-circle" size={17} color="#10b981" />
+              <Text style={tw`text-emerald-400 font-semibold text-[13px]`}>{customerName}</Text>
+            </View>
+          ) : <View style={tw`mb-5`} />}
+
+          <View style={tw`mb-4`}>
+            <Text style={tw`text-white/55 text-[12px] font-semibold tracking-wide mb-2`}>Transaction PIN</Text>
+            <View style={tw`bg-white/5 border ${errors.pin ? 'border-red-500/70' : 'border-white/10'} rounded-2xl px-4 h-[52px] flex-row items-center`}>
+              <TextInput
+                style={tw`flex-1 text-[14px] text-white`}
+                placeholder="Enter your PIN"
+                placeholderTextColor="rgba(255,255,255,0.2)"
+                keyboardType="number-pad"
+                secureTextEntry={!showPin}
+                maxLength={4}
+                value={pin}
+                onChangeText={(text) => { setPin(text.replace(/[^0-9]/g, '').slice(0, 4)); if (errors.pin) setErrors((prev) => ({ ...prev, pin: '' })); }}
+              />
+              <TouchableOpacity onPress={() => setShowPin(!showPin)}>
+                <Ionicons name={showPin ? 'eye-outline' : 'eye-off-outline'} size={20} color="rgba(255,255,255,0.35)" />
+              </TouchableOpacity>
+            </View>
+            {errors.pin ? <Text style={tw`text-red-400 text-[11px] mt-1.5 ml-1`}>{errors.pin}</Text> : null}
+          </View>
+
+          {selectedProvider && providerPlans && providerPlans.length > 0 && (
             <>
               <View style={tw`mb-6`}>
-                <Text style={tw`text-sm font-semibold text-gray-700 mb-3`}>Select Plan</Text>
+                <Text style={tw`text-white/55 text-[12px] font-semibold tracking-wide mb-3`}>Select Plan</Text>
                 <TouchableOpacity
-                  style={tw`border ${errors.plan ? 'border-red-500' : 'border-gray-300'} rounded-xl px-4 py-4 flex-row justify-between items-center bg-gray-50`}
+                  style={tw`bg-white/5 border ${errors.plan ? 'border-red-500/70' : 'border-white/10'} rounded-2xl px-4 h-[56px] flex-row justify-between items-center`}
                   onPress={() => setShowPlans(true)}
-                  activeOpacity={0.7}
+                  activeOpacity={0.75}
                 >
                   {selectedPlan ? (
                     <View>
-                      <Text style={tw`font-semibold text-gray-900`}>{selectedPlan.name}</Text>
-                      <Text style={tw`text-xs text-gray-500`}>
-                        {selectedPlan.speed} • {selectedPlan.validity} • ₦{selectedPlan.price.toLocaleString()}
-                      </Text>
+                      <Text style={tw`text-white text-[14px] font-semibold`}>{selectedPlan.name}</Text>
+                      <Text style={tw`text-white/35 text-[11px]`}>{selectedPlan.speed} · {selectedPlan.validity}</Text>
                     </View>
                   ) : (
-                    <Text style={tw`text-gray-400`}>Choose a plan</Text>
+                    <Text style={tw`text-white/25 text-[14px]`}>Choose a plan</Text>
                   )}
-                  <Ionicons name="chevron-down" size={24} color="#9ca3af" />
+                  <Ionicons name="chevron-down" size={18} color="rgba(255,255,255,0.3)" />
                 </TouchableOpacity>
-                {errors.plan ? <Text style={tw`text-red-500 text-xs mt-1 ml-1`}>{errors.plan}</Text> : null}
+                {errors.plan ? <Text style={tw`text-red-400 text-[11px] mt-1.5 ml-1`}>{errors.plan}</Text> : null}
 
-                {/* Plans Modal */}
-                <Modal visible={showPlans} animationType="slide" transparent>
-                  <View style={tw`flex-1 justify-end bg-black/50`}>
-                    <View style={tw`bg-white rounded-t-3xl pt-6 pb-8 max-h-[80%]`}>
-                      <View style={tw`px-6 pb-4 border-b border-gray-100`}>
-                        <View style={tw`flex-row justify-between items-center`}>
-                          <Text style={tw`text-xl font-bold text-gray-900`}>Select Plan</Text>
-                          <TouchableOpacity onPress={() => setShowPlans(false)} activeOpacity={0.7}>
-                            <Ionicons name="close" size={28} color="#111827" />
-                          </TouchableOpacity>
-                        </View>
-                      </View>
-                      <FlatList
-                        data={internetPlans[selectedProvider.id]}
-                        keyExtractor={(item) => item.id}
-                        renderItem={({ item }) => (
-                          <TouchableOpacity
-                            style={tw`px-6 py-4 border-b border-gray-100`}
-                            onPress={() => {
-                              setSelectedPlan(item);
-                              setShowPlans(false);
-                              if (errors.plan) setErrors((prev) => ({ ...prev, plan: '' }));
-                            }}
-                            activeOpacity={0.7}
-                          >
-                            <View style={tw`flex-row justify-between items-center`}>
-                              <View style={tw`flex-1`}>
-                                <Text style={tw`font-bold text-gray-900 text-base`}>{item.name}</Text>
-                                <Text style={tw`text-sm text-gray-500 mt-1`}>
-                                  Speed: {item.speed} • {item.validity}
-                                </Text>
-                              </View>
-                              <Text style={tw`font-bold text-cyan-600 text-lg`}>
-                                ₦{item.price.toLocaleString()}
-                              </Text>
-                            </View>
-                          </TouchableOpacity>
-                        )}
-                      />
-                    </View>
-                  </View>
-                </Modal>
-              </View>
-
-              {/* Available Plans */}
-              <View style={tw`mb-6`}>
-                <Text style={tw`text-sm font-semibold text-gray-700 mb-3`}>Available Plans</Text>
-                <View style={tw`gap-3`}>
-                  {internetPlans[selectedProvider.id].slice(0, 3).map((plan) => (
+                <View style={tw`gap-3 mt-4`}>
+                  <Text style={tw`text-white/55 text-[12px] font-semibold tracking-wide`}>Popular plans</Text>
+                  {providerPlans.slice(0, 3).map((plan) => (
                     <TouchableOpacity
                       key={plan.id}
-                      style={tw`bg-cyan-50 border border-cyan-100 p-4 rounded-xl`}
-                      onPress={() => {
-                        setSelectedPlan(plan);
-                        if (errors.plan) setErrors((prev) => ({ ...prev, plan: '' }));
-                      }}
-                      activeOpacity={0.7}
+                      style={tw`bg-cyan-500/10 border border-cyan-500/20 p-4 rounded-2xl flex-row justify-between items-center`}
+                      onPress={() => { setSelectedPlan(plan); if (errors.plan) setErrors((prev) => ({ ...prev, plan: '' })); }}
+                      activeOpacity={0.75}
                     >
-                      <View style={tw`flex-row justify-between items-center mb-2`}>
-                        <Text style={tw`font-bold text-gray-900`}>{plan.name}</Text>
-                        <Text style={tw`font-bold text-cyan-600`}>₦{plan.price.toLocaleString()}</Text>
+                      <View>
+                        <Text style={tw`text-white font-bold text-[13px]`}>{plan.name}</Text>
+                        <Text style={tw`text-white/35 text-[11px] mt-0.5`}>{plan.speed} · {plan.validity}</Text>
                       </View>
-                      <Text style={tw`text-xs text-gray-600`}>
-                        Speed: {plan.speed} • Valid for {plan.validity}
-                      </Text>
+                      <Text style={tw`text-cyan-400 font-bold text-[14px]`}>₦{plan.price.toLocaleString()}</Text>
                     </TouchableOpacity>
                   ))}
                 </View>
@@ -313,20 +251,45 @@ export default function InternetScreen() {
           )}
 
           <TouchableOpacity
-            style={tw`bg-blue-600 py-4 rounded-xl mb-6 shadow-lg ${isSubmitting || !selectedProvider || accountNumber.length < 8 || !selectedPlan ? 'opacity-60' : ''}`}
-            disabled={isSubmitting || !selectedProvider || accountNumber.length < 8 || !selectedPlan}
+            style={tw`bg-blue-500 h-[52px] rounded-2xl items-center justify-center ${isDisabled ? 'opacity-50' : ''}`}
+            disabled={isDisabled}
             onPress={handleSubmit}
-            activeOpacity={0.8}
+            activeOpacity={0.85}
           >
-            {isSubmitting ? (
-              <ActivityIndicator color="#fff" />
-            ) : (
-              <Text style={tw`text-white text-center font-bold text-lg`}>Continue</Text>
-            )}
+            {isSubmitting ? <ActivityIndicator color="#fff" /> : <Text style={tw`text-white font-semibold text-[15px] tracking-tight`}>Continue</Text>}
           </TouchableOpacity>
-        </ScrollView>
+        </RefreshableScrollView>
       </KeyboardAvoidingView>
+
+      <Modal visible={showPlans} animationType="slide" transparent>
+        <View style={tw`flex-1 justify-end bg-black/60`}>
+          <View style={[tw`rounded-t-3xl pt-6 pb-10 max-h-[80%]`, { backgroundColor: '#0f0f1e' }]}>
+            <View style={tw`px-5 pb-4 border-b border-white/7 flex-row justify-between items-center`}>
+              <Text style={tw`text-white text-[17px] font-bold tracking-tight`}>Select Plan</Text>
+              <TouchableOpacity onPress={() => setShowPlans(false)} style={tw`w-[34px] h-[34px] rounded-xl bg-white/7 items-center justify-center`} activeOpacity={0.7}>
+                <Ionicons name="close" size={18} color="rgba(255,255,255,0.7)" />
+              </TouchableOpacity>
+            </View>
+            <FlatList
+              data={providerPlans}
+              keyExtractor={(item) => item.id}
+              renderItem={({ item }) => (
+                <TouchableOpacity
+                  style={tw`px-5 py-4 border-b border-white/7 flex-row justify-between items-center`}
+                  onPress={() => { setSelectedPlan(item); setShowPlans(false); if (errors.plan) setErrors((prev) => ({ ...prev, plan: '' })); }}
+                  activeOpacity={0.75}
+                >
+                  <View style={tw`flex-1`}>
+                    <Text style={tw`text-white font-bold text-[14px]`}>{item.name}</Text>
+                    <Text style={tw`text-white/35 text-[12px] mt-0.5`}>Speed: {item.speed} · {item.validity}</Text>
+                  </View>
+                  <Text style={tw`text-cyan-400 font-bold text-[15px]`}>₦{item.price.toLocaleString()}</Text>
+                </TouchableOpacity>
+              )}
+            />
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
-

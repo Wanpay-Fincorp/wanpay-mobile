@@ -3,7 +3,7 @@ import { Stack } from 'expo-router';
 
 export default function ProfileLayout() {
   return (
-    <Stack>
+    <Stack screenOptions={{headerShown:false}}>
       <Stack.Screen name="personal-information" options={{ headerShown: false }} />
       <Stack.Screen name="security-settings" options={{ headerShown: false }} />
       <Stack.Screen name="transaction-limits" options={{ headerShown: false }} />

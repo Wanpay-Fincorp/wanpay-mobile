@@ -5,9 +5,11 @@ import { StatusBar } from 'expo-status-bar';
 import React, { useState } from 'react';
 import {
   ActivityIndicator, Alert, FlatList, KeyboardAvoidingView, Modal,
-  Platform, SafeAreaView, ScrollView, Text, TextInput, TouchableOpacity, View,
+  Platform, SafeAreaView, Text, TextInput, TouchableOpacity, View,
 } from 'react-native';
 import tw from 'twrnc';
+import { api } from '@/lib/api';
+import RefreshableScrollView from '@/components/RefreshableScrollView';
 
 interface Network { id: string; name: string; color: string; }
 interface DataPlan { id: string; name: string; validity: string; price: number; }
@@ -18,8 +20,10 @@ export default function DataScreen() {
   const [phoneNumber, setPhoneNumber] = useState('');
   const [selectedPlan, setSelectedPlan] = useState<DataPlan | null>(null);
   const [showPlans, setShowPlans] = useState(false);
+  const [pin, setPin] = useState('');
+  const [showPin, setShowPin] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [errors, setErrors] = useState({ network: '', phone: '', plan: '' });
+  const [errors, setErrors] = useState({ network: '', phone: '', plan: '', pin: '' });
 
   const networks: Network[] = [
     { id: 'mtn',     name: 'MTN',     color: '#FFCC00' },
@@ -48,11 +52,12 @@ export default function DataScreen() {
   };
 
   const validateForm = () => {
-    const newErrors = { network: '', phone: '', plan: '' };
+    const newErrors = { network: '', phone: '', plan: '', pin: '' };
     let isValid = true;
     if (!selectedNetwork) { newErrors.network = 'Please select a network'; isValid = false; }
     if (phoneNumber.length !== 10) { newErrors.phone = 'Phone number must be 10 digits'; isValid = false; }
     if (!selectedPlan) { newErrors.plan = 'Please select a data plan'; isValid = false; }
+    if (pin.length !== 4) { newErrors.pin = 'PIN must be 4 digits'; isValid = false; }
     setErrors(newErrors);
     return isValid;
   };
@@ -61,22 +66,27 @@ export default function DataScreen() {
     if (!validateForm()) return;
     setIsSubmitting(true);
     try {
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      await api.post('/bills/pay', {
+        category: 'data',
+        providerCode: selectedNetwork!.id,
+        recipient: `+234${phoneNumber}`,
+        amount: selectedPlan!.price,
+        planId: selectedPlan!.id,
+        pin,
+      });
       Alert.alert('Success', `${selectedPlan?.name} data plan activated for ${phoneNumber}`, [
         { text: 'Done', onPress: () => router.back() },
       ]);
-    } catch { Alert.alert('Error', 'Unable to process request. Please try again.'); }
+    } catch (err: any) { Alert.alert('Error', err.message || 'Unable to process request. Please try again.'); }
     finally { setIsSubmitting(false); }
   };
 
-  const isDisabled = isSubmitting || !selectedNetwork || phoneNumber.length !== 10 || !selectedPlan;
+  const isDisabled = isSubmitting || !selectedNetwork || phoneNumber.length !== 10 || !selectedPlan || pin.length !== 4;
 
   return (
     <SafeAreaView style={[tw`flex-1 py-5`, { backgroundColor: DARK_BG }]}>
       <StatusBar style="light" />
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={tw`flex-1`}>
-
-        {/* Header */}
         <View style={tw`px-5 pt-4 pb-5 border-b border-white/7`}>
           <View style={tw`flex-row items-center`}>
             <TouchableOpacity onPress={() => router.back()} style={tw`w-[38px] h-[38px] rounded-xl bg-white/7 items-center justify-center mr-4`} activeOpacity={0.7}>
@@ -89,9 +99,7 @@ export default function DataScreen() {
           </View>
         </View>
 
-        <ScrollView style={tw`flex-1 px-5 pt-6`} showsVerticalScrollIndicator={false} contentContainerStyle={tw`pb-10`}>
-
-          {/* Network selector */}
+        <RefreshableScrollView style={tw`flex-1 px-5 pt-6`} showsVerticalScrollIndicator={false} contentContainerStyle={tw`pb-10`}>
           <View style={tw`mb-6`}>
             <Text style={tw`text-white/55 text-[12px] font-semibold tracking-wide mb-3`}>Select network</Text>
             <View style={tw`flex-row gap-2`}>
@@ -106,19 +114,13 @@ export default function DataScreen() {
                         ? { borderColor: `${network.color}60`, backgroundColor: `${network.color}18` }
                         : tw`border-white/10 bg-white/4`,
                     ]}
-                    onPress={() => {
-                      setSelectedNetwork(network);
-                      setSelectedPlan(null);
-                      if (errors.network) setErrors(p => ({ ...p, network: '' }));
-                    }}
+                    onPress={() => { setSelectedNetwork(network); setSelectedPlan(null); if (errors.network) setErrors(p => ({ ...p, network: '' })); }}
                     activeOpacity={0.75}
                   >
                     <View style={[tw`w-9 h-9 rounded-xl items-center justify-center mb-2`, { backgroundColor: `${network.color}20` }]}>
                       <Ionicons name="phone-portrait-outline" size={18} color={network.color} />
                     </View>
-                    <Text style={[tw`text-[11px] font-semibold`, { color: isSelected ? network.color : 'rgba(255,255,255,0.5)' }]}>
-                      {network.name}
-                    </Text>
+                    <Text style={[tw`text-[11px] font-semibold`, { color: isSelected ? network.color : 'rgba(255,255,255,0.5)' }]}>{network.name}</Text>
                   </TouchableOpacity>
                 );
               })}
@@ -126,7 +128,6 @@ export default function DataScreen() {
             {errors.network ? <Text style={tw`text-red-400 text-[11px] mt-1.5 ml-1`}>{errors.network}</Text> : null}
           </View>
 
-          {/* Phone number */}
           <View style={tw`mb-5`}>
             <Text style={tw`text-white/55 text-[12px] font-semibold tracking-wide mb-2`}>Phone number</Text>
             <View style={tw`flex-row items-center bg-white/5 border ${errors.phone ? 'border-red-500/70' : 'border-white/10'} rounded-2xl px-4 h-[52px]`}>
@@ -140,16 +141,11 @@ export default function DataScreen() {
                 maxLength={10}
                 value={phoneNumber}
                 onChangeText={handlePhoneChange}
-                autoComplete="tel"
               />
-              <TouchableOpacity activeOpacity={0.7}>
-                <Ionicons name="person-circle-outline" size={22} color="rgba(96,165,250,0.7)" />
-              </TouchableOpacity>
             </View>
             {errors.phone ? <Text style={tw`text-red-400 text-[11px] mt-1.5 ml-1`}>{errors.phone}</Text> : null}
           </View>
 
-          {/* Plan picker */}
           <View style={tw`mb-5`}>
             <Text style={tw`text-white/55 text-[12px] font-semibold tracking-wide mb-2`}>Data plan</Text>
             <TouchableOpacity
@@ -170,7 +166,26 @@ export default function DataScreen() {
             {errors.plan ? <Text style={tw`text-red-400 text-[11px] mt-1.5 ml-1`}>{errors.plan}</Text> : null}
           </View>
 
-          {/* Popular plans */}
+          <View style={tw`mb-4`}>
+            <Text style={tw`text-white/55 text-[12px] font-semibold tracking-wide mb-2`}>Transaction PIN</Text>
+            <View style={tw`bg-white/5 border ${errors.pin ? 'border-red-500/70' : 'border-white/10'} rounded-2xl px-4 h-[52px] flex-row items-center`}>
+              <TextInput
+                style={tw`flex-1 text-[14px] text-white`}
+                placeholder="Enter your PIN"
+                placeholderTextColor="rgba(255,255,255,0.2)"
+                keyboardType="number-pad"
+                secureTextEntry={!showPin}
+                maxLength={4}
+                value={pin}
+                onChangeText={(text) => { setPin(text.replace(/[^0-9]/g, '').slice(0, 4)); if (errors.pin) setErrors(p => ({ ...p, pin: '' })); }}
+              />
+              <TouchableOpacity onPress={() => setShowPin(!showPin)}>
+                <Ionicons name={showPin ? 'eye-outline' : 'eye-off-outline'} size={20} color="rgba(255,255,255,0.35)" />
+              </TouchableOpacity>
+            </View>
+            {errors.pin ? <Text style={tw`text-red-400 text-[11px] mt-1.5 ml-1`}>{errors.pin}</Text> : null}
+          </View>
+
           <View style={tw`mb-7`}>
             <Text style={tw`text-white/55 text-[12px] font-semibold tracking-wide mb-3`}>Popular plans</Text>
             <View style={tw`flex-row gap-2`}>
@@ -189,7 +204,6 @@ export default function DataScreen() {
             </View>
           </View>
 
-          {/* CTA */}
           <TouchableOpacity
             style={tw`bg-blue-500 h-[52px] rounded-2xl items-center justify-center ${isDisabled ? 'opacity-50' : ''}`}
             disabled={isDisabled}
@@ -198,10 +212,9 @@ export default function DataScreen() {
           >
             {isSubmitting ? <ActivityIndicator color="#fff" /> : <Text style={tw`text-white font-semibold text-[15px] tracking-tight`}>Continue</Text>}
           </TouchableOpacity>
-        </ScrollView>
+        </RefreshableScrollView>
       </KeyboardAvoidingView>
 
-      {/* Plans modal */}
       <Modal visible={showPlans} animationType="slide" transparent>
         <View style={tw`flex-1 justify-end bg-black/60`}>
           <View style={[tw`rounded-t-3xl pt-6 pb-10 max-h-[80%]`, { backgroundColor: '#0f0f1e' }]}>

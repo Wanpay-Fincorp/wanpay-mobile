@@ -1,4 +1,4 @@
-import { Grant, GrantCategory } from "@/app/(tabs)/grants";
+import type { Grant, GrantCategory } from "@/lib/types";
 import { useMemo } from "react";
 
   // Sample grants data
@@ -11,7 +11,7 @@ import { useMemo } from "react";
         organization: 'Tony Elumelu Foundation',
         amount: '$5,000',
         category: 'Business',
-        deadline: 'Dec 31, 2024',
+        deadline: 'Dec 31, 2026',
         status: 'open',
         description: 'The TEF Entrepreneurship Programme is open to entrepreneurs from all 54 African countries. The Programme provides training, mentoring, and seed capital funding of $5,000 to African entrepreneurs.',
         requirements: [
@@ -34,7 +34,7 @@ import { useMemo } from "react";
         organization: 'Federal Government of Nigeria',
         amount: '₦1,000,000 - ₦10,000,000',
         category: 'Business',
-        deadline: 'Nov 30, 2024',
+        deadline: 'Nov 30, 2026',
         status: 'closing-soon',
         description: 'Youth Enterprise With Innovation in Nigeria (YouWiN!) Connect is designed to encourage and support aspiring and early-stage entrepreneurs to develop and execute business ideas that will generate employment.',
         requirements: [
@@ -100,7 +100,7 @@ import { useMemo } from "react";
         organization: 'Central Bank of Nigeria',
         amount: '₦250,000 - ₦3,000,000',
         category: 'Agriculture',
-        deadline: 'Dec 15, 2024',
+        deadline: 'Dec 15, 2026',
         status: 'open',
         description: 'YEDP aims to address youth unemployment by providing financial assistance and business training to young Nigerians in agriculture and agro-processing.',
         requirements: [
@@ -144,7 +144,7 @@ import { useMemo } from "react";
         organization: 'African Development Bank',
         amount: '$50,000 - $150,000',
         category: 'Innovation',
-        deadline: 'Nov 20, 2024',
+        deadline: 'Nov 20, 2026',
         status: 'closing-soon',
         description: 'Supports innovative youth-led enterprises that can scale and create jobs across Africa.',
         requirements: [

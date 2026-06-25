@@ -1,10 +1,11 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React from 'react';
-import { SafeAreaView, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { SafeAreaView, Text, TouchableOpacity, View } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import tw from 'twrnc';
 import { DARK_BG } from '@/constants/customConstants';
+import RefreshableScrollView from '@/components/RefreshableScrollView';
 
 interface BillCategory {
   id: string;
@@ -23,8 +24,8 @@ export default function BillsScreen() {
     { id: '2', name: 'Data',            icon: 'wifi-outline',      iconColor: '#60a5fa', bgColor: 'bg-blue-500/15',   route: '/bills/data' },
     { id: '3', name: 'Electricity',     icon: 'flash-outline',     iconColor: '#fbbf24', bgColor: 'bg-amber-500/15', route: '/bills/electricity' },
     { id: '4', name: 'TV Subscription', icon: 'tv-outline',        iconColor: '#f87171', bgColor: 'bg-red-500/15',   route: '/bills/tv' },
-    { id: '5', name: 'Education',       icon: 'school-outline',    iconColor: '#34d399', bgColor: 'bg-emerald-500/15', route: '/bills/education' },
     { id: '6', name: 'Internet',        icon: 'globe-outline',     iconColor: '#22d3ee', bgColor: 'bg-cyan-500/15',  route: '/bills/internet' },
+    { id: '5', name: 'More',       icon: 'ellipsis-vertical',    iconColor: '#34d399', bgColor: 'bg-emerald-500/15', route: '/bills/education' },
   ];
 
   const recentBills = [
@@ -43,7 +44,7 @@ export default function BillsScreen() {
         <Text style={tw`text-white/35 text-[12px] mt-1`}>Quick and easy payments</Text>
       </View>
 
-      <ScrollView style={tw`flex-1 px-5`} showsVerticalScrollIndicator={false} contentContainerStyle={tw`pt-6 pb-10`}>
+      <RefreshableScrollView style={tw`flex-1 px-5`} showsVerticalScrollIndicator={false} contentContainerStyle={tw`pt-6 pb-10`}>
 
         {/* Categories */}
         <Text style={tw`text-white text-[14px] font-semibold tracking-tight mb-4`}>Services</Text>
@@ -84,7 +85,7 @@ export default function BillsScreen() {
           </TouchableOpacity>
         ))}
 
-      </ScrollView>
+      </RefreshableScrollView>
     </SafeAreaView>
   );
 }

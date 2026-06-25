@@ -14,28 +14,8 @@ import {
   View,
 } from 'react-native';
 import tw from 'twrnc';
-
-export interface Grant {
-  id: string;
-  title: string;
-  organization: string;
-  amount: string;
-  category: string;
-  deadline: string;
-  status: 'open' | 'closing-soon' | 'closed';
-  description: string;
-  requirements: string[];
-  eligibility: string[];
-  applicationLink?: string;
-}
-
-export interface GrantCategory {
-  id: string;
-  name: string;
-  icon: keyof typeof Ionicons.glyphMap;
-  color: string;
-  count: number;
-}
+import RefreshableScrollView from '@/components/RefreshableScrollView';
+import type { Grant, GrantCategory } from '@/lib/types';
 
 const GROWTH_SECTIONS = [
   { id: 'grants',           label: 'Grants',           description: 'Browse verified local and international grant opportunities.' },
@@ -256,7 +236,7 @@ export default function GrowthHubScreen() {
 
         {/* Grants list */}
         {activeSection === 'grants' && (
-          <ScrollView style={tw`flex-1 px-5 pt-4`} showsVerticalScrollIndicator={false} contentContainerStyle={tw`pb-10`}>
+          <RefreshableScrollView style={tw`flex-1 px-5 pt-4`} showsVerticalScrollIndicator={false} contentContainerStyle={tw`pb-10`}>
             {filteredGrants.length > 0 ? filteredGrants.map(grant => {
               const s = getStatusStyle(grant.status);
               return (
@@ -299,12 +279,12 @@ export default function GrowthHubScreen() {
                 <Text style={tw`text-white/20 text-[12px] mt-1`}>Try adjusting your search or filters</Text>
               </View>
             )}
-          </ScrollView>
+          </RefreshableScrollView>
         )}
 
         {/* Business aids */}
         {activeSection === 'business-aids' && (
-          <ScrollView style={tw`flex-1 px-5 pt-4`} showsVerticalScrollIndicator={false} contentContainerStyle={tw`pb-10`}>
+          <RefreshableScrollView style={tw`flex-1 px-5 pt-4`} showsVerticalScrollIndicator={false} contentContainerStyle={tw`pb-10`}>
             {BUSINESS_AIDS_RESOURCES.map(section => (
               <View key={section.id} style={tw`mb-7`}>
                 <Text style={tw`text-white text-[15px] font-bold tracking-tight mb-1`}>{section.title}</Text>
@@ -331,12 +311,12 @@ export default function GrowthHubScreen() {
                 </View>
               </View>
             ))}
-          </ScrollView>
+          </RefreshableScrollView>
         )}
 
         {/* Training & support */}
         {activeSection === 'training-support' && (
-          <ScrollView style={tw`flex-1 px-5 pt-4`} showsVerticalScrollIndicator={false} contentContainerStyle={tw`pb-10`}>
+          <RefreshableScrollView style={tw`flex-1 px-5 pt-4`} showsVerticalScrollIndicator={false} contentContainerStyle={tw`pb-10`}>
             <View style={tw`bg-white/4 border border-white/7 rounded-2xl p-5`}>
               <View style={tw`w-10 h-10 rounded-xl bg-violet-500/15 border border-violet-500/20 items-center justify-center mb-3`}>
                 <Ionicons name="time-outline" size={20} color="#a78bfa" />
@@ -347,7 +327,7 @@ export default function GrowthHubScreen() {
                 Check back soon for the latest opportunities designed to help your business scale.
               </Text>
             </View>
-          </ScrollView>
+          </RefreshableScrollView>
         )}
       </View>
 
@@ -369,7 +349,7 @@ export default function GrowthHubScreen() {
               </TouchableOpacity>
             </View>
 
-            <ScrollView style={tw`flex-1 px-5 pt-5`} showsVerticalScrollIndicator={false} contentContainerStyle={tw`pb-8`}>
+            <RefreshableScrollView style={tw`flex-1 px-5 pt-5`} showsVerticalScrollIndicator={false} contentContainerStyle={tw`pb-8`}>
               <Text style={tw`text-white text-[20px] font-bold tracking-tight leading-7 mb-1`}>{selectedGrant.title}</Text>
               <Text style={tw`text-white/40 text-[13px] mb-5`}>{selectedGrant.organization}</Text>
 
@@ -415,7 +395,7 @@ export default function GrowthHubScreen() {
                   ))}
                 </View>
               </View>
-            </ScrollView>
+            </RefreshableScrollView>
 
             {/* Apply button */}
             <View style={tw`px-5 py-4 border-t border-white/7`}>

@@ -5,9 +5,11 @@ import { StatusBar } from 'expo-status-bar';
 import React, { useState } from 'react';
 import {
   ActivityIndicator, Alert, FlatList, KeyboardAvoidingView, Modal,
-  Platform, SafeAreaView, ScrollView, Text, TextInput, TouchableOpacity, View,
+  Platform, SafeAreaView, Text, TextInput, TouchableOpacity, View,
 } from 'react-native';
 import tw from 'twrnc';
+import { api } from '@/lib/api';
+import RefreshableScrollView from '@/components/RefreshableScrollView';
 
 interface TVProvider { id: string; name: string; color: string; }
 interface Package { id: string; name: string; price: number; validity: string; }
@@ -20,8 +22,10 @@ export default function TVSubscriptionScreen() {
   const [showPackages, setShowPackages] = useState(false);
   const [customerName, setCustomerName] = useState('');
   const [isValidating, setIsValidating] = useState(false);
+  const [pin, setPin] = useState('');
+  const [showPin, setShowPin] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [errors, setErrors] = useState({ provider: '', card: '', package: '' });
+  const [errors, setErrors] = useState({ provider: '', card: '', package: '', pin: '' });
 
   const tvProviders: TVProvider[] = [
     { id: 'dstv',     name: 'DSTV',     color: '#0033A0' },
@@ -50,19 +54,25 @@ export default function TVSubscriptionScreen() {
     if (smartCardNumber.length >= 10 && selectedProvider) {
       setIsValidating(true);
       try {
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        setCustomerName('John Doe');
-      } catch { Alert.alert('Error', 'Invalid smart card number. Please check and try again.'); }
-      finally { setIsValidating(false); }
+        const result = await api.post<any>('/bills/validate', {
+          category: 'tv',
+          providerCode: selectedProvider.id,
+          recipient: smartCardNumber,
+        });
+        setCustomerName(result.customerName || 'John Doe');
+      } catch {
+        Alert.alert('Error', 'Invalid smart card number. Please check and try again.');
+      } finally { setIsValidating(false); }
     }
   };
 
   const validateForm = () => {
-    const newErrors = { provider: '', card: '', package: '' };
+    const newErrors = { provider: '', card: '', package: '', pin: '' };
     let isValid = true;
     if (!selectedProvider) { newErrors.provider = 'Please select a provider'; isValid = false; }
     if (smartCardNumber.length < 10) { newErrors.card = 'Smart card number must be at least 10 digits'; isValid = false; }
     if (!selectedPackage) { newErrors.package = 'Please select a package'; isValid = false; }
+    if (pin.length !== 4) { newErrors.pin = 'PIN must be 4 digits'; isValid = false; }
     setErrors(newErrors);
     return isValid;
   };
@@ -71,23 +81,28 @@ export default function TVSubscriptionScreen() {
     if (!validateForm()) return;
     setIsSubmitting(true);
     try {
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      await api.post('/bills/pay', {
+        category: 'tv',
+        providerCode: selectedProvider!.id,
+        recipient: smartCardNumber,
+        amount: selectedPackage!.price,
+        planId: selectedPackage!.id,
+        pin,
+      });
       Alert.alert('Success', `${selectedPackage?.name} subscription has been activated`, [
         { text: 'Done', onPress: () => router.back() },
       ]);
-    } catch { Alert.alert('Error', 'Unable to process request. Please try again.'); }
+    } catch (err: any) { Alert.alert('Error', err.message || 'Unable to process request. Please try again.'); }
     finally { setIsSubmitting(false); }
   };
 
-  const isDisabled = isSubmitting || !selectedProvider || smartCardNumber.length < 10 || !selectedPackage;
+  const isDisabled = isSubmitting || !selectedProvider || smartCardNumber.length < 10 || !selectedPackage || pin.length !== 4;
   const providerPlans = selectedProvider ? packages[selectedProvider.id] : [];
 
   return (
     <SafeAreaView style={[tw`flex-1 py-5`, { backgroundColor: DARK_BG }]}>
       <StatusBar style="light" />
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={tw`flex-1`}>
-
-        {/* Header */}
         <View style={tw`px-5 pt-4 pb-5 border-b border-white/7`}>
           <View style={tw`flex-row items-center`}>
             <TouchableOpacity onPress={() => router.back()} style={tw`w-[38px] h-[38px] rounded-xl bg-white/7 items-center justify-center mr-4`} activeOpacity={0.7}>
@@ -100,9 +115,7 @@ export default function TVSubscriptionScreen() {
           </View>
         </View>
 
-        <ScrollView style={tw`flex-1 px-5 pt-6`} showsVerticalScrollIndicator={false} contentContainerStyle={tw`pb-10`}>
-
-          {/* Provider grid */}
+        <RefreshableScrollView style={tw`flex-1 px-5 pt-6`} showsVerticalScrollIndicator={false} contentContainerStyle={tw`pb-10`}>
           <View style={tw`mb-5`}>
             <Text style={tw`text-white/55 text-[12px] font-semibold tracking-wide mb-3`}>Select provider</Text>
             <View style={tw`flex-row flex-wrap gap-2`}>
@@ -117,19 +130,13 @@ export default function TVSubscriptionScreen() {
                         ? { borderColor: `${provider.color}60`, backgroundColor: `${provider.color}18` }
                         : tw`border-white/10 bg-white/4`,
                     ]}
-                    onPress={() => {
-                      setSelectedProvider(provider);
-                      setSelectedPackage(null);
-                      if (errors.provider) setErrors(p => ({ ...p, provider: '' }));
-                    }}
+                    onPress={() => { setSelectedProvider(provider); setSelectedPackage(null); if (errors.provider) setErrors(p => ({ ...p, provider: '' })); }}
                     activeOpacity={0.75}
                   >
                     <View style={[tw`w-10 h-10 rounded-xl items-center justify-center mb-2`, { backgroundColor: `${provider.color}20` }]}>
                       <Ionicons name="tv-outline" size={20} color={provider.color} />
                     </View>
-                    <Text style={[tw`text-[12px] font-semibold`, { color: isSelected ? provider.color : 'rgba(255,255,255,0.5)' }]}>
-                      {provider.name}
-                    </Text>
+                    <Text style={[tw`text-[12px] font-semibold`, { color: isSelected ? provider.color : 'rgba(255,255,255,0.5)' }]}>{provider.name}</Text>
                   </TouchableOpacity>
                 );
               })}
@@ -137,7 +144,6 @@ export default function TVSubscriptionScreen() {
             {errors.provider ? <Text style={tw`text-red-400 text-[11px] mt-1.5 ml-1`}>{errors.provider}</Text> : null}
           </View>
 
-          {/* Smart card */}
           <View style={tw`mb-2`}>
             <Text style={tw`text-white/55 text-[12px] font-semibold tracking-wide mb-2`}>Smart card number</Text>
             <View style={tw`bg-white/5 border ${errors.card ? 'border-red-500/70' : 'border-white/10'} rounded-2xl px-4 h-[52px] flex-row items-center`}>
@@ -163,7 +169,26 @@ export default function TVSubscriptionScreen() {
             </View>
           ) : <View style={tw`mb-5`} />}
 
-          {/* Package picker */}
+          <View style={tw`mb-4`}>
+            <Text style={tw`text-white/55 text-[12px] font-semibold tracking-wide mb-2`}>Transaction PIN</Text>
+            <View style={tw`bg-white/5 border ${errors.pin ? 'border-red-500/70' : 'border-white/10'} rounded-2xl px-4 h-[52px] flex-row items-center`}>
+              <TextInput
+                style={tw`flex-1 text-[14px] text-white`}
+                placeholder="Enter your PIN"
+                placeholderTextColor="rgba(255,255,255,0.2)"
+                keyboardType="number-pad"
+                secureTextEntry={!showPin}
+                maxLength={4}
+                value={pin}
+                onChangeText={(text) => { setPin(text.replace(/[^0-9]/g, '').slice(0, 4)); if (errors.pin) setErrors(p => ({ ...p, pin: '' })); }}
+              />
+              <TouchableOpacity onPress={() => setShowPin(!showPin)}>
+                <Ionicons name={showPin ? 'eye-outline' : 'eye-off-outline'} size={20} color="rgba(255,255,255,0.35)" />
+              </TouchableOpacity>
+            </View>
+            {errors.pin ? <Text style={tw`text-red-400 text-[11px] mt-1.5 ml-1`}>{errors.pin}</Text> : null}
+          </View>
+
           {selectedProvider && providerPlans.length > 0 && (
             <>
               <View style={tw`mb-5`}>
@@ -186,7 +211,6 @@ export default function TVSubscriptionScreen() {
                 {errors.package ? <Text style={tw`text-red-400 text-[11px] mt-1.5 ml-1`}>{errors.package}</Text> : null}
               </View>
 
-              {/* Popular packages */}
               <View style={tw`mb-6`}>
                 <Text style={tw`text-white/55 text-[12px] font-semibold tracking-wide mb-3`}>Popular packages</Text>
                 <View style={tw`gap-2.5`}>
@@ -209,20 +233,6 @@ export default function TVSubscriptionScreen() {
             </>
           )}
 
-          {/* Auto-renewal notice */}
-          {selectedPackage && (
-            <View style={tw`bg-blue-500/10 border border-blue-500/15 rounded-2xl p-4 mb-7 flex-row items-center gap-3`}>
-              <View style={tw`w-9 h-9 rounded-xl bg-blue-500/20 items-center justify-center flex-shrink-0`}>
-                <Ionicons name="refresh-outline" size={17} color="#60a5fa" />
-              </View>
-              <View style={tw`flex-1`}>
-                <Text style={tw`text-blue-300 text-[13px] font-semibold mb-0.5`}>Auto-renewal</Text>
-                <Text style={tw`text-blue-400/55 text-[11px] leading-4`}>Enable auto-renewal to avoid service interruption.</Text>
-              </View>
-            </View>
-          )}
-
-          {/* CTA */}
           <TouchableOpacity
             style={tw`bg-blue-500 h-[52px] rounded-2xl items-center justify-center ${isDisabled ? 'opacity-50' : ''}`}
             disabled={isDisabled}
@@ -231,11 +241,9 @@ export default function TVSubscriptionScreen() {
           >
             {isSubmitting ? <ActivityIndicator color="#fff" /> : <Text style={tw`text-white font-semibold text-[15px] tracking-tight`}>Continue</Text>}
           </TouchableOpacity>
-
-        </ScrollView>
+        </RefreshableScrollView>
       </KeyboardAvoidingView>
 
-      {/* Packages modal */}
       <Modal visible={showPackages} animationType="slide" transparent>
         <View style={tw`flex-1 justify-end bg-black/60`}>
           <View style={[tw`rounded-t-3xl pt-6 pb-10 max-h-[80%]`, { backgroundColor: '#0f0f1e' }]}>

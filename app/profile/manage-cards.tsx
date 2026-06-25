@@ -1,316 +1,155 @@
 import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
-import React, { useState } from 'react';
-import {
-  Alert,
-  SafeAreaView,
-  ScrollView,
-  StatusBar,
-  Text,
-  TouchableOpacity,
-  View,
-} from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
+import { useRouter, useFocusEffect } from 'expo-router';
+import React, { useState, useCallback } from 'react';
+import { ActivityIndicator, Alert, SafeAreaView, Text, TouchableOpacity, View } from 'react-native';
 import tw from 'twrnc';
-
-interface Card {
-  id: string;
-  type: 'debit' | 'credit' | 'virtual';
-  number: string;
-  holderName: string;
-  expiryDate: string;
-  isDefault: boolean;
-  color: string[];
-  status: 'active' | 'blocked' | 'expired';
-}
+import { DARK_BG } from '@/constants/customConstants';
+import { api } from '@/lib/api';
+import type { Card } from '@/lib/types';
+import RefreshableScrollView from '@/components/RefreshableScrollView';
 
 export default function ManageCardsScreen() {
   const router = useRouter();
-  const [cards, setCards] = useState<Card[]>([
-    {
-      id: '1',
-      type: 'debit',
-      number: '4567',
-      holderName: 'Samuel Adebayo',
-      expiryDate: '12/26',
-      isDefault: true,
-      color: ['#2563eb', '#3b82f6'],
-      status: 'active',
-    },
-    {
-      id: '2',
-      type: 'virtual',
-      number: '8901',
-      holderName: 'Samuel Adebayo',
-      expiryDate: '08/25',
-      isDefault: false,
-      color: ['#7c3aed', '#8b5cf6'],
-      status: 'active',
-    },
-  ]);
+  const [cards, setCards] = useState<Card[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
 
-  const handleSetDefault = (cardId: string) => {
-    setCards(
-      cards.map((card) => ({
-        ...card,
-        isDefault: card.id === cardId,
-      }))
-    );
-    Alert.alert('Success', 'Default card updated successfully');
+  useFocusEffect(
+    useCallback(() => {
+      loadCards();
+    }, [])
+  );
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await loadCards();
+    setRefreshing(false);
   };
 
-  const handleBlockCard = (card: Card) => {
-    Alert.alert(
-      'Block Card',
-      `Are you sure you want to block card ending in ${card.number}?`,
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Block',
-          style: 'destructive',
-          onPress: () => {
-            setCards(
-              cards.map((c) =>
-                c.id === card.id ? { ...c, status: 'blocked' as const } : c
-              )
-            );
-            Alert.alert('Success', 'Card blocked successfully');
-          },
+  const loadCards = async () => {
+    setLoading(true);
+    try {
+      const data = await api.get<Card[]>('/cards');
+      setCards(data || []);
+    } catch {
+      setCards([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleToggleDefault = async (cardId: string) => {
+    try {
+      await api.put(`/cards/${cardId}/default`, {});
+      await loadCards();
+      Alert.alert('Success', 'Default card updated.');
+    } catch (err: any) {
+      Alert.alert('Error', err.message || 'Failed to update default card.');
+    }
+  };
+
+  const handleBlockCard = async (cardId: string) => {
+    Alert.alert('Block Card', 'Are you sure you want to block this card? This action can be reversed.', [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Block', style: 'destructive', onPress: async () => {
+          try {
+            await api.put(`/cards/${cardId}/block`, {});
+            await loadCards();
+            Alert.alert('Success', 'Card has been blocked.');
+          } catch (err: any) {
+            Alert.alert('Error', err.message || 'Failed to block card.');
+          }
         },
-      ]
-    );
+      },
+    ]);
   };
 
-  const handleUnblockCard = (cardId: string) => {
-    setCards(
-      cards.map((c) => (c.id === cardId ? { ...c, status: 'active' as const } : c))
-    );
-    Alert.alert('Success', 'Card unblocked successfully');
-  };
-
-  const handleDeleteCard = (card: Card) => {
-    Alert.alert(
-      'Delete Card',
-      `Are you sure you want to delete card ending in ${card.number}? This action cannot be undone.`,
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Delete',
-          style: 'destructive',
-          onPress: () => {
-            setCards(cards.filter((c) => c.id !== card.id));
-            Alert.alert('Success', 'Card deleted successfully');
-          },
-        },
-      ]
-    );
-  };
-
-  const getCardTypeLabel = (type: string) => {
-    switch (type) {
-      case 'debit':
-        return 'Debit Card';
-      case 'credit':
-        return 'Credit Card';
-      case 'virtual':
-        return 'Virtual Card';
-      default:
-        return 'Card';
+  const getCardTypeIcon = (type?: string) => {
+    switch (type?.toLowerCase()) {
+      case 'visa': return 'card';
+      case 'mastercard': return 'card';
+      default: return 'card-outline';
     }
   };
 
   return (
-    <SafeAreaView style={tw`flex-1 py-4 bg-gray-50`}>
-      <StatusBar barStyle="light-content" />
-      
-      {/* Header */}
-      <View style={tw`px-3 py-4 border-b border-gray-100 bg-white`}>
+    <SafeAreaView style={tw`flex-1 bg-[${DARK_BG}]`}>
+      <View style={tw`px-3 py-4 border-b border-white/7`}>
         <View style={tw`flex-row items-center justify-between`}>
           <View style={tw`flex-row items-center`}>
             <TouchableOpacity onPress={() => router.back()} style={tw`mr-4`} activeOpacity={0.7}>
-              <Ionicons name="arrow-back" size={24} color="#111827" />
+              <Ionicons name="arrow-back" size={24} color="rgba(255,255,255,0.75)" />
             </TouchableOpacity>
             <View>
-              <Text style={tw`text-xl font-bold text-gray-900`}>Manage Cards</Text>
-              <Text style={tw`text-xs text-gray-500`}>View and manage your cards</Text>
+              <Text style={tw`text-xl font-bold text-white`}>Manage Cards</Text>
+              <Text style={tw`text-xs text-white/40`}>View and manage your cards</Text>
             </View>
           </View>
-          <TouchableOpacity
-            style={tw`bg-blue-600 px-4 py-2 rounded-full`}
-            onPress={() => Alert.alert('Add Card', 'Add new card feature coming soon.')}
-            activeOpacity={0.7}
-          >
-            <Ionicons name="add" size={20} color="#fff" />
+          <TouchableOpacity style={tw`bg-blue-600 w-9 h-9 rounded-full items-center justify-center`} onPress={() => Alert.alert('Add Card', 'Adding a new card coming soon.')} activeOpacity={0.7}>
+            <Ionicons name="add" size={22} color="#fff" />
           </TouchableOpacity>
         </View>
       </View>
 
-      <ScrollView style={tw`flex-1 px-3 pt-6`} showsVerticalScrollIndicator={false} contentContainerStyle={tw`pb-8`}>
-        {/* Cards List */}
-        <View style={tw`mb-6`}>
-          {cards.map((card, index) => (
-            <View key={card.id} style={tw`mb-4`}>
-              {/* Card Display */}
-              <LinearGradient
-                colors={card.color}
-                style={tw`rounded-3xl p-6 mb-4`}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
-              >
+      <RefreshableScrollView style={tw`flex-1 px-3 pt-6`} showsVerticalScrollIndicator={false} contentContainerStyle={tw`pb-8`} refreshing={refreshing} onRefresh={onRefresh}>
+        {loading ? (
+          <View style={tw`items-center py-10`}>
+            <ActivityIndicator color="rgba(255,255,255,0.3)" />
+          </View>
+        ) : cards.length === 0 ? (
+          <View style={tw`items-center py-10`}>
+            <Ionicons name="card-outline" size={64} color="rgba(255,255,255,0.1)" />
+            <Text style={tw`text-white/30 text-lg mt-4`}>No cards found</Text>
+            <Text style={tw`text-white/20 text-sm mt-2`}>Add a card to get started</Text>
+            <TouchableOpacity style={tw`bg-blue-600 px-6 py-3 rounded-xl mt-6`} onPress={() => Alert.alert('Add Card', 'Adding a new card coming soon.')} activeOpacity={0.8}>
+              <Text style={tw`text-white font-bold`}>Add Card</Text>
+            </TouchableOpacity>
+          </View>
+        ) : (
+          cards.map((card, index) => (
+            <View key={card.id || index} style={tw`bg-white/4 border border-white/7 rounded-2xl mb-4 overflow-hidden`}>
+              <View style={tw`bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 p-5`}>
                 <View style={tw`flex-row justify-between items-start mb-6`}>
-                  <View>
-                    <Text style={tw`text-white/80 text-xs mb-1`}>{getCardTypeLabel(card.type)}</Text>
-                    <Text style={tw`text-white text-lg font-bold`}>
-                      •••• •••• •••• {card.number}
-                    </Text>
-                  </View>
-                  {card.status === 'blocked' && (
-                    <View style={tw`bg-red-500 px-2 py-1 rounded-full`}>
-                      <Text style={tw`text-white text-xs font-semibold`}>Blocked</Text>
-                    </View>
-                  )}
-                </View>
-
-                <View style={tw`flex-row justify-between items-end`}>
-                  <View>
-                    <Text style={tw`text-white/80 text-xs mb-1`}>Card Holder</Text>
-                    <Text style={tw`text-white font-semibold`}>{card.holderName}</Text>
-                  </View>
-                  <View>
-                    <Text style={tw`text-white/80 text-xs mb-1`}>Expires</Text>
-                    <Text style={tw`text-white font-semibold`}>{card.expiryDate}</Text>
+                  <Ionicons name={getCardTypeIcon(card.type) as any} size={36} color="rgba(255,255,255,0.8)" />
+                  <View style={tw`${card.isDefault ? 'bg-emerald-500/30 border border-emerald-400/40' : 'bg-white/15'} px-3 py-1 rounded-full`}>
+                    <Text style={tw`text-white text-xs font-semibold`}>{card.isDefault ? 'Default' : 'Secondary'}</Text>
                   </View>
                 </View>
-
-                {card.isDefault && (
-                  <View style={tw`absolute top-4 right-4 bg-white/20 px-3 py-1 rounded-full`}>
-                    <Text style={tw`text-white text-xs font-semibold`}>Default</Text>
+                <Text style={tw`text-white text-xl tracking-widest mb-4`}>{card.last4 ? `**** **** **** ${card.last4}` : '**** **** **** 0000'}</Text>
+                <View style={tw`flex-row justify-between`}>
+                  <Text style={tw`text-white/70 text-xs uppercase`}>{card.holderName || 'Card Holder'}</Text>
+                  <View style={tw`items-end`}>
+                    <Text style={tw`text-white/70 text-xs uppercase mb-1`}>Expires</Text>
+                    <Text style={tw`text-white text-sm`}>{card.expiryDate || '**/**'}</Text>
                   </View>
-                )}
-              </LinearGradient>
-
-              {/* Card Actions */}
-              <View style={tw`bg-white border border-gray-100 rounded-2xl p-4 shadow-sm`}>
-                <View style={tw`flex-row flex-wrap gap-2`}>
-                  {!card.isDefault && card.status === 'active' && (
-                    <TouchableOpacity
-                      style={tw`bg-blue-50 border border-blue-200 px-4 py-2 rounded-xl flex-1`}
-                      onPress={() => handleSetDefault(card.id)}
-                      activeOpacity={0.7}
-                    >
-                      <View style={tw`flex-row items-center justify-center`}>
-                        <Ionicons name="star" size={16} color="#2563eb" />
-                        <Text style={tw`text-blue-600 font-semibold ml-2 text-sm`}>Set Default</Text>
-                      </View>
+                </View>
+              </View>
+              <View style={tw`px-5 py-4`}>
+                <View style={tw`flex-row items-center justify-between mb-1`}>
+                  <Text style={tw`text-white/55 text-xs`}>Status</Text>
+                  <View style={tw`flex-row items-center`}>
+                    <View style={tw`${card.status === 'ACTIVE' ? 'bg-emerald-500' : 'bg-red-500'} w-2 h-2 rounded-full mr-2`} />
+                    <Text style={tw`${card.status === 'ACTIVE' ? 'text-emerald-400' : 'text-red-400'} text-sm capitalize`}>{card.status === 'ACTIVE' ? 'active' : card.status === 'BLOCKED' ? 'blocked' : 'expired'}</Text>
+                  </View>
+                </View>
+                <View style={tw`border-t border-white/7 my-4`}>
+                  <View style={tw`flex-row justify-between mt-4`}>
+                    <TouchableOpacity style={tw`flex-row items-center`} onPress={() => handleToggleDefault(card.id)} activeOpacity={0.7}>
+                      <Ionicons name={card.isDefault ? 'star' : 'star-outline'} size={18} color={card.isDefault ? '#fbbf24' : 'rgba(255,255,255,0.35)'} />
+                      <Text style={tw`text-white/55 text-sm ml-2`}>{card.isDefault ? 'Default' : 'Set as Default'}</Text>
                     </TouchableOpacity>
-                  )}
-
-                  {card.status === 'active' ? (
-                    <TouchableOpacity
-                      style={tw`bg-red-50 border border-red-200 px-4 py-2 rounded-xl flex-1`}
-                      onPress={() => handleBlockCard(card)}
-                      activeOpacity={0.7}
-                    >
-                      <View style={tw`flex-row items-center justify-center`}>
-                        <Ionicons name="lock-closed" size={16} color="#dc2626" />
-                        <Text style={tw`text-red-600 font-semibold ml-2 text-sm`}>Block</Text>
-                      </View>
+                    <TouchableOpacity style={tw`flex-row items-center`} onPress={() => handleBlockCard(card.id)} activeOpacity={0.7}>
+                      <Ionicons name="lock-closed-outline" size={18} color="#ef4444" />
+                      <Text style={tw`text-red-400 text-sm ml-2`}>{card.status === 'BLOCKED' ? 'Blocked' : 'Block'}</Text>
                     </TouchableOpacity>
-                  ) : (
-                    <TouchableOpacity
-                      style={tw`bg-green-50 border border-green-200 px-4 py-2 rounded-xl flex-1`}
-                      onPress={() => handleUnblockCard(card.id)}
-                      activeOpacity={0.7}
-                    >
-                      <View style={tw`flex-row items-center justify-center`}>
-                        <Ionicons name="lock-open" size={16} color="#10b981" />
-                        <Text style={tw`text-green-600 font-semibold ml-2 text-sm`}>Unblock</Text>
-                      </View>
-                    </TouchableOpacity>
-                  )}
-
-                  <TouchableOpacity
-                    style={tw`bg-gray-50 border border-gray-200 px-4 py-2 rounded-xl flex-1`}
-                    onPress={() => Alert.alert('View Details', 'Card details feature coming soon.')}
-                    activeOpacity={0.7}
-                  >
-                    <View style={tw`flex-row items-center justify-center`}>
-                      <Ionicons name="eye-outline" size={16} color="#6b7280" />
-                      <Text style={tw`text-gray-600 font-semibold ml-2 text-sm`}>Details</Text>
-                    </View>
-                  </TouchableOpacity>
-
-                  <TouchableOpacity
-                    style={tw`bg-red-50 border border-red-200 px-4 py-2 rounded-xl`}
-                    onPress={() => handleDeleteCard(card)}
-                    activeOpacity={0.7}
-                  >
-                    <Ionicons name="trash-outline" size={16} color="#dc2626" />
-                  </TouchableOpacity>
+                  </View>
                 </View>
               </View>
             </View>
-          ))}
-        </View>
-
-        {/* Add Card CTA */}
-        <TouchableOpacity
-          style={tw`bg-white border-2 border-dashed border-gray-300 rounded-2xl p-8 items-center mb-6`}
-          onPress={() => Alert.alert('Add Card', 'Add new card feature coming soon.')}
-          activeOpacity={0.7}
-        >
-          <View style={tw`bg-blue-100 w-16 h-16 rounded-full items-center justify-center mb-3`}>
-            <Ionicons name="add" size={32} color="#2563eb" />
-          </View>
-          <Text style={tw`text-gray-900 font-bold text-base mb-1`}>Add New Card</Text>
-          <Text style={tw`text-gray-500 text-sm text-center`}>
-            Add a debit, credit, or virtual card to your account
-          </Text>
-        </TouchableOpacity>
-
-        {/* Security Info */}
-        <View style={tw`bg-blue-50 border border-blue-100 p-4 rounded-xl mb-6`}>
-          <View style={tw`flex-row items-center mb-2`}>
-            <Ionicons name="shield-checkmark-outline" size={20} color="#3b82f6" />
-            <Text style={tw`text-blue-900 font-semibold ml-2`}>Card Security</Text>
-          </View>
-          <Text style={tw`text-xs text-gray-600 mb-2`}>
-            • Your card details are encrypted and secure
-          </Text>
-          <Text style={tw`text-xs text-gray-600 mb-2`}>
-            • Block your card immediately if it's lost or stolen
-          </Text>
-          <Text style={tw`text-xs text-gray-600`}>
-            • Set a default card for faster checkout
-          </Text>
-        </View>
-
-        {/* Card Types Info */}
-        <View style={tw`bg-white border border-gray-100 rounded-2xl p-5 shadow-sm`}>
-          <Text style={tw`text-gray-900 font-bold text-base mb-4`}>Card Types</Text>
-          <View style={tw`gap-4`}>
-            <View>
-              <Text style={tw`text-gray-900 font-semibold text-sm mb-1`}>Debit Card</Text>
-              <Text style={tw`text-gray-500 text-xs`}>
-                Physical card linked to your wallet balance
-              </Text>
-            </View>
-            <View>
-              <Text style={tw`text-gray-900 font-semibold text-sm mb-1`}>Virtual Card</Text>
-              <Text style={tw`text-gray-500 text-xs`}>
-                Digital card for online transactions
-              </Text>
-            </View>
-            <View>
-              <Text style={tw`text-gray-900 font-semibold text-sm mb-1`}>Credit Card</Text>
-              <Text style={tw`text-gray-500 text-xs`}>
-                Credit card for flexible payments
-              </Text>
-            </View>
-          </View>
-        </View>
-      </ScrollView>
+          ))
+        )}
+      </RefreshableScrollView>
     </SafeAreaView>
   );
 }
-

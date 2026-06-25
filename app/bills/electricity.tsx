@@ -5,9 +5,11 @@ import { StatusBar } from 'expo-status-bar';
 import React, { useState } from 'react';
 import {
   ActivityIndicator, Alert, FlatList, KeyboardAvoidingView, Modal,
-  Platform, SafeAreaView, ScrollView, Text, TextInput, TouchableOpacity, View,
+  Platform, SafeAreaView, Text, TextInput, TouchableOpacity, View,
 } from 'react-native';
 import tw from 'twrnc';
+import { api } from '@/lib/api';
+import RefreshableScrollView from '@/components/RefreshableScrollView';
 
 interface DiscoProvider { id: string; name: string; shortName: string; }
 
@@ -20,8 +22,10 @@ export default function ElectricityScreen() {
   const [showDiscos, setShowDiscos] = useState(false);
   const [customerName, setCustomerName] = useState('');
   const [isValidating, setIsValidating] = useState(false);
+  const [pin, setPin] = useState('');
+  const [showPin, setShowPin] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [errors, setErrors] = useState({ disco: '', meter: '', amount: '' });
+  const [errors, setErrors] = useState({ disco: '', meter: '', amount: '', pin: '' });
 
   const discoProviders: DiscoProvider[] = [
     { id: 'ekedc', name: 'Eko Electricity Distribution Company',    shortName: 'EKEDC' },
@@ -47,10 +51,15 @@ export default function ElectricityScreen() {
     if (meterNumber.length >= 11 && selectedDisco) {
       setIsValidating(true);
       try {
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        setCustomerName('John Doe');
-      } catch { Alert.alert('Error', 'Invalid meter number. Please check and try again.'); }
-      finally { setIsValidating(false); }
+        const result = await api.post<any>('/bills/validate', {
+          category: 'electricity',
+          providerCode: selectedDisco.id,
+          recipient: meterNumber,
+        });
+        setCustomerName(result.customerName || 'John Doe');
+      } catch {
+        Alert.alert('Error', 'Invalid meter number. Please check and try again.');
+      } finally { setIsValidating(false); }
     }
   };
 
@@ -61,11 +70,12 @@ export default function ElectricityScreen() {
   };
 
   const validateForm = () => {
-    const newErrors = { disco: '', meter: '', amount: '' };
+    const newErrors = { disco: '', meter: '', amount: '', pin: '' };
     let isValid = true;
     if (!selectedDisco) { newErrors.disco = 'Please select a disco'; isValid = false; }
     if (meterNumber.length < 11) { newErrors.meter = 'Meter number must be at least 11 digits'; isValid = false; }
     if (!parseFloat(amount) || parseFloat(amount) <= 0) { newErrors.amount = 'Enter a valid amount'; isValid = false; }
+    if (pin.length !== 4) { newErrors.pin = 'PIN must be 4 digits'; isValid = false; }
     setErrors(newErrors);
     return isValid;
   };
@@ -74,22 +84,26 @@ export default function ElectricityScreen() {
     if (!validateForm()) return;
     setIsSubmitting(true);
     try {
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      await api.post('/bills/pay', {
+        category: 'electricity',
+        providerCode: selectedDisco!.id,
+        recipient: meterNumber,
+        amount: parseFloat(amount),
+        pin,
+      });
       Alert.alert('Success', `₦${amount} electricity token will be sent to your phone`, [
         { text: 'Done', onPress: () => router.back() },
       ]);
-    } catch { Alert.alert('Error', 'Unable to process request. Please try again.'); }
+    } catch (err: any) { Alert.alert('Error', err.message || 'Unable to process request. Please try again.'); }
     finally { setIsSubmitting(false); }
   };
 
-  const isDisabled = isSubmitting || !selectedDisco || meterNumber.length < 11 || !amount;
+  const isDisabled = isSubmitting || !selectedDisco || meterNumber.length < 11 || !amount || pin.length !== 4;
 
   return (
     <SafeAreaView style={[tw`flex-1 py-5`, { backgroundColor: DARK_BG }]}>
       <StatusBar style="light" />
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={tw`flex-1`}>
-
-        {/* Header */}
         <View style={tw`px-5 pt-4 pb-5 border-b border-white/7`}>
           <View style={tw`flex-row items-center`}>
             <TouchableOpacity onPress={() => router.back()} style={tw`w-[38px] h-[38px] rounded-xl bg-white/7 items-center justify-center mr-4`} activeOpacity={0.7}>
@@ -102,9 +116,7 @@ export default function ElectricityScreen() {
           </View>
         </View>
 
-        <ScrollView style={tw`flex-1 px-5 pt-6`} showsVerticalScrollIndicator={false} contentContainerStyle={tw`pb-10`}>
-
-          {/* Disco picker */}
+        <RefreshableScrollView style={tw`flex-1 px-5 pt-6`} showsVerticalScrollIndicator={false} contentContainerStyle={tw`pb-10`}>
           <View style={tw`mb-5`}>
             <Text style={tw`text-white/55 text-[12px] font-semibold tracking-wide mb-2`}>Select disco</Text>
             <TouchableOpacity
@@ -125,7 +137,6 @@ export default function ElectricityScreen() {
             {errors.disco ? <Text style={tw`text-red-400 text-[11px] mt-1.5 ml-1`}>{errors.disco}</Text> : null}
           </View>
 
-          {/* Meter type toggle */}
           <View style={tw`mb-5`}>
             <Text style={tw`text-white/55 text-[12px] font-semibold tracking-wide mb-2`}>Meter type</Text>
             <View style={tw`flex-row gap-2`}>
@@ -136,15 +147,12 @@ export default function ElectricityScreen() {
                   onPress={() => setMeterType(type)}
                   activeOpacity={0.75}
                 >
-                  <Text style={tw`text-[13px] font-semibold capitalize ${meterType === type ? 'text-amber-400' : 'text-white/40'}`}>
-                    {type}
-                  </Text>
+                  <Text style={tw`text-[13px] font-semibold capitalize ${meterType === type ? 'text-amber-400' : 'text-white/40'}`}>{type}</Text>
                 </TouchableOpacity>
               ))}
             </View>
           </View>
 
-          {/* Meter number */}
           <View style={tw`mb-2`}>
             <Text style={tw`text-white/55 text-[12px] font-semibold tracking-wide mb-2`}>Meter number</Text>
             <View style={tw`bg-white/5 border ${errors.meter ? 'border-red-500/70' : 'border-white/10'} rounded-2xl px-4 h-[52px] flex-row items-center`}>
@@ -170,7 +178,6 @@ export default function ElectricityScreen() {
             </View>
           ) : <View style={tw`mb-5`} />}
 
-          {/* Amount */}
           <View style={tw`mb-4`}>
             <Text style={tw`text-white/55 text-[12px] font-semibold tracking-wide mb-2`}>Amount</Text>
             <View style={tw`bg-white/5 border ${errors.amount ? 'border-red-500/70' : 'border-white/10'} rounded-2xl px-4 h-[60px] flex-row items-center`}>
@@ -187,7 +194,26 @@ export default function ElectricityScreen() {
             {errors.amount ? <Text style={tw`text-red-400 text-[11px] mt-1.5 ml-1`}>{errors.amount}</Text> : null}
           </View>
 
-          {/* Quick amounts */}
+          <View style={tw`mb-4`}>
+            <Text style={tw`text-white/55 text-[12px] font-semibold tracking-wide mb-2`}>Transaction PIN</Text>
+            <View style={tw`bg-white/5 border ${errors.pin ? 'border-red-500/70' : 'border-white/10'} rounded-2xl px-4 h-[52px] flex-row items-center`}>
+              <TextInput
+                style={tw`flex-1 text-[14px] text-white`}
+                placeholder="Enter your PIN"
+                placeholderTextColor="rgba(255,255,255,0.2)"
+                keyboardType="number-pad"
+                secureTextEntry={!showPin}
+                maxLength={4}
+                value={pin}
+                onChangeText={(text) => { setPin(text.replace(/[^0-9]/g, '').slice(0, 4)); if (errors.pin) setErrors(p => ({ ...p, pin: '' })); }}
+              />
+              <TouchableOpacity onPress={() => setShowPin(!showPin)}>
+                <Ionicons name={showPin ? 'eye-outline' : 'eye-off-outline'} size={20} color="rgba(255,255,255,0.35)" />
+              </TouchableOpacity>
+            </View>
+            {errors.pin ? <Text style={tw`text-red-400 text-[11px] mt-1.5 ml-1`}>{errors.pin}</Text> : null}
+          </View>
+
           <View style={tw`flex-row flex-wrap gap-2 mb-6`}>
             {quickAmounts.map(amt => (
               <TouchableOpacity
@@ -201,17 +227,6 @@ export default function ElectricityScreen() {
             ))}
           </View>
 
-          {/* Info notice */}
-          <View style={tw`bg-amber-500/10 border border-amber-500/15 rounded-2xl p-4 mb-7 flex-row items-center gap-3`}>
-            <View style={tw`w-9 h-9 rounded-xl bg-amber-500/20 items-center justify-center flex-shrink-0`}>
-              <Ionicons name="flash-outline" size={17} color="#fbbf24" />
-            </View>
-            <Text style={tw`text-amber-400/70 text-[12px] leading-5 flex-1`}>
-              Your token will be sent via SMS and shown on the next screen.
-            </Text>
-          </View>
-
-          {/* CTA */}
           <TouchableOpacity
             style={tw`bg-blue-500 h-[52px] rounded-2xl items-center justify-center ${isDisabled ? 'opacity-50' : ''}`}
             disabled={isDisabled}
@@ -220,11 +235,9 @@ export default function ElectricityScreen() {
           >
             {isSubmitting ? <ActivityIndicator color="#fff" /> : <Text style={tw`text-white font-semibold text-[15px] tracking-tight`}>Continue</Text>}
           </TouchableOpacity>
-
-        </ScrollView>
+        </RefreshableScrollView>
       </KeyboardAvoidingView>
 
-      {/* Disco modal */}
       <Modal visible={showDiscos} animationType="slide" transparent>
         <View style={tw`flex-1 justify-end bg-black/60`}>
           <View style={[tw`rounded-t-3xl pt-6 pb-10 max-h-[70%]`, { backgroundColor: '#0f0f1e' }]}>

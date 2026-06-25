@@ -1,300 +1,173 @@
 import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
-import React, { useState } from 'react';
-import {
-  Alert,
-  SafeAreaView,
-  ScrollView,
-  StatusBar,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import { useRouter, useFocusEffect } from 'expo-router';
+import React, { useState, useCallback } from 'react';
+import { ActivityIndicator, Alert, SafeAreaView, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import tw from 'twrnc';
-
-interface FAQ {
-  id: string;
-  question: string;
-  answer: string;
-  category: string;
-}
+import { DARK_BG } from '@/constants/customConstants';
+import { api } from '@/lib/api';
+import type { Faq } from '@/lib/types';
+import RefreshableScrollView from '@/components/RefreshableScrollView';
 
 export default function HelpSupportScreen() {
   const router = useRouter();
-  const [expandedFAQ, setExpandedFAQ] = useState<string | null>(null);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [contactForm, setContactForm] = useState({
-    subject: '',
-    message: '',
-  });
+  const [activeTab, setActiveTab] = useState<'faq' | 'contact'>('faq');
+  const [faqs, setFaqs] = useState<Faq[]>([]);
+  const [faqLoading, setFaqLoading] = useState(true);
+  const [expandedFaq, setExpandedFaq] = useState<string | null>(null);
+  const [contactForm, setContactForm] = useState({ subject: '', message: '' });
+  const [submitting, setSubmitting] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
 
-  const faqs: FAQ[] = [
-    {
-      id: '1',
-      question: 'How do I transfer money?',
-      answer: 'To transfer money, go to the Transfer tab, enter the recipient\'s details, amount, and confirm the transaction. You\'ll need to enter your PIN to complete the transfer.',
-      category: 'transactions',
-    },
-    {
-      id: '2',
-      question: 'What are the transaction limits?',
-      answer: 'Transaction limits depend on your account tier. Tier 2 accounts have a daily limit of ₦500,000. You can view and request limit increases in your Profile settings.',
-      category: 'account',
-    },
-    {
-      id: '3',
-      question: 'How do I change my PIN?',
-      answer: 'Go to Profile > Security Settings > Change PIN. Enter your current PIN, then your new PIN twice to confirm. Make sure to use a PIN you can remember but others can\'t guess.',
-      category: 'security',
-    },
-    {
-      id: '4',
-      question: 'How do I pay bills?',
-      answer: 'Navigate to the Bills tab, select the type of bill you want to pay (electricity, TV, data, etc.), enter the details, and confirm the payment.',
-      category: 'bills',
-    },
-    {
-      id: '5',
-      question: 'What should I do if I forgot my PIN?',
-      answer: 'If you forgot your PIN, tap "Forgot PIN" on the login screen. You\'ll receive an OTP to reset your PIN. Alternatively, contact support for assistance.',
-      category: 'security',
-    },
-    {
-      id: '6',
-      question: 'How do I apply for grants?',
-      answer: 'Go to the Grants Hub tab to browse available grants. Click on any grant to view details, requirements, and eligibility. Click "Apply Now" to proceed with the application.',
-      category: 'grants',
-    },
-    {
-      id: '7',
-      question: 'How long does a transfer take?',
-      answer: 'Most transfers are instant. However, transfers to some banks may take a few minutes. You\'ll receive a notification once the transfer is completed.',
-      category: 'transactions',
-    },
-    {
-      id: '8',
-      question: 'Is my account secure?',
-      answer: 'Yes, we use bank-level encryption and multiple security layers including PIN protection, biometric authentication, and transaction alerts to keep your account secure.',
-      category: 'security',
-    },
-  ];
-
-  const supportOptions = [
-    {
-      id: 'chat',
-      title: 'Live Chat',
-      description: 'Chat with our support team',
-      icon: 'chatbubble-ellipses-outline',
-      color: '#2563eb',
-      onPress: () => Alert.alert('Live Chat', 'Connecting you to a support agent...'),
-    },
-    {
-      id: 'call',
-      title: 'Call Us',
-      description: '+234 800 WANPAY',
-      icon: 'call-outline',
-      color: '#10b981',
-      onPress: () => Alert.alert('Call Support', 'Calling support line...'),
-    },
-    {
-      id: 'email',
-      title: 'Email Support',
-      description: 'support@wanpay.com',
-      icon: 'mail-outline',
-      color: '#f59e0b',
-      onPress: () => Alert.alert('Email Support', 'Opening email client...'),
-    },
-  ];
-
-  const filteredFAQs = faqs.filter((faq) =>
-    faq.question.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    faq.answer.toLowerCase().includes(searchQuery.toLowerCase())
+  useFocusEffect(
+    useCallback(() => {
+      loadFaqs();
+    }, [])
   );
 
-  const handleSubmitContact = () => {
-    if (!contactForm.subject.trim() || !contactForm.message.trim()) {
-      Alert.alert('Error', 'Please fill in all fields');
-      return;
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await loadFaqs();
+    setRefreshing(false);
+  };
+
+  const loadFaqs = async () => {
+    setFaqLoading(true);
+    try {
+      const data = await api.get<Faq[]>('/faqs');
+      setFaqs(data || []);
+    } catch {
+      setFaqs([]);
+    } finally {
+      setFaqLoading(false);
     }
-    Alert.alert('Success', 'Your message has been sent. We\'ll get back to you within 24 hours.');
-    setContactForm({ subject: '', message: '' });
+  };
+
+  const handleSubmitTicket = async () => {
+    if (!contactForm.subject.trim()) { Alert.alert('Error', 'Please enter a subject.'); return; }
+    if (!contactForm.message.trim()) { Alert.alert('Error', 'Please enter a message.'); return; }
+
+    setSubmitting(true);
+    try {
+      await api.post('/support/tickets', {
+        subject: contactForm.subject,
+        message: contactForm.message,
+      });
+      Alert.alert('Success', 'Your support ticket has been submitted. We will get back to you within 24 hours.', [{ text: 'OK', onPress: () => router.back() }]);
+    } catch (err: any) {
+      Alert.alert('Error', err.message || 'Failed to submit ticket. Please try again.');
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
-    <SafeAreaView style={tw`flex-1 py-4 bg-gray-50`}>
-      <StatusBar barStyle="dark-content" />
-      
-      {/* Header */}
-      <View style={tw`px-3 py-4 border-b border-gray-100 bg-white`}>
+    <SafeAreaView style={tw`flex-1 bg-[${DARK_BG}]`}>
+      <View style={tw`px-3 py-4 border-b border-white/7`}>
         <View style={tw`flex-row items-center`}>
           <TouchableOpacity onPress={() => router.back()} style={tw`mr-4`} activeOpacity={0.7}>
-            <Ionicons name="arrow-back" size={24} color="#111827" />
+            <Ionicons name="arrow-back" size={24} color="rgba(255,255,255,0.75)" />
           </TouchableOpacity>
           <View>
-            <Text style={tw`text-xl font-bold text-gray-900`}>Help & Support</Text>
-            <Text style={tw`text-xs text-gray-500`}>Get help and contact support</Text>
+            <Text style={tw`text-xl font-bold text-white`}>Help & Support</Text>
+            <Text style={tw`text-xs text-white/40`}>Get help with your account</Text>
           </View>
         </View>
       </View>
 
-      <ScrollView style={tw`flex-1 px-3 pt-6`} showsVerticalScrollIndicator={false} contentContainerStyle={tw`pb-8`}>
-        {/* Support Options */}
-        <View style={tw`mb-6`}>
-          <Text style={tw`text-sm font-semibold text-gray-500 uppercase mb-3`}>Contact Support</Text>
-          <View style={tw`flex-row justify-between gap-3`}>
-            {supportOptions.map((option) => (
+      <View style={tw`flex-row px-3 pt-4 pb-3`}>
+        {(['faq', 'contact'] as const).map((tab) => (
+          <TouchableOpacity
+            key={tab}
+            style={tw`flex-1 py-3 rounded-xl mr-2 ${activeTab === tab ? 'bg-blue-600' : 'bg-white/5 border border-white/10'}`}
+            onPress={() => setActiveTab(tab)}
+            activeOpacity={0.7}
+          >
+            <Text style={tw`text-center font-semibold ${activeTab === tab ? 'text-white' : 'text-white/40'}`}>{tab === 'faq' ? 'FAQ' : 'Contact Us'}</Text>
+          </TouchableOpacity>
+        ))}
+      </View>
+
+      {activeTab === 'faq' ? (
+        <RefreshableScrollView style={tw`flex-1 px-3 pt-3`} showsVerticalScrollIndicator={false} contentContainerStyle={tw`pb-8`} refreshing={refreshing} onRefresh={onRefresh}>
+          {faqLoading ? (
+            <View style={tw`items-center py-10`}>
+              <ActivityIndicator color="rgba(255,255,255,0.3)" />
+            </View>
+          ) : faqs.length === 0 ? (
+            <View style={tw`items-center py-10`}>
+              <Ionicons name="help-circle-outline" size={64} color="rgba(255,255,255,0.1)" />
+              <Text style={tw`text-white/30 text-lg mt-4`}>No FAQs available</Text>
+              <TouchableOpacity style={tw`bg-blue-600 px-6 py-3 rounded-xl mt-6`} onPress={loadFaqs} activeOpacity={0.8}>
+                <Text style={tw`text-white font-bold`}>Reload</Text>
+              </TouchableOpacity>
+            </View>
+          ) : (
+            faqs.map((faq) => (
               <TouchableOpacity
-                key={option.id}
-                style={tw`bg-white border border-gray-100 rounded-2xl p-4 flex-1 items-center shadow-sm`}
-                onPress={option.onPress}
-                activeOpacity={0.7}
+                key={faq.id}
+                style={tw`bg-white/4 border border-white/7 rounded-2xl mb-3 overflow-hidden`}
+                onPress={() => setExpandedFaq(expandedFaq === faq.id ? null : faq.id)}
+                activeOpacity={0.75}
               >
-                <View style={tw`bg-blue-50 w-12 h-12 rounded-full items-center justify-center mb-3`}>
-                  <Ionicons name={option.icon as any} size={24} color={option.color} />
+                <View style={tw`flex-row items-center justify-between px-5 py-4`}>
+                  <Text style={tw`text-white font-semibold flex-1 mr-4`}>{faq.question}</Text>
+                  <Ionicons name={expandedFaq === faq.id ? 'chevron-up' : 'chevron-down'} size={18} color="rgba(255,255,255,0.35)" />
                 </View>
-                <Text style={tw`text-gray-900 font-semibold text-sm text-center mb-1`}>
-                  {option.title}
-                </Text>
-                <Text style={tw`text-gray-500 text-xs text-center`}>
-                  {option.description}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-        </View>
-
-        {/* Search FAQs */}
-        <View style={tw`mb-6`}>
-          <Text style={tw`text-sm font-semibold text-gray-500 uppercase mb-3`}>Frequently Asked Questions</Text>
-          <View style={tw`bg-white border border-gray-300 rounded-xl px-4 py-3 flex-row items-center mb-4`}>
-            <Ionicons name="search" size={20} color="#9ca3af" />
-            <TextInput
-              style={tw`flex-1 ml-3 text-base text-gray-900`}
-              placeholder="Search FAQs..."
-              placeholderTextColor="#9ca3af"
-              value={searchQuery}
-              onChangeText={setSearchQuery}
-            />
-            {searchQuery.length > 0 && (
-              <TouchableOpacity onPress={() => setSearchQuery('')} activeOpacity={0.7}>
-                <Ionicons name="close-circle" size={20} color="#9ca3af" />
-              </TouchableOpacity>
-            )}
-          </View>
-
-          {/* FAQs List */}
-          <View style={tw`bg-white border border-gray-100 rounded-2xl shadow-sm`}>
-            {filteredFAQs.map((faq, index) => (
-              <View key={faq.id}>
-                <TouchableOpacity
-                  style={tw`px-5 py-4 flex-row justify-between items-center ${index !== filteredFAQs.length - 1 ? 'border-b border-gray-100' : ''}`}
-                  onPress={() => setExpandedFAQ(expandedFAQ === faq.id ? null : faq.id)}
-                  activeOpacity={0.7}
-                >
-                  <View style={tw`flex-1 mr-3`}>
-                    <Text style={tw`text-gray-900 font-semibold`}>{faq.question}</Text>
-                  </View>
-                  <Ionicons
-                    name={expandedFAQ === faq.id ? 'chevron-up' : 'chevron-down'}
-                    size={20}
-                    color="#6b7280"
-                  />
-                </TouchableOpacity>
-                {expandedFAQ === faq.id && (
+                {expandedFaq === faq.id && (
                   <View style={tw`px-5 pb-4`}>
-                    <Text style={tw`text-gray-600 text-sm leading-5`}>{faq.answer}</Text>
+                    <Text style={tw`text-white/50 text-sm leading-relaxed`}>{faq.answer}</Text>
                   </View>
                 )}
-              </View>
-            ))}
-          </View>
-        </View>
-
-        {/* Contact Form */}
-        <View style={tw`mb-6`}>
-          <Text style={tw`text-sm font-semibold text-gray-500 uppercase mb-3`}>Send us a Message</Text>
-          <View style={tw`bg-white border border-gray-100 rounded-2xl p-5 shadow-sm`}>
-            <View style={tw`mb-4`}>
-              <Text style={tw`text-sm font-semibold text-gray-700 mb-2`}>Subject</Text>
-              <View style={tw`border border-gray-300 rounded-xl px-4 py-3 bg-gray-50`}>
-                <TextInput
-                  style={tw`text-base text-gray-900`}
-                  placeholder="Enter subject"
-                  placeholderTextColor="#9ca3af"
-                  value={contactForm.subject}
-                  onChangeText={(text) => setContactForm({ ...contactForm, subject: text })}
-                />
-              </View>
-            </View>
-
-            <View style={tw`mb-4`}>
-              <Text style={tw`text-sm font-semibold text-gray-700 mb-2`}>Message</Text>
-              <View style={tw`border border-gray-300 rounded-xl px-4 py-3 bg-gray-50`}>
-                <TextInput
-                  style={tw`text-base text-gray-900`}
-                  placeholder="Enter your message"
-                  placeholderTextColor="#9ca3af"
-                  value={contactForm.message}
-                  onChangeText={(text) => setContactForm({ ...contactForm, message: text })}
-                  multiline
-                  numberOfLines={4}
-                  textAlignVertical="top"
-                />
-              </View>
-            </View>
-
-            <TouchableOpacity
-              style={tw`bg-blue-600 py-3 rounded-xl`}
-              onPress={handleSubmitContact}
-              activeOpacity={0.8}
-            >
-              <Text style={tw`text-white text-center font-bold`}>Send Message</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-
-        {/* Business Hours */}
-        <View style={tw`bg-blue-50 border border-blue-100 p-4 rounded-xl mb-6`}>
-          <View style={tw`flex-row items-center mb-2`}>
-            <Ionicons name="time-outline" size={20} color="#3b82f6" />
-            <Text style={tw`text-blue-900 font-semibold ml-2`}>Support Hours</Text>
-          </View>
-          <Text style={tw`text-xs text-gray-600 mb-1`}>Monday - Friday: 8:00 AM - 8:00 PM</Text>
-          <Text style={tw`text-xs text-gray-600 mb-1`}>Saturday: 9:00 AM - 5:00 PM</Text>
-          <Text style={tw`text-xs text-gray-600`}>Sunday: Closed</Text>
-        </View>
-
-        {/* Quick Links */}
-        <View style={tw`mb-6`}>
-          <Text style={tw`text-sm font-semibold text-gray-500 uppercase mb-3`}>Quick Links</Text>
-          <View style={tw`bg-white border border-gray-100 rounded-2xl shadow-sm`}>
-            {[
-              { title: 'Terms & Conditions', icon: 'document-text-outline' },
-              { title: 'Privacy Policy', icon: 'lock-closed-outline' },
-              { title: 'Security Tips', icon: 'shield-checkmark-outline' },
-              { title: 'App Version', icon: 'information-circle-outline', subtitle: '1.0.0' },
-            ].map((link, index) => (
-              <TouchableOpacity
-                key={link.title}
-                style={tw`px-5 py-4 flex-row justify-between items-center ${index !== 3 ? 'border-b border-gray-100' : ''}`}
-                activeOpacity={0.7}
-              >
-                <View style={tw`flex-row items-center`}>
-                  <Ionicons name={link.icon as any} size={20} color="#6b7280" style={tw`mr-3`} />
-                  <Text style={tw`text-gray-900 font-semibold`}>{link.title}</Text>
-                </View>
-                {link.subtitle ? (
-                  <Text style={tw`text-gray-500 text-sm`}>{link.subtitle}</Text>
-                ) : (
-                  <Ionicons name="chevron-forward" size={18} color="#9ca3af" />
-                )}
               </TouchableOpacity>
-            ))}
+            ))
+          )}
+        </RefreshableScrollView>
+      ) : (
+        <RefreshableScrollView style={tw`flex-1 px-3 pt-3`} showsVerticalScrollIndicator={false} contentContainerStyle={tw`pb-8`} refreshing={refreshing} onRefresh={onRefresh}>
+          <View style={tw`bg-blue-500/10 border border-blue-500/20 p-4 rounded-xl mb-6`}>
+            <View style={tw`flex-row items-center mb-2`}>
+              <Ionicons name="information-circle" size={20} color="#60a5fa" />
+              <Text style={tw`text-blue-300 font-semibold ml-2`}>Need More Help?</Text>
+            </View>
+            <Text style={tw`text-xs text-white/40`}>Our support team typically responds within 24 hours. For urgent matters, please call our support line.</Text>
           </View>
-        </View>
-      </ScrollView>
+
+          <View style={tw`mb-5`}>
+            <Text style={tw`text-white/55 text-[12px] font-semibold tracking-wide mb-2`}>Subject</Text>
+            <View style={tw`bg-white/5 border border-white/10 rounded-2xl px-4 h-[52px] justify-center`}>
+              <TextInput style={tw`text-[14px] text-white`} value={contactForm.subject} onChangeText={(text) => setContactForm({ ...contactForm, subject: text })} placeholder="What's this about?" placeholderTextColor="rgba(255,255,255,0.2)" />
+            </View>
+          </View>
+
+          <View style={tw`mb-6`}>
+            <Text style={tw`text-white/55 text-[12px] font-semibold tracking-wide mb-2`}>Message</Text>
+            <View style={tw`bg-white/5 border border-white/10 rounded-2xl px-4 pt-4`}>
+              <TextInput style={tw`text-[14px] text-white`} value={contactForm.message} onChangeText={(text) => setContactForm({ ...contactForm, message: text })} placeholder="Describe your issue in detail..." placeholderTextColor="rgba(255,255,255,0.2)" multiline textAlignVertical="top" />
+            </View>
+          </View>
+
+          <TouchableOpacity style={tw`bg-blue-600 py-4 rounded-xl ${submitting ? 'opacity-60' : ''} mb-6`} onPress={handleSubmitTicket} disabled={submitting} activeOpacity={0.8}>
+            {submitting ? <ActivityIndicator color="#fff" /> : <Text style={tw`text-white text-center font-bold text-lg`}>Submit Ticket</Text>}
+          </TouchableOpacity>
+
+          <View style={tw`bg-white/4 border border-white/7 rounded-2xl p-5 mb-4`}>
+            <View style={tw`flex-row items-center mb-3`}>
+              <Ionicons name="call-outline" size={20} color="#60a5fa" />
+              <Text style={tw`text-white font-semibold ml-3`}>Phone Support</Text>
+            </View>
+            <Text style={tw`text-blue-400 text-sm mb-1`}>+234 800 123 4567</Text>
+            <Text style={tw`text-white/40 text-xs`}>Available Mon-Fri, 8AM-6PM (WAT)</Text>
+          </View>
+
+          <View style={tw`bg-white/4 border border-white/7 rounded-2xl p-5`}>
+            <View style={tw`flex-row items-center mb-3`}>
+              <Ionicons name="mail-outline" size={20} color="#60a5fa" />
+              <Text style={tw`text-white font-semibold ml-3`}>Email Support</Text>
+            </View>
+            <Text style={tw`text-blue-400 text-sm`}>support@wanpay.ng</Text>
+          </View>
+        </RefreshableScrollView>
+      )}
     </SafeAreaView>
   );
 }
-

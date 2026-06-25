@@ -1,50 +1,144 @@
-# Welcome to your Expo app 👋
+# WanPay — Mobile App
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+React Native (Expo) mobile wallet and financial growth platform for Nigerian entrepreneurs.
 
-## Get started
+## Tech Stack
 
-1. Install dependencies
+| Layer | Technology |
+|-------|-----------|
+| Framework | Expo 54 (React Native 0.81) |
+| Routing | Expo Router 6 (file-based) |
+| Styling | Tailwind CSS via `twrnc` |
+| Icons | Ionicons (`@expo/vector-icons`) |
+| Secure Storage | `expo-secure-store` |
+| HTTP Client | Custom fetch wrapper |
+| Auth | JWT (access + refresh tokens) + PIN |
+| Biometrics | `expo-local-authentication` (unused) |
 
-   ```bash
-   npm install
-   ```
+## Screen Map (27 Routes)
 
-2. Start the app
+| Route | Screen | Purpose |
+|-------|--------|---------|
+| `/` | Redirect | → `/welcome` |
+| `/welcome` | Welcome | Onboarding with Login/Signup CTAs |
+| `/login` | Login | Phone + PIN login |
+| `/signup` | Signup | Name, phone, email registration |
+| `/otp` | OTP | 6-digit OTP verification |
+| `/createPin` | Create PIN | 4-digit transaction PIN setup |
+| `/(tabs)` | Tab Layout | Bottom tab navigator (6 tabs) |
+| `/(tabs)/` | Home | Balance, quick actions, recent txns |
+| `/(tabs)/transfer` | Transfer | Send money (bank list, validation, PIN) |
+| `/(tabs)/bills` | Bills | Bill categories overview |
+| `/(tabs)/history` | History | Transaction list (paginated, filterable) |
+| `/(tabs)/grants` | Growth Hub | Grants, business aids, training |
+| `/(tabs)/profile` | Profile | User settings & management |
+| `/bills/airtime` | Airtime | Buy airtime |
+| `/bills/data` | Data | Buy data bundles |
+| `/bills/electricity` | Electricity | Pay electricity bills |
+| `/bills/tv` | TV | TV subscriptions (DSTV, GOtv) |
+| `/bills/internet` | Internet | Broadband/internet plans |
+| `/bills/education` | Education | Education payments (WAEC, JAMB) |
+| `/profile/personal-information` | Personal Info | Edit name, email, address |
+| `/profile/security-settings` | Security | Change PIN, biometric, 2FA |
+| `/profile/transaction-limits` | Limits | View current transaction limits |
+| `/profile/increase-limits` | Increase Limits | Request limit increase |
+| `/profile/notifications` | Notifications | Toggle notification preferences |
+| `/profile/manage-cards` | Cards | View/manage virtual cards |
+| `/profile/bvn-verification` | BVN | BVN identity verification |
+| `/profile/help-support` | Help | FAQ + contact support |
 
-   ```bash
-   npx expo start
-   ```
-
-In the output, you'll find options to open the app in a
-
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
+## Setup
 
 ```bash
-npm run reset-project
+# Install dependencies
+npm install
+
+# Create environment file
+# Add your backend URL:
+# EXPO_PUBLIC_API_URL=http://192.168.x.x:4000/api/v1
+
+# Start dev server
+npx expo start
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+Scan the QR code with **Expo Go** (Android/iOS) to run on your device.
 
-## Learn more
+### Builds
 
-To learn more about developing your project with Expo, look at the following resources:
+```bash
+# Android APK
+npx eas build --platform android --profile preview
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+# iOS IPA (requires Apple Developer account)
+npx eas build --platform ios --profile preview
 
-## Join the community
+# Production
+npx eas build --platform all --profile production
+```
 
-Join our community of developers creating universal apps.
+## Project Structure
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+```
+wanpay/
+├── app/                    # Expo Router pages
+│   ├── _layout.tsx         # Root stack navigator
+│   ├── index.tsx           # Entry → redirects to /welcome
+│   ├── welcome.tsx         # Onboarding screen
+│   ├── login.tsx
+│   ├── signup.tsx
+│   ├── otp.tsx
+│   ├── createPin.tsx
+│   ├── (tabs)/             # Bottom tab navigator
+│   │   ├── _layout.tsx
+│   │   ├── index.tsx       # Home
+│   │   ├── transfer.tsx
+│   │   ├── bills.tsx
+│   │   ├── history.tsx
+│   │   ├── grants.tsx
+│   │   └── profile.tsx
+│   ├── bills/              # Bill payment sub-screens
+│   └── profile/            # Profile sub-screens
+├── components/             # Shared components
+│   ├── ui/                 # UI primitives (Button, Input, etc.)
+│   ├── BalanceCard.tsx
+│   ├── TransactionItem.tsx
+│   ├── QuickAction.tsx
+│   └── ...
+├── constants/              # Colors, theme tokens
+├── hooks/                  # Custom hooks
+├── lib/
+│   ├── api.ts              # HTTP client (fetch + token mgmt)
+│   └── types.ts            # TypeScript interfaces
+└── assets/                 # Images, fonts
+```
+
+## Action To Do (ATD)
+
+### 🔴 Critical
+
+- ~~**Hardcoded API URL**~~ ✅ switched to `process.env.EXPO_PUBLIC_API_URL` with IP fallback + `.env.example`
+- ~~**No auth route guards**~~ ✅ added `useAuth()` redirects to `(tabs)/_layout`, `welcome`, `login`, `signup`
+- ~~**Missing `modal` screen**~~ ✅ removed from `_layout.tsx`
+- ~~**"Add Money" is UI-only**~~ ✅ wired with placeholder alert
+- ~~**"Receive" quick action navigates to itself**~~ ✅ wired with placeholder alert
+- ~~**ThemeProvider commented out**~~ ✅ uncommented in `_layout.tsx`
+- ~~**No persistent state management**~~ ✅ added `contexts/AuthContext.tsx` — wraps app, provides `user`/`token`/`signIn`/`signOut`/`refreshUser`
+- [ ] **Zero tests** — no Jest, no React Native Testing Library
+
+### 🟡 Moderate
+
+- ~~"Coming soon" placeholders: 2FA, Add Card, Training section~~ ✅ already handled
+- [ ] UI primitives (`Button`, `Input`) defined but unused — screens use inline styles
+- [ ] `expo-local-authentication` and `expo-ssl-pinning` installed but unused
+- ~~`console.log` in production code~~ ✅ fixed
+- ~~Type duplication~~ ✅ consolidated to `@/lib/types`
+- ~~Stale grant deadlines~~ ✅ updated to 2026
+- ~~`RefreshableScrollView` with no-op `onRefresh`~~ ✅ made optional
+- ~~`use-grants.ts` imports from screen file~~ ✅ fixed
+
+### 🟢 Minor
+
+- ~~Tailwind build pipeline~~ ✅ removed dead files + scripts
+- ~~Notification bell icon~~ ✅ wired to `/profile/notifications`
+- ~~Settings gear icon~~ ✅ wired to `/profile/security-settings`
+- ~~Tier 3 upgrade button~~ ✅ wired to `/profile/increase-limits`

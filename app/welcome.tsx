@@ -1,5 +1,5 @@
 import { DARK_BG } from '@/constants/customConstants';
-import { useRouter } from 'expo-router';
+import { useRouter, useRootNavigationState, Redirect } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import React, { useCallback } from 'react';
 import {
@@ -12,9 +12,16 @@ import {
   View,
 } from 'react-native';
 import tw from 'twrnc';
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function WelcomeScreen() {
   const router = useRouter();
+  const { user, isLoading } = useAuth();
+  const navState = useRootNavigationState();
+
+  if (!navState?.key) return null;
+  if (isLoading) return null;
+  if (user) return <Redirect href="/(tabs)" />;
 
   const handleLogin = useCallback(() => router.push('/login'), [router]);
   const handleSignup = useCallback(() => router.push('/signup'), [router]);
