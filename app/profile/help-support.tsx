@@ -96,7 +96,7 @@ export default function HelpSupportScreen() {
           ) : faqs.length === 0 ? (
             <View style={tw`items-center py-10`}>
               <Ionicons name="help-circle-outline" size={64} color="#E5E7EB" />
-              <Text style={tw`text-gray-300 text-lg mt-4`}>No FAQs available</Text>
+              <Text style={tw`text-gray-500 text-lg mt-4`}>No FAQs available</Text>
               <TouchableOpacity style={tw`bg-blue-600 px-6 py-3 rounded-xl mt-6`} onPress={loadFaqs} activeOpacity={0.8}>
                 <Text style={tw`text-white font-bold`}>Reload</Text>
               </TouchableOpacity>
