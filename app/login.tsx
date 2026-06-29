@@ -40,7 +40,7 @@ export default function LoginScreen() {
       const tokens = await api.post<AuthTokens>('/auth/login', {
         phone: `+234${phone}`,
         pin,
-      });
+      }, false);
       if (tokens.user) await signIn(tokens.token, tokens.refreshToken, tokens.user);
       router.replace('/(tabs)');
     } catch (err: any) {

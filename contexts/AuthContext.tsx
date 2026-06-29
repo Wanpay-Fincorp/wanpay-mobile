@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import * as SecureStore from 'expo-secure-store';
-import { api } from '@/lib/api';
+import { api, setToken as setApiToken, removeToken as removeApiToken } from '@/lib/api';
 import type { User as AppUser } from '@/lib/types';
 
 const TOKEN_KEY = 'wanpay_access_token';
@@ -47,21 +47,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const signIn = useCallback(async (accessToken: string, refreshToken: string | undefined, appUser: AppUser) => {
-    await Promise.all([
-      SecureStore.setItemAsync(TOKEN_KEY, accessToken),
-      refreshToken ? SecureStore.setItemAsync(REFRESH_KEY, refreshToken) : Promise.resolve(),
-      SecureStore.setItemAsync(USER_KEY, JSON.stringify(appUser)),
-    ]);
+    await setApiToken(accessToken, refreshToken);
+    await SecureStore.setItemAsync(USER_KEY, JSON.stringify(appUser));
     setToken(accessToken);
     setUser(appUser);
   }, []);
 
   const signOut = useCallback(async () => {
-    await Promise.all([
-      SecureStore.deleteItemAsync(TOKEN_KEY),
-      SecureStore.deleteItemAsync(REFRESH_KEY),
-      SecureStore.deleteItemAsync(USER_KEY),
-    ]);
+    await removeApiToken();
     setToken(null);
     setUser(null);
   }, []);

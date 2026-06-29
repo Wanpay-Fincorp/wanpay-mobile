@@ -54,13 +54,13 @@ export default function PersonalInformationScreen() {
         setFormData({
           fullName: userData.fullName || '',
           phoneNumber: userData.phone || '',
-          email: user.email || '',
-          dateOfBirth: user.dateOfBirth || '',
-          address: user.address || '',
-          city: user.city || '',
-          state: user.state || '',
-          postalCode: user.postalCode || '',
-          country: user.country || 'Nigeria',
+          email: userData.email || '',
+          dateOfBirth: userData.dateOfBirth || '',
+          address: userData.address || '',
+          city: userData.city || '',
+          state: userData.state || '',
+          postalCode: userData.postalCode || '',
+          country: userData.country || 'Nigeria',
         });
       }
     } catch {

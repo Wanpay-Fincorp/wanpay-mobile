@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/rules-of-hooks */
 import React, { useState } from 'react';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter, useRootNavigationState, Redirect } from 'expo-router';
@@ -57,6 +58,7 @@ export default function SignupScreen() {
         router.push({ pathname: '/otp', params: { phone: `+234${phone}`, channel: 'SMS' } });
       }
     } catch (err: any) {
+      console.log(err)
       Alert.alert('Error', err.message || 'Something went wrong. Please try again.');
     } finally { setLoading(false); }
   };
