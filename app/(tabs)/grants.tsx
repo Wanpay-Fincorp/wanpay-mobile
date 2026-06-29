@@ -148,11 +148,11 @@ export default function GrowthHubScreen() {
   };
 
   return (
-    <SafeAreaView style={tw`flex-1 bg-[${DARK_BG}]`}>
-      <StatusBar style="light" />
+    <SafeAreaView style={tw`flex-1 pb-8 bg-[${DARK_BG}]`}>
+      <StatusBar style="dark" />
 
       {/* ── Header ── */}
-      <View style={tw`bg-violet-700 px-5 pt-8 pb-5`}>
+      <View style={tw`bg-violet-700 px-5 pt-16 pb-5`}>
         <View style={tw`flex-row justify-between items-start mb-4`}>
           <View style={tw`flex-1 mr-3`}>
             <Text style={tw`text-white text-[22px] font-bold tracking-tight`}>Growth Hub</Text>
@@ -236,20 +236,20 @@ export default function GrowthHubScreen() {
 
         {/* Grants list */}
         {activeSection === 'grants' && (
-          <RefreshableScrollView style={tw`flex-1 px-5 pt-4`} showsVerticalScrollIndicator={false} contentContainerStyle={tw`pb-10`}>
+          <RefreshableScrollView style={tw`flex-1 px-5 pt-4`} showsVerticalScrollIndicator={false} contentContainerStyle={tw`pb-24`}>
             {filteredGrants.length > 0 ? filteredGrants.map(grant => {
               const s = getStatusStyle(grant.status);
               return (
                 <TouchableOpacity
                   key={grant.id}
-                  style={tw`bg-white/4 border border-white/7 rounded-2xl p-4 mb-3`}
+                  style={tw`bg-gray-50 border border-gray-200 rounded-2xl p-4 mb-3`}
                   onPress={() => setSelectedGrant(grant)}
                   activeOpacity={0.75}
                 >
                   <View style={tw`flex-row justify-between items-start mb-3`}>
                     <View style={tw`flex-1 mr-3`}>
-                      <Text style={tw`text-white text-[14px] font-semibold leading-5 mb-0.5`}>{grant.title}</Text>
-                      <Text style={tw`text-white/40 text-[12px]`}>{grant.organization}</Text>
+                      <Text style={tw`text-gray-900 text-[14px] font-semibold leading-5 mb-0.5`}>{grant.title}</Text>
+                      <Text style={tw`text-gray-400 text-[12px]`}>{grant.organization}</Text>
                     </View>
                     <View style={tw`flex-row items-center px-2.5 py-1 rounded-full ${s.bg}`}>
                       <View style={{ width: 5, height: 5, borderRadius: 3, backgroundColor: s.dot, marginRight: 5 }} />
@@ -268,15 +268,15 @@ export default function GrowthHubScreen() {
 
                   <View style={tw`flex-row items-center gap-1.5`}>
                     <Ionicons name="calendar-outline" size={13} color="rgba(255,255,255,0.3)" />
-                    <Text style={tw`text-white/30 text-[12px]`}>Deadline: {grant.deadline}</Text>
+                    <Text style={tw`text-gray-300 text-[12px]`}>Deadline: {grant.deadline}</Text>
                   </View>
                 </TouchableOpacity>
               );
             }) : (
-              <View style={tw`bg-white/4 border border-white/7 rounded-2xl p-10 items-center mt-6`}>
-                <Ionicons name="search-outline" size={48} color="rgba(255,255,255,0.15)" />
-                <Text style={tw`text-white/30 text-[14px] mt-4`}>No grants found</Text>
-                <Text style={tw`text-white/20 text-[12px] mt-1`}>Try adjusting your search or filters</Text>
+              <View style={tw`bg-gray-50 border border-gray-200 rounded-2xl p-10 items-center mt-6`}>
+                <Ionicons name="search-outline" size={48} color="#9ca3af" />
+                <Text style={tw`text-gray-300 text-[14px] mt-4`}>No grants found</Text>
+                <Text style={tw`text-gray-200 text-[12px] mt-1`}>Try adjusting your search or filters</Text>
               </View>
             )}
           </RefreshableScrollView>
@@ -284,24 +284,24 @@ export default function GrowthHubScreen() {
 
         {/* Business aids */}
         {activeSection === 'business-aids' && (
-          <RefreshableScrollView style={tw`flex-1 px-5 pt-4`} showsVerticalScrollIndicator={false} contentContainerStyle={tw`pb-10`}>
+          <RefreshableScrollView style={tw`flex-1 px-5 pt-4`} showsVerticalScrollIndicator={false} contentContainerStyle={tw`pb-24`}>
             {BUSINESS_AIDS_RESOURCES.map(section => (
               <View key={section.id} style={tw`mb-7`}>
-                <Text style={tw`text-white text-[15px] font-bold tracking-tight mb-1`}>{section.title}</Text>
-                {section.summary && <Text style={tw`text-white/35 text-[12px] leading-5 mb-3`}>{section.summary}</Text>}
+                <Text style={tw`text-gray-900 text-[15px] font-bold tracking-tight mb-1`}>{section.title}</Text>
+                {section.summary && <Text style={tw`text-gray-400 text-[12px] leading-5 mb-3`}>{section.summary}</Text>}
                 <View style={tw`gap-2.5`}>
                   {section.items.map((item, i) => (
-                    <View key={i} style={tw`bg-white/4 border border-white/7 rounded-2xl p-4`}>
-                      <Text style={tw`text-white text-[13px] font-semibold mb-1.5`}>{item.title}</Text>
+                    <View key={i} style={tw`bg-gray-50 border border-gray-200 rounded-2xl p-4`}>
+                      <Text style={tw`text-gray-900 text-[13px] font-semibold mb-1.5`}>{item.title}</Text>
                       {item.description && (
-                        <Text style={tw`text-white/40 text-[12px] leading-5`}>{item.description}</Text>
+                        <Text style={tw`text-gray-400 text-[12px] leading-5`}>{item.description}</Text>
                       )}
                       {item.bullets && (
                         <View style={tw`mt-2 gap-2`}>
                           {item.bullets.map((bullet, bi) => (
                             <View key={bi} style={tw`flex-row items-start gap-2`}>
                               <View style={tw`w-1.5 h-1.5 rounded-full bg-violet-400 mt-1.5 flex-shrink-0`} />
-                              <Text style={tw`text-white/40 text-[12px] flex-1 leading-5`}>{bullet}</Text>
+                              <Text style={tw`text-gray-400 text-[12px] flex-1 leading-5`}>{bullet}</Text>
                             </View>
                           ))}
                         </View>
@@ -316,13 +316,13 @@ export default function GrowthHubScreen() {
 
         {/* Training & support */}
         {activeSection === 'training-support' && (
-          <RefreshableScrollView style={tw`flex-1 px-5 pt-4`} showsVerticalScrollIndicator={false} contentContainerStyle={tw`pb-10`}>
-            <View style={tw`bg-white/4 border border-white/7 rounded-2xl p-5`}>
+          <RefreshableScrollView style={tw`flex-1 px-5 pt-4`} showsVerticalScrollIndicator={false} contentContainerStyle={tw`pb-24`}>
+            <View style={tw`bg-gray-50 border border-gray-200 rounded-2xl p-5`}>
               <View style={tw`w-10 h-10 rounded-xl bg-violet-500/15 border border-violet-500/20 items-center justify-center mb-3`}>
                 <Ionicons name="time-outline" size={20} color="#a78bfa" />
               </View>
-              <Text style={tw`text-white text-[14px] font-semibold mb-2`}>Coming soon</Text>
-              <Text style={tw`text-white/35 text-[13px] leading-5`}>
+              <Text style={tw`text-gray-900 text-[14px] font-semibold mb-2`}>Coming soon</Text>
+              <Text style={tw`text-gray-400 text-[13px] leading-5`}>
                 We are curating a catalogue of accelerators, mentorship programmes, and digital training resources.
                 Check back soon for the latest opportunities designed to help your business scale.
               </Text>
@@ -334,24 +334,24 @@ export default function GrowthHubScreen() {
       {/* ── Grant detail modal ── */}
       <Modal visible={selectedGrant !== null} animationType="slide" presentationStyle="pageSheet" onRequestClose={() => setSelectedGrant(null)}>
         {selectedGrant && (
-          <SafeAreaView style={tw`flex-1 bg-[${DARK_BG}]`}>
-            <StatusBar style="light" />
+          <SafeAreaView style={tw`flex-1 pb-8 bg-[${DARK_BG}]`}>
+            <StatusBar style="dark" />
 
             {/* Modal header */}
-            <View style={tw`px-5 py-4 border-b border-white/7 flex-row justify-between items-center`}>
-              <Text style={tw`text-white text-[17px] font-bold tracking-tight`}>Grant details</Text>
+            <View style={tw`px-5 py-4 border-b border-gray-200 flex-row justify-between items-center`}>
+              <Text style={tw`text-gray-900 text-[17px] font-bold tracking-tight`}>Grant details</Text>
               <TouchableOpacity
                 onPress={() => setSelectedGrant(null)}
-                style={tw`w-[34px] h-[34px] rounded-xl bg-white/7 items-center justify-center`}
+                style={tw`w-[34px] h-[34px] rounded-xl bg-gray-100 items-center justify-center`}
                 activeOpacity={0.7}
               >
-                <Ionicons name="close" size={18} color="rgba(255,255,255,0.7)" />
+                <Ionicons name="close" size={18} color="#374151" />
               </TouchableOpacity>
             </View>
 
             <RefreshableScrollView style={tw`flex-1 px-5 pt-5`} showsVerticalScrollIndicator={false} contentContainerStyle={tw`pb-8`}>
-              <Text style={tw`text-white text-[20px] font-bold tracking-tight leading-7 mb-1`}>{selectedGrant.title}</Text>
-              <Text style={tw`text-white/40 text-[13px] mb-5`}>{selectedGrant.organization}</Text>
+              <Text style={tw`text-gray-900 text-[20px] font-bold tracking-tight leading-7 mb-1`}>{selectedGrant.title}</Text>
+              <Text style={tw`text-gray-400 text-[13px] mb-5`}>{selectedGrant.organization}</Text>
 
               {/* Amount & deadline */}
               <View style={tw`flex-row gap-3 mb-6`}>
@@ -367,18 +367,18 @@ export default function GrowthHubScreen() {
 
               {/* Description */}
               <View style={tw`mb-5`}>
-                <Text style={tw`text-white text-[13px] font-semibold mb-2`}>Description</Text>
-                <Text style={tw`text-white/45 text-[13px] leading-6`}>{selectedGrant.description}</Text>
+                <Text style={tw`text-gray-900 text-[13px] font-semibold mb-2`}>Description</Text>
+                <Text style={tw`text-gray-400 text-[13px] leading-6`}>{selectedGrant.description}</Text>
               </View>
 
               {/* Requirements */}
               <View style={tw`mb-5`}>
-                <Text style={tw`text-white text-[13px] font-semibold mb-2`}>Requirements</Text>
+                <Text style={tw`text-gray-900 text-[13px] font-semibold mb-2`}>Requirements</Text>
                 <View style={tw`bg-blue-500/10 border border-blue-500/15 rounded-2xl p-4 gap-2.5`}>
                   {selectedGrant.requirements.map((req, i) => (
                     <View key={i} style={tw`flex-row items-start gap-2`}>
                       <Ionicons name="checkmark-circle" size={16} color="#60a5fa" style={tw`mt-0.5`} />
-                      <Text style={tw`text-white/55 text-[13px] flex-1 leading-5`}>{req}</Text>
+                      <Text style={tw`text-gray-600 text-[13px] flex-1 leading-5`}>{req}</Text>
                     </View>
                   ))}
                 </View>
@@ -386,7 +386,7 @@ export default function GrowthHubScreen() {
 
               {/* Eligibility */}
               <View style={tw`mb-4`}>
-                <Text style={tw`text-white text-[13px] font-semibold mb-2`}>Eligibility</Text>
+                <Text style={tw`text-gray-900 text-[13px] font-semibold mb-2`}>Eligibility</Text>
                 <View style={tw`flex-row flex-wrap gap-2`}>
                   {selectedGrant.eligibility.map((item, i) => (
                     <View key={i} style={tw`bg-emerald-500/10 border border-emerald-500/20 px-3 py-1.5 rounded-full`}>
@@ -398,7 +398,7 @@ export default function GrowthHubScreen() {
             </RefreshableScrollView>
 
             {/* Apply button */}
-            <View style={tw`px-5 py-4 border-t border-white/7`}>
+            <View style={tw`px-5 py-4 border-t border-gray-200`}>
               <TouchableOpacity
                 style={tw`bg-violet-600 h-[52px] rounded-2xl flex-row items-center justify-center gap-2 mb-3`}
                 activeOpacity={0.85}
@@ -408,7 +408,7 @@ export default function GrowthHubScreen() {
                 <Text style={tw`text-white font-semibold text-[15px]`}>Apply now</Text>
               </TouchableOpacity>
               <TouchableOpacity style={tw`py-2 items-center`} onPress={() => setSelectedGrant(null)} activeOpacity={0.7}>
-                <Text style={tw`text-white/35 text-[13px] font-semibold`}>Close</Text>
+                <Text style={tw`text-gray-400 text-[13px] font-semibold`}>Close</Text>
               </TouchableOpacity>
             </View>
           </SafeAreaView>
@@ -418,20 +418,20 @@ export default function GrowthHubScreen() {
       {/* ── Filter modal ── */}
       <Modal visible={showFilterModal} animationType="slide" transparent>
         <View style={tw`flex-1 justify-end bg-black/60`}>
-          <View style={tw`bg-[#0f0f1e] border-t border-white/10 rounded-t-3xl pt-6 pb-10`}>
-            <View style={tw`px-5 pb-4 border-b border-white/7 flex-row justify-between items-center`}>
-              <Text style={tw`text-white text-[17px] font-bold tracking-tight`}>Filter grants</Text>
+          <View style={tw`bg-gray-50 border-t border-gray-200 rounded-t-3xl pt-6 pb-10`}>
+            <View style={tw`px-5 pb-4 border-b border-gray-200 flex-row justify-between items-center`}>
+              <Text style={tw`text-gray-900 text-[17px] font-bold tracking-tight`}>Filter grants</Text>
               <TouchableOpacity
                 onPress={() => setShowFilterModal(false)}
-                style={tw`w-[34px] h-[34px] rounded-xl bg-white/7 items-center justify-center`}
+                style={tw`w-[34px] h-[34px] rounded-xl bg-gray-100 items-center justify-center`}
                 activeOpacity={0.7}
               >
-                <Ionicons name="close" size={18} color="rgba(255,255,255,0.7)" />
+                <Ionicons name="close" size={18} color="#374151" />
               </TouchableOpacity>
             </View>
 
             <View style={tw`px-5 pt-5`}>
-              <Text style={tw`text-white/55 text-[12px] font-semibold tracking-wide uppercase mb-3`}>Status</Text>
+              <Text style={tw`text-gray-600 text-[12px] font-semibold tracking-wide uppercase mb-3`}>Status</Text>
               <View style={tw`gap-2.5 mb-6`}>
                 {[
                   { value: 'all', label: 'All statuses' },
@@ -441,11 +441,11 @@ export default function GrowthHubScreen() {
                 ].map(option => (
                   <TouchableOpacity
                     key={option.value}
-                    style={tw`border ${filterStatus === option.value ? 'border-violet-500/60 bg-violet-500/10' : 'border-white/10 bg-white/4'} rounded-2xl px-4 h-[48px] flex-row items-center`}
+                    style={tw`border ${filterStatus === option.value ? 'border-violet-500/60 bg-violet-500/10' : 'border-gray-200 bg-gray-50'} rounded-2xl px-4 h-[48px] flex-row items-center`}
                     onPress={() => setFilterStatus(option.value)}
                     activeOpacity={0.7}
                   >
-                    <Text style={tw`text-[14px] font-semibold ${filterStatus === option.value ? 'text-violet-300' : 'text-white/45'}`}>
+                    <Text style={tw`text-[14px] font-semibold ${filterStatus === option.value ? 'text-violet-300' : 'text-gray-400'}`}>
                       {option.label}
                     </Text>
                   </TouchableOpacity>

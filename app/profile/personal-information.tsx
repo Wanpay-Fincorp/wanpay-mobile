@@ -110,30 +110,30 @@ export default function PersonalInformationScreen() {
   };
 
   const inputStyle = (hasError: boolean) =>
-    tw`bg-white/5 border ${hasError ? 'border-red-500/70' : 'border-white/10'} rounded-2xl px-4 justify-center`;
+    tw`bg-gray-50 border ${hasError ? 'border-red-500/70' : 'border-gray-200'} rounded-2xl px-4 justify-center`;
 
   if (fetching) {
     return (
-      <SafeAreaView style={tw`flex-1 bg-[${DARK_BG}]`}>
+      <SafeAreaView style={tw`flex-1 pb-8 bg-[${DARK_BG}]`}>
         <View style={tw`flex-1 items-center justify-center`}>
-          <ActivityIndicator color="rgba(255,255,255,0.3)" />
+          <ActivityIndicator color="#9CA3AF" />
         </View>
       </SafeAreaView>
     );
   }
 
   return (
-    <SafeAreaView style={tw`flex-1 bg-[${DARK_BG}]`}>
+    <SafeAreaView style={tw`flex-1 pb-8 bg-[${DARK_BG}]`}>
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={tw`flex-1`}>
-        <View style={tw`px-3 py-4 border-b border-white/7`}>
+        <View style={tw`px-3 pt-12 pb-4 border-b border-gray-200`}>
           <View style={tw`flex-row items-center justify-between`}>
             <View style={tw`flex-row items-center`}>
               <TouchableOpacity onPress={() => router.back()} style={tw`mr-4`} activeOpacity={0.7}>
-                <Ionicons name="arrow-back" size={24} color="rgba(255,255,255,0.75)" />
+                <Ionicons name="arrow-back" size={24} color="#374151" />
               </TouchableOpacity>
               <View>
-                <Text style={tw`text-xl font-bold text-white`}>Personal Information</Text>
-                <Text style={tw`text-xs text-white/40`}>Manage your account details</Text>
+                <Text style={tw`text-xl font-bold text-gray-900`}>Personal Information</Text>
+                <Text style={tw`text-xs text-gray-400`}>Manage your account details</Text>
               </View>
             </View>
             {!editing ? (
@@ -142,7 +142,7 @@ export default function PersonalInformationScreen() {
               </TouchableOpacity>
             ) : (
               <TouchableOpacity onPress={() => { setEditing(false); setErrors({}); }} style={tw`px-4 py-2`} activeOpacity={0.7}>
-                <Text style={tw`text-blue-400 font-semibold`}>Cancel</Text>
+                <Text style={tw`text-blue-600 font-semibold`}>Cancel</Text>
               </TouchableOpacity>
             )}
           </View>
@@ -158,68 +158,68 @@ export default function PersonalInformationScreen() {
           </View>
 
           <View style={tw`mb-5`}>
-            <Text style={tw`text-white/55 text-[12px] font-semibold tracking-wide mb-2`}>Full Name</Text>
+            <Text style={tw`text-gray-600 text-[12px] font-semibold tracking-wide mb-2`}>Full Name</Text>
             <View style={[inputStyle(!!errors.fullName), { height: 52 }]}>
-              <TextInput style={tw`text-[14px] text-white`} value={formData.fullName} onChangeText={(text) => handleChange('fullName', text)} editable={editing} placeholder="Enter your full name" placeholderTextColor="rgba(255,255,255,0.2)" />
+              <TextInput style={tw`text-[14px] text-gray-900`} value={formData.fullName} onChangeText={(text) => handleChange('fullName', text)} editable={editing} placeholder="Enter your full name" placeholderTextColor="#E5E7EB" />
             </View>
             {errors.fullName ? <Text style={tw`text-red-400 text-[11px] mt-1.5 ml-1`}>{errors.fullName}</Text> : null}
           </View>
 
           <View style={tw`mb-5`}>
-            <Text style={tw`text-white/55 text-[12px] font-semibold tracking-wide mb-2`}>Email Address</Text>
+            <Text style={tw`text-gray-600 text-[12px] font-semibold tracking-wide mb-2`}>Email Address</Text>
             <View style={[inputStyle(!!errors.email), { height: 52 }]}>
-              <TextInput style={tw`text-[14px] text-white`} value={formData.email} onChangeText={(text) => handleChange('email', text)} editable={editing} keyboardType="email-address" autoCapitalize="none" placeholder="Enter your email" placeholderTextColor="rgba(255,255,255,0.2)" />
+              <TextInput style={tw`text-[14px] text-gray-900`} value={formData.email} onChangeText={(text) => handleChange('email', text)} editable={editing} keyboardType="email-address" autoCapitalize="none" placeholder="Enter your email" placeholderTextColor="#E5E7EB" />
             </View>
             {errors.email ? <Text style={tw`text-red-400 text-[11px] mt-1.5 ml-1`}>{errors.email}</Text> : null}
           </View>
 
           <View style={tw`mb-5`}>
-            <Text style={tw`text-white/55 text-[12px] font-semibold tracking-wide mb-2`}>Phone Number</Text>
+            <Text style={tw`text-gray-600 text-[12px] font-semibold tracking-wide mb-2`}>Phone Number</Text>
             <View style={[inputStyle(!!errors.phoneNumber), { height: 52 }]}>
-              <TextInput style={tw`text-[14px] text-white`} value={formData.phoneNumber} editable={false} keyboardType="phone-pad" placeholderTextColor="rgba(255,255,255,0.2)" />
+              <TextInput style={tw`text-[14px] text-gray-900`} value={formData.phoneNumber} editable={false} keyboardType="phone-pad" placeholderTextColor="#E5E7EB" />
             </View>
           </View>
 
           <View style={tw`mb-5`}>
-            <Text style={tw`text-white/55 text-[12px] font-semibold tracking-wide mb-2`}>Date of Birth</Text>
-            <View style={[tw`bg-white/5 border border-white/10 rounded-2xl px-4 justify-center`, { height: 52 }]}>
-              <TextInput style={tw`text-[14px] text-white`} value={formData.dateOfBirth} onChangeText={(text) => handleChange('dateOfBirth', text)} editable={editing} placeholder="DD/MM/YYYY" placeholderTextColor="rgba(255,255,255,0.2)" />
+            <Text style={tw`text-gray-600 text-[12px] font-semibold tracking-wide mb-2`}>Date of Birth</Text>
+            <View style={[tw`bg-gray-50 border border-gray-200 rounded-2xl px-4 justify-center`, { height: 52 }]}>
+              <TextInput style={tw`text-[14px] text-gray-900`} value={formData.dateOfBirth} onChangeText={(text) => handleChange('dateOfBirth', text)} editable={editing} placeholder="DD/MM/YYYY" placeholderTextColor="#E5E7EB" />
             </View>
           </View>
 
           <View style={tw`mb-5`}>
-            <Text style={tw`text-white/55 text-[12px] font-semibold tracking-wide mb-2`}>Address</Text>
+            <Text style={tw`text-gray-600 text-[12px] font-semibold tracking-wide mb-2`}>Address</Text>
             <View style={[inputStyle(!!errors.address), { height: 52 }]}>
-              <TextInput style={tw`text-[14px] text-white`} value={formData.address} onChangeText={(text) => handleChange('address', text)} editable={editing} placeholder="Enter your address" placeholderTextColor="rgba(255,255,255,0.2)" />
+              <TextInput style={tw`text-[14px] text-gray-900`} value={formData.address} onChangeText={(text) => handleChange('address', text)} editable={editing} placeholder="Enter your address" placeholderTextColor="#E5E7EB" />
             </View>
             {errors.address ? <Text style={tw`text-red-400 text-[11px] mt-1.5 ml-1`}>{errors.address}</Text> : null}
           </View>
 
           <View style={tw`mb-5`}>
-            <Text style={tw`text-white/55 text-[12px] font-semibold tracking-wide mb-2`}>City</Text>
-            <View style={[tw`bg-white/5 border border-white/10 rounded-2xl px-4 justify-center`, { height: 52 }]}>
-              <TextInput style={tw`text-[14px] text-white`} value={formData.city} onChangeText={(text) => handleChange('city', text)} editable={editing} placeholder="Enter your city" placeholderTextColor="rgba(255,255,255,0.2)" />
+            <Text style={tw`text-gray-600 text-[12px] font-semibold tracking-wide mb-2`}>City</Text>
+            <View style={[tw`bg-gray-50 border border-gray-200 rounded-2xl px-4 justify-center`, { height: 52 }]}>
+              <TextInput style={tw`text-[14px] text-gray-900`} value={formData.city} onChangeText={(text) => handleChange('city', text)} editable={editing} placeholder="Enter your city" placeholderTextColor="#E5E7EB" />
             </View>
           </View>
 
           <View style={tw`mb-5`}>
-            <Text style={tw`text-white/55 text-[12px] font-semibold tracking-wide mb-2`}>State</Text>
-            <View style={[tw`bg-white/5 border border-white/10 rounded-2xl px-4 justify-center`, { height: 52 }]}>
-              <TextInput style={tw`text-[14px] text-white`} value={formData.state} onChangeText={(text) => handleChange('state', text)} editable={editing} placeholder="Enter your state" placeholderTextColor="rgba(255,255,255,0.2)" />
+            <Text style={tw`text-gray-600 text-[12px] font-semibold tracking-wide mb-2`}>State</Text>
+            <View style={[tw`bg-gray-50 border border-gray-200 rounded-2xl px-4 justify-center`, { height: 52 }]}>
+              <TextInput style={tw`text-[14px] text-gray-900`} value={formData.state} onChangeText={(text) => handleChange('state', text)} editable={editing} placeholder="Enter your state" placeholderTextColor="#E5E7EB" />
             </View>
           </View>
 
           <View style={tw`mb-5`}>
-            <Text style={tw`text-white/55 text-[12px] font-semibold tracking-wide mb-2`}>Postal Code</Text>
-            <View style={[tw`bg-white/5 border border-white/10 rounded-2xl px-4 justify-center`, { height: 52 }]}>
-              <TextInput style={tw`text-[14px] text-white`} value={formData.postalCode} onChangeText={(text) => handleChange('postalCode', text)} editable={editing} placeholder="Enter postal code" placeholderTextColor="rgba(255,255,255,0.2)" />
+            <Text style={tw`text-gray-600 text-[12px] font-semibold tracking-wide mb-2`}>Postal Code</Text>
+            <View style={[tw`bg-gray-50 border border-gray-200 rounded-2xl px-4 justify-center`, { height: 52 }]}>
+              <TextInput style={tw`text-[14px] text-gray-900`} value={formData.postalCode} onChangeText={(text) => handleChange('postalCode', text)} editable={editing} placeholder="Enter postal code" placeholderTextColor="#E5E7EB" />
             </View>
           </View>
 
           <View style={tw`mb-6`}>
-            <Text style={tw`text-white/55 text-[12px] font-semibold tracking-wide mb-2`}>Country</Text>
-            <View style={[tw`bg-white/5 border border-white/10 rounded-2xl px-4 justify-center`, { height: 52 }]}>
-              <TextInput style={tw`text-[14px] text-white`} value={formData.country} editable={false} placeholderTextColor="rgba(255,255,255,0.2)" />
+            <Text style={tw`text-gray-600 text-[12px] font-semibold tracking-wide mb-2`}>Country</Text>
+            <View style={[tw`bg-gray-50 border border-gray-200 rounded-2xl px-4 justify-center`, { height: 52 }]}>
+              <TextInput style={tw`text-[14px] text-gray-900`} value={formData.country} editable={false} placeholderTextColor="#E5E7EB" />
             </View>
           </View>
 
@@ -234,7 +234,7 @@ export default function PersonalInformationScreen() {
               <Ionicons name="information-circle" size={20} color="#60a5fa" />
               <Text style={tw`text-blue-300 font-semibold ml-2`}>Verification Required</Text>
             </View>
-            <Text style={tw`text-xs text-white/40`}>Some changes may require identity verification. You'll be notified if additional documents are needed.</Text>
+            <Text style={tw`text-xs text-gray-400`}>Some changes may require identity verification. You'll be notified if additional documents are needed.</Text>
           </View>
         </RefreshableScrollView>
       </KeyboardAvoidingView>

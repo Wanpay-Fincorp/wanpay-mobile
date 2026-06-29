@@ -68,15 +68,15 @@ export default function TransactionLimitsScreen() {
   const tierLabel = tier.replace('_', ' ');
 
   return (
-    <SafeAreaView style={tw`flex-1 bg-[${DARK_BG}]`}>
-      <View style={tw`px-3 py-4 border-b border-white/7`}>
+    <SafeAreaView style={tw`flex-1 pb-8 bg-[${DARK_BG}]`}>
+      <View style={tw`px-3 pt-12 pb-4 border-b border-gray-200`}>
         <View style={tw`flex-row items-center`}>
           <TouchableOpacity onPress={() => router.back()} style={tw`mr-4`} activeOpacity={0.7}>
-            <Ionicons name="arrow-back" size={24} color="rgba(255,255,255,0.75)" />
+            <Ionicons name="arrow-back" size={24} color="#374151" />
           </TouchableOpacity>
           <View>
-            <Text style={tw`text-xl font-bold text-white`}>Transaction Limits</Text>
-            <Text style={tw`text-xs text-white/40`}>View and manage your account limits</Text>
+            <Text style={tw`text-xl font-bold text-gray-900`}>Transaction Limits</Text>
+            <Text style={tw`text-xs text-gray-400`}>View and manage your account limits</Text>
           </View>
         </View>
       </View>
@@ -97,38 +97,38 @@ export default function TransactionLimitsScreen() {
 
         {loading ? (
           <View style={tw`items-center py-10`}>
-            <ActivityIndicator color="rgba(255,255,255,0.3)" />
+            <ActivityIndicator color="#D1D5DB" />
           </View>
         ) : (
           <View style={tw`mb-6`}>
-            <Text style={tw`text-white/45 text-xs font-semibold uppercase mb-3`}>Current Limits</Text>
+            <Text style={tw`text-gray-500 text-xs font-semibold uppercase mb-3`}>Current Limits</Text>
             {limits.length === 0 ? (
-              <View style={tw`bg-white/4 border border-white/7 rounded-2xl p-6 items-center`}>
-                <Text style={tw`text-white/30 text-sm`}>No limit data available</Text>
+              <View style={tw`bg-gray-50 border border-gray-200 rounded-2xl p-6 items-center`}>
+                <Text style={tw`text-gray-300 text-sm`}>No limit data available</Text>
               </View>
             ) : (
               limits.map((limit) => {
                 const percentage = getLimitPercentage(limit.current, limit.max);
                 return (
-                  <View key={limit.id} style={tw`bg-white/4 border border-white/7 rounded-2xl p-5 mb-4`}>
+                  <View key={limit.id} style={tw`bg-gray-50 border border-gray-200 rounded-2xl p-5 mb-4`}>
                     <View style={tw`flex-row items-center mb-4`}>
                       <View style={tw`bg-blue-500/15 w-12 h-12 rounded-full items-center justify-center mr-3`}>
                         <Ionicons name={limit.icon as any} size={24} color={limit.color} />
                       </View>
                       <View style={tw`flex-1`}>
-                        <Text style={tw`text-white font-bold text-base`}>{limit.type}</Text>
-                        <Text style={tw`text-white/40 text-xs mt-1`}>{limit.description}</Text>
+                        <Text style={tw`text-gray-900 font-bold text-base`}>{limit.type}</Text>
+                        <Text style={tw`text-gray-400 text-xs mt-1`}>{limit.description}</Text>
                       </View>
                     </View>
                     <View style={tw`mb-4`}>
                       <View style={tw`flex-row justify-between items-center mb-2`}>
-                        <Text style={tw`text-white/70 font-semibold`}>Current: {limit.current}</Text>
-                        <Text style={tw`text-white/40 text-sm`}>{percentage}% used</Text>
+                        <Text style={tw`text-gray-700 font-semibold`}>Current: {limit.current}</Text>
+                        <Text style={tw`text-gray-400 text-sm`}>{percentage}% used</Text>
                       </View>
-                      <View style={tw`h-2 bg-white/10 rounded-full overflow-hidden`}>
+                      <View style={tw`h-2 bg-gray-100 rounded-full overflow-hidden`}>
                         <View style={[tw`h-full rounded-full`, { width: `${percentage}%`, backgroundColor: limit.color }]} />
                       </View>
-                      <Text style={tw`text-white/40 text-xs mt-2`}>Maximum: {limit.max}</Text>
+                      <Text style={tw`text-gray-400 text-xs mt-2`}>Maximum: {limit.max}</Text>
                     </View>
                     <TouchableOpacity
                       style={tw`bg-blue-500/15 border border-blue-500/20 py-3 rounded-xl flex-row items-center justify-center`}
@@ -136,7 +136,7 @@ export default function TransactionLimitsScreen() {
                       activeOpacity={0.7}
                     >
                       <Ionicons name="trending-up" size={18} color="#60a5fa" />
-                      <Text style={tw`text-blue-400 font-semibold ml-2`}>Request Increase</Text>
+                      <Text style={tw`text-blue-600 font-semibold ml-2`}>Request Increase</Text>
                     </TouchableOpacity>
                   </View>
                 );
@@ -174,9 +174,9 @@ export default function TransactionLimitsScreen() {
             <Ionicons name="information-circle" size={20} color="#60a5fa" />
             <Text style={tw`text-blue-300 font-semibold ml-2`}>About Limits</Text>
           </View>
-          <Text style={tw`text-xs text-white/40 mb-1`}>• Limits are set based on your account tier and verification level</Text>
-          <Text style={tw`text-xs text-white/40 mb-1`}>• Limit increase requests are reviewed within 24-48 hours</Text>
-          <Text style={tw`text-xs text-white/40`}>• Higher limits may require additional verification documents</Text>
+          <Text style={tw`text-xs text-gray-400 mb-1`}>• Limits are set based on your account tier and verification level</Text>
+          <Text style={tw`text-xs text-gray-400 mb-1`}>• Limit increase requests are reviewed within 24-48 hours</Text>
+          <Text style={tw`text-xs text-gray-400`}>• Higher limits may require additional verification documents</Text>
         </View>
       </RefreshableScrollView>
     </SafeAreaView>

@@ -61,15 +61,15 @@ export default function HelpSupportScreen() {
   };
 
   return (
-    <SafeAreaView style={tw`flex-1 bg-[${DARK_BG}]`}>
-      <View style={tw`px-3 py-4 border-b border-white/7`}>
+    <SafeAreaView style={tw`flex-1 pb-8 bg-[${DARK_BG}]`}>
+      <View style={tw`px-3 pt-12 pb-4 border-b border-gray-200`}>
         <View style={tw`flex-row items-center`}>
           <TouchableOpacity onPress={() => router.back()} style={tw`mr-4`} activeOpacity={0.7}>
-            <Ionicons name="arrow-back" size={24} color="rgba(255,255,255,0.75)" />
+            <Ionicons name="arrow-back" size={24} color="#374151" />
           </TouchableOpacity>
           <View>
-            <Text style={tw`text-xl font-bold text-white`}>Help & Support</Text>
-            <Text style={tw`text-xs text-white/40`}>Get help with your account</Text>
+            <Text style={tw`text-xl font-bold text-gray-900`}>Help & Support</Text>
+            <Text style={tw`text-xs text-gray-400`}>Get help with your account</Text>
           </View>
         </View>
       </View>
@@ -78,11 +78,11 @@ export default function HelpSupportScreen() {
         {(['faq', 'contact'] as const).map((tab) => (
           <TouchableOpacity
             key={tab}
-            style={tw`flex-1 py-3 rounded-xl mr-2 ${activeTab === tab ? 'bg-blue-600' : 'bg-white/5 border border-white/10'}`}
+            style={tw`flex-1 py-3 rounded-xl mr-2 ${activeTab === tab ? 'bg-blue-600' : 'bg-gray-50 border border-gray-200'}`}
             onPress={() => setActiveTab(tab)}
             activeOpacity={0.7}
           >
-            <Text style={tw`text-center font-semibold ${activeTab === tab ? 'text-white' : 'text-white/40'}`}>{tab === 'faq' ? 'FAQ' : 'Contact Us'}</Text>
+            <Text style={tw`text-center font-semibold ${activeTab === tab ? 'text-white' : 'text-gray-400'}`}>{tab === 'faq' ? 'FAQ' : 'Contact Us'}</Text>
           </TouchableOpacity>
         ))}
       </View>
@@ -91,12 +91,12 @@ export default function HelpSupportScreen() {
         <RefreshableScrollView style={tw`flex-1 px-3 pt-3`} showsVerticalScrollIndicator={false} contentContainerStyle={tw`pb-8`} refreshing={refreshing} onRefresh={onRefresh}>
           {faqLoading ? (
             <View style={tw`items-center py-10`}>
-              <ActivityIndicator color="rgba(255,255,255,0.3)" />
+              <ActivityIndicator color="#9CA3AF" />
             </View>
           ) : faqs.length === 0 ? (
             <View style={tw`items-center py-10`}>
-              <Ionicons name="help-circle-outline" size={64} color="rgba(255,255,255,0.1)" />
-              <Text style={tw`text-white/30 text-lg mt-4`}>No FAQs available</Text>
+              <Ionicons name="help-circle-outline" size={64} color="#E5E7EB" />
+              <Text style={tw`text-gray-300 text-lg mt-4`}>No FAQs available</Text>
               <TouchableOpacity style={tw`bg-blue-600 px-6 py-3 rounded-xl mt-6`} onPress={loadFaqs} activeOpacity={0.8}>
                 <Text style={tw`text-white font-bold`}>Reload</Text>
               </TouchableOpacity>
@@ -105,17 +105,17 @@ export default function HelpSupportScreen() {
             faqs.map((faq) => (
               <TouchableOpacity
                 key={faq.id}
-                style={tw`bg-white/4 border border-white/7 rounded-2xl mb-3 overflow-hidden`}
+                style={tw`bg-gray-50 border border-gray-200 rounded-2xl mb-3 overflow-hidden`}
                 onPress={() => setExpandedFaq(expandedFaq === faq.id ? null : faq.id)}
                 activeOpacity={0.75}
               >
                 <View style={tw`flex-row items-center justify-between px-5 py-4`}>
-                  <Text style={tw`text-white font-semibold flex-1 mr-4`}>{faq.question}</Text>
-                  <Ionicons name={expandedFaq === faq.id ? 'chevron-up' : 'chevron-down'} size={18} color="rgba(255,255,255,0.35)" />
+                  <Text style={tw`text-gray-900 font-semibold flex-1 mr-4`}>{faq.question}</Text>
+                  <Ionicons name={expandedFaq === faq.id ? 'chevron-up' : 'chevron-down'} size={18} color="#9CA3AF" />
                 </View>
                 {expandedFaq === faq.id && (
                   <View style={tw`px-5 pb-4`}>
-                    <Text style={tw`text-white/50 text-sm leading-relaxed`}>{faq.answer}</Text>
+                    <Text style={tw`text-gray-500 text-sm leading-relaxed`}>{faq.answer}</Text>
                   </View>
                 )}
               </TouchableOpacity>
@@ -129,20 +129,20 @@ export default function HelpSupportScreen() {
               <Ionicons name="information-circle" size={20} color="#60a5fa" />
               <Text style={tw`text-blue-300 font-semibold ml-2`}>Need More Help?</Text>
             </View>
-            <Text style={tw`text-xs text-white/40`}>Our support team typically responds within 24 hours. For urgent matters, please call our support line.</Text>
+            <Text style={tw`text-xs text-gray-400`}>Our support team typically responds within 24 hours. For urgent matters, please call our support line.</Text>
           </View>
 
           <View style={tw`mb-5`}>
-            <Text style={tw`text-white/55 text-[12px] font-semibold tracking-wide mb-2`}>Subject</Text>
-            <View style={tw`bg-white/5 border border-white/10 rounded-2xl px-4 h-[52px] justify-center`}>
-              <TextInput style={tw`text-[14px] text-white`} value={contactForm.subject} onChangeText={(text) => setContactForm({ ...contactForm, subject: text })} placeholder="What's this about?" placeholderTextColor="rgba(255,255,255,0.2)" />
+            <Text style={tw`text-gray-600 text-[12px] font-semibold tracking-wide mb-2`}>Subject</Text>
+            <View style={tw`bg-gray-50 border border-gray-200 rounded-2xl px-4 h-[52px] justify-center`}>
+              <TextInput style={tw`text-[14px] text-gray-900`} value={contactForm.subject} onChangeText={(text) => setContactForm({ ...contactForm, subject: text })} placeholder="What's this about?" placeholderTextColor="#E5E7EB" />
             </View>
           </View>
 
           <View style={tw`mb-6`}>
-            <Text style={tw`text-white/55 text-[12px] font-semibold tracking-wide mb-2`}>Message</Text>
-            <View style={tw`bg-white/5 border border-white/10 rounded-2xl px-4 pt-4`}>
-              <TextInput style={tw`text-[14px] text-white`} value={contactForm.message} onChangeText={(text) => setContactForm({ ...contactForm, message: text })} placeholder="Describe your issue in detail..." placeholderTextColor="rgba(255,255,255,0.2)" multiline textAlignVertical="top" />
+            <Text style={tw`text-gray-600 text-[12px] font-semibold tracking-wide mb-2`}>Message</Text>
+            <View style={tw`bg-gray-50 border border-gray-200 rounded-2xl px-4 pt-4`}>
+              <TextInput style={tw`text-[14px] text-gray-900`} value={contactForm.message} onChangeText={(text) => setContactForm({ ...contactForm, message: text })} placeholder="Describe your issue in detail..." placeholderTextColor="#E5E7EB" multiline textAlignVertical="top" />
             </View>
           </View>
 
@@ -150,21 +150,21 @@ export default function HelpSupportScreen() {
             {submitting ? <ActivityIndicator color="#fff" /> : <Text style={tw`text-white text-center font-bold text-lg`}>Submit Ticket</Text>}
           </TouchableOpacity>
 
-          <View style={tw`bg-white/4 border border-white/7 rounded-2xl p-5 mb-4`}>
+          <View style={tw`bg-gray-50 border border-gray-200 rounded-2xl p-5 mb-4`}>
             <View style={tw`flex-row items-center mb-3`}>
               <Ionicons name="call-outline" size={20} color="#60a5fa" />
-              <Text style={tw`text-white font-semibold ml-3`}>Phone Support</Text>
+              <Text style={tw`text-gray-900 font-semibold ml-3`}>Phone Support</Text>
             </View>
-            <Text style={tw`text-blue-400 text-sm mb-1`}>+234 800 123 4567</Text>
-            <Text style={tw`text-white/40 text-xs`}>Available Mon-Fri, 8AM-6PM (WAT)</Text>
+            <Text style={tw`text-blue-600 text-sm mb-1`}>+234 800 123 4567</Text>
+            <Text style={tw`text-gray-400 text-xs`}>Available Mon-Fri, 8AM-6PM (WAT)</Text>
           </View>
 
-          <View style={tw`bg-white/4 border border-white/7 rounded-2xl p-5`}>
+          <View style={tw`bg-gray-50 border border-gray-200 rounded-2xl p-5`}>
             <View style={tw`flex-row items-center mb-3`}>
               <Ionicons name="mail-outline" size={20} color="#60a5fa" />
-              <Text style={tw`text-white font-semibold ml-3`}>Email Support</Text>
+              <Text style={tw`text-gray-900 font-semibold ml-3`}>Email Support</Text>
             </View>
-            <Text style={tw`text-blue-400 text-sm`}>support@wanpay.ng</Text>
+            <Text style={tw`text-blue-600 text-sm`}>support@wanpay.ng</Text>
           </View>
         </RefreshableScrollView>
       )}

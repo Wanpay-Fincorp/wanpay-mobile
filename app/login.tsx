@@ -4,7 +4,6 @@ import { useRouter, useRootNavigationState, Redirect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { StatusBar } from 'expo-status-bar';
 import tw from 'twrnc';
-import { DARK_BG } from '@/constants/customConstants';
 import { api } from '@/lib/api';
 import { useAuth } from '@/contexts/AuthContext';
 import type { AuthTokens } from '@/lib/types';
@@ -60,39 +59,39 @@ export default function LoginScreen() {
   };
 
   return (
-    <SafeAreaView style={tw`flex-1 bg-[${DARK_BG}]`}>
-      <StatusBar style="light" />
+    <SafeAreaView style={tw`flex-1 bg-white`}>
+      <StatusBar style="dark" />
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={tw`flex-1`}>
         <ScrollView style={tw`flex-1 px-7`} contentContainerStyle={tw`pb-8`} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
-          <TouchableOpacity onPress={() => router.back()} style={tw`mt-14 mb-8 w-[38px] h-[38px] rounded-xl bg-white/7 items-center justify-center`} activeOpacity={0.7}>
-            <Ionicons name="arrow-back" size={20} color="rgba(255,255,255,0.75)" />
+          <TouchableOpacity onPress={() => router.back()} style={tw`mt-14 mb-8 w-[38px] h-[38px] rounded-xl bg-gray-100 items-center justify-center`} activeOpacity={0.7}>
+            <Ionicons name="arrow-back" size={20} color="#374151" />
           </TouchableOpacity>
-          <Text style={tw`text-white text-[26px] font-bold tracking-tight mb-1.5`}>Welcome back</Text>
-          <Text style={tw`text-white/40 text-[13px] leading-5 mb-9`}>Log in to continue to your account</Text>
+          <Text style={tw`text-gray-900 text-[26px] font-bold tracking-tight mb-1.5`}>Welcome back</Text>
+          <Text style={tw`text-gray-500 text-[13px] leading-5 mb-9`}>Log in to continue to your account</Text>
           <View style={tw`mb-5`}>
-            <Text style={tw`text-white/55 text-[12px] font-semibold tracking-wide mb-2`}>Phone number</Text>
-            <View style={tw`flex-row items-center bg-white/5 border ${errors.phone ? 'border-red-500/70' : 'border-white/10'} rounded-2xl px-4 h-[52px]`}>
-              <Text style={tw`text-white/65 text-[13px] font-semibold`}>+234</Text>
-              <View style={tw`w-px h-[18px] bg-white/15 mx-2.5`} />
+            <Text style={tw`text-gray-600 text-[12px] font-semibold tracking-wide mb-2`}>Phone number</Text>
+            <View style={tw`flex-row items-center bg-gray-50 border ${errors.phone ? 'border-red-500' : 'border-gray-200'} rounded-2xl px-4 h-[52px]`}>
+              <Text style={tw`text-gray-500 text-[13px] font-semibold`}>+234</Text>
+              <View style={tw`w-px h-[18px] bg-gray-300 mx-2.5`} />
               <TextInput
-                style={tw`flex-1 text-[14px] text-white`}
+                style={tw`flex-1 text-[14px] text-gray-900`}
                 placeholder="8012345678"
-                placeholderTextColor="rgba(255,255,255,0.2)"
+                placeholderTextColor="#9CA3AF"
                 keyboardType="phone-pad"
                 value={phone}
                 onChangeText={handlePhoneChange}
                 maxLength={10}
               />
             </View>
-            {errors.phone ? <Text style={tw`text-red-400 text-[11px] mt-1.5 ml-1`}>{errors.phone}</Text> : null}
+            {errors.phone ? <Text style={tw`text-red-500 text-[11px] mt-1.5 ml-1`}>{errors.phone}</Text> : null}
           </View>
           <View style={tw`mb-3`}>
-            <Text style={tw`text-white/55 text-[12px] font-semibold tracking-wide mb-2`}>PIN</Text>
-            <View style={tw`flex-row items-center bg-white/5 border ${errors.pin ? 'border-red-500/70' : 'border-white/10'} rounded-2xl px-4 h-[52px]`}>
+            <Text style={tw`text-gray-600 text-[12px] font-semibold tracking-wide mb-2`}>PIN</Text>
+            <View style={tw`flex-row items-center bg-gray-50 border ${errors.pin ? 'border-red-500' : 'border-gray-200'} rounded-2xl px-4 h-[52px]`}>
               <TextInput
-                style={tw`flex-1 text-[14px] text-white tracking-[6px]`}
+                style={tw`flex-1 text-[14px] text-gray-900 tracking-[6px]`}
                 placeholder="• • • •"
-                placeholderTextColor="rgba(255,255,255,0.2)"
+                placeholderTextColor="#9CA3AF"
                 secureTextEntry={!showPin}
                 keyboardType="number-pad"
                 maxLength={4}
@@ -100,13 +99,13 @@ export default function LoginScreen() {
                 onChangeText={handlePinChange}
               />
               <TouchableOpacity onPress={() => setShowPin(!showPin)} activeOpacity={0.7} style={tw`p-1`}>
-                <Ionicons name={showPin ? 'eye-outline' : 'eye-off-outline'} size={20} color="rgba(255,255,255,0.35)" />
+                <Ionicons name={showPin ? 'eye-outline' : 'eye-off-outline'} size={20} color="#9CA3AF" />
               </TouchableOpacity>
             </View>
-            {errors.pin ? <Text style={tw`text-red-400 text-[11px] mt-1.5 ml-1`}>{errors.pin}</Text> : null}
+            {errors.pin ? <Text style={tw`text-red-500 text-[11px] mt-1.5 ml-1`}>{errors.pin}</Text> : null}
           </View>
           <TouchableOpacity style={tw`mb-9 self-end`} activeOpacity={0.7} onPress={() => Alert.alert('Forgot PIN', 'Enter your phone number and we will send you an OTP to reset your PIN.')}>
-            <Text style={tw`text-blue-400 text-[12px] font-semibold`}>Forgot PIN?</Text>
+            <Text style={tw`text-blue-500 text-[12px] font-semibold`}>Forgot PIN?</Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={tw`bg-blue-500 h-[52px] rounded-2xl items-center justify-center mb-5 ${loading ? 'opacity-60' : ''}`}
@@ -117,9 +116,9 @@ export default function LoginScreen() {
             {loading ? <ActivityIndicator color="#fff" /> : <Text style={tw`text-white font-semibold text-[15px] tracking-tight`}>Log in</Text>}
           </TouchableOpacity>
           <View style={tw`flex-row justify-center items-center gap-1`}>
-            <Text style={tw`text-white/35 text-[12px]`}>Don't have an account?</Text>
+            <Text style={tw`text-gray-500 text-[12px]`}>Don't have an account?</Text>
             <TouchableOpacity onPress={() => router.push('/signup')} activeOpacity={0.7}>
-              <Text style={tw`text-blue-400 text-[12px] font-semibold`}>Sign up</Text>
+              <Text style={tw`text-blue-500 text-[12px] font-semibold`}>Sign up</Text>
             </TouchableOpacity>
           </View>
         </ScrollView>

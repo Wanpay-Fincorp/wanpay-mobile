@@ -125,24 +125,24 @@ export default function TransferScreen() {
   };
 
   const inputStyle = (hasError: boolean) =>
-    tw`bg-white/5 border ${hasError ? 'border-red-500/70' : 'border-white/10'} rounded-2xl px-4 h-[52px] justify-center`;
+    tw`bg-gray-50 border ${hasError ? 'border-red-500/70' : 'border-gray-200'} rounded-2xl px-4 h-[52px] justify-center`;
 
   return (
-    <SafeAreaView style={tw`flex-1 py-4 bg-[${DARK_BG}]`}>
-      <StatusBar style="light" />
+    <SafeAreaView style={tw`flex-1 pt-4 pb-8 bg-[${DARK_BG}]`}>
+      <StatusBar style="dark" />
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={tw`flex-1`}>
-        <RefreshableScrollView onRefresh={onRefresh} refreshing={refreshing} style={tw`flex-1 px-5`} contentContainerStyle={tw`pb-12`} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
-          <View style={tw`flex-row items-start mt-4 mb-7`}>
+        <RefreshableScrollView onRefresh={onRefresh} refreshing={refreshing} style={tw`flex-1 px-5`} contentContainerStyle={tw`pb-24`} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
+          <View style={tw`flex-row items-start mt-8 mb-7`}>
             <TouchableOpacity
               onPress={() => router.back()}
-              style={tw`w-[38px] h-[38px] rounded-xl bg-white/7 items-center justify-center mr-4`}
+              style={tw`w-[38px] h-[38px] rounded-xl bg-gray-100 items-center justify-center mr-4`}
               activeOpacity={0.7}
             >
-              <Ionicons name="arrow-back" size={20} color="rgba(255,255,255,0.75)" />
+              <Ionicons name="arrow-back" size={20} color="#374151" />
             </TouchableOpacity>
             <View>
-              <Text style={tw`text-white text-[20px] font-bold tracking-tight`}>Send money</Text>
-              <Text style={tw`text-white/35 text-[12px] mt-0.5`}>Instant bank transfer</Text>
+              <Text style={tw`text-gray-900 text-[20px] font-bold tracking-tight`}>Send money</Text>
+              <Text style={tw`text-gray-400 text-[12px] mt-0.5`}>Instant bank transfer</Text>
             </View>
           </View>
 
@@ -156,26 +156,26 @@ export default function TransferScreen() {
           </View>
 
           <View style={tw`mb-5`}>
-            <Text style={tw`text-white/55 text-[12px] font-semibold tracking-wide mb-2`}>Bank</Text>
+            <Text style={tw`text-gray-600 text-[12px] font-semibold tracking-wide mb-2`}>Bank</Text>
             <TouchableOpacity
               activeOpacity={0.8}
-              style={tw`bg-white/5 border ${errors.bank ? 'border-red-500/70' : 'border-white/10'} rounded-2xl px-4 h-[52px] flex-row justify-between items-center`}
+              style={tw`bg-gray-50 border ${errors.bank ? 'border-red-500/70' : 'border-gray-200'} rounded-2xl px-4 h-[52px] flex-row justify-between items-center`}
               onPress={() => setIsSelectingBank(!isSelectingBank)}
             >
-              <Text style={tw`${selectedBank ? 'text-white' : 'text-white/25'} text-[14px]`}>
+              <Text style={tw`${selectedBank ? 'text-gray-900' : 'text-gray-300'} text-[14px]`}>
                 {selectedBank ? selectedBank.name : 'Choose bank...'}
               </Text>
-              <Ionicons name={isSelectingBank ? 'chevron-up' : 'chevron-down'} size={18} color="rgba(255,255,255,0.35)" />
+              <Ionicons name={isSelectingBank ? 'chevron-up' : 'chevron-down'} size={18} color="#9ca3af" />
             </TouchableOpacity>
             {errors.bank ? <Text style={tw`text-red-400 text-[11px] mt-1.5 ml-1`}>{errors.bank}</Text> : null}
 
             {isSelectingBank && (
-              <View style={tw`mt-2 bg-[#0f0f1e] border border-white/10 rounded-2xl overflow-hidden max-h-64`}>
+              <View style={tw`mt-2 bg-gray-50 border border-gray-200 rounded-2xl overflow-hidden max-h-64`}>
                 <RefreshableScrollView>
                   {banks.map((bank, i) => (
                     <TouchableOpacity
                       key={bank.id}
-                      style={tw`px-4 h-[48px] flex-row justify-between items-center ${selectedBank?.id === bank.id ? 'bg-blue-500/10' : ''} ${i !== banks.length - 1 ? 'border-b border-white/7' : ''}`}
+                      style={tw`px-4 h-[48px] flex-row justify-between items-center ${selectedBank?.id === bank.id ? 'bg-blue-500/10' : ''} ${i !== banks.length - 1 ? 'border-b border-gray-200' : ''}`}
                       activeOpacity={0.7}
                       onPress={() => {
                         setSelectedBank(bank);
@@ -184,7 +184,7 @@ export default function TransferScreen() {
                         if (errors.bank) setErrors(p => ({ ...p, bank: '' }));
                       }}
                     >
-                      <Text style={tw`text-white text-[14px]`}>{bank.name}</Text>
+                      <Text style={tw`text-gray-900 text-[14px]`}>{bank.name}</Text>
                       {selectedBank?.id === bank.id && <Ionicons name="checkmark" size={16} color="#60a5fa" />}
                     </TouchableOpacity>
                   ))}
@@ -194,12 +194,12 @@ export default function TransferScreen() {
           </View>
 
           <View style={tw`mb-5`}>
-            <Text style={tw`text-white/55 text-[12px] font-semibold tracking-wide mb-2`}>Account number</Text>
+            <Text style={tw`text-gray-600 text-[12px] font-semibold tracking-wide mb-2`}>Account number</Text>
             <View style={inputStyle(!!errors.accountNumber)}>
               <TextInput
-                style={tw`text-[14px] text-white`}
+                style={tw`text-[14px] text-gray-900`}
                 placeholder="Enter 10-digit account number"
-                placeholderTextColor="rgba(255,255,255,0.2)"
+                placeholderTextColor="#9ca3af"
                 keyboardType="number-pad"
                 maxLength={10}
                 value={accountNumber}
@@ -218,13 +218,13 @@ export default function TransferScreen() {
           </View>
 
           <View style={tw`mb-5`}>
-            <Text style={tw`text-white/55 text-[12px] font-semibold tracking-wide mb-2`}>Amount</Text>
-            <View style={tw`bg-white/5 border ${errors.amount ? 'border-red-500/70' : 'border-white/10'} rounded-2xl px-4 h-[60px] flex-row items-center`}>
-              <Text style={tw`text-white/40 text-[20px] mr-2`}>₦</Text>
+            <Text style={tw`text-gray-600 text-[12px] font-semibold tracking-wide mb-2`}>Amount</Text>
+            <View style={tw`bg-gray-50 border ${errors.amount ? 'border-red-500/70' : 'border-gray-200'} rounded-2xl px-4 h-[60px] flex-row items-center`}>
+              <Text style={tw`text-gray-400 text-[20px] mr-2`}>₦</Text>
               <TextInput
-                style={tw`flex-1 text-[24px] font-bold text-white`}
+                style={tw`flex-1 text-[24px] font-bold text-gray-900`}
                 placeholder="0.00"
-                placeholderTextColor="rgba(255,255,255,0.15)"
+                placeholderTextColor="#9ca3af"
                 keyboardType="decimal-pad"
                 value={formattedAmount}
                 onChangeText={handleAmountChange}
@@ -235,30 +235,30 @@ export default function TransferScreen() {
 
           <View style={tw`mb-8`}>
             <View style={tw`flex-row items-center mb-2`}>
-              <Text style={tw`text-white/55 text-[12px] font-semibold tracking-wide`}>Description</Text>
-              <Text style={tw`text-white/25 text-[11px] ml-1.5`}>(optional)</Text>
+              <Text style={tw`text-gray-600 text-[12px] font-semibold tracking-wide`}>Description</Text>
+              <Text style={tw`text-gray-300 text-[11px] ml-1.5`}>(optional)</Text>
             </View>
-            <View style={tw`bg-white/5 border border-white/10 rounded-2xl px-4 py-3`}>
+            <View style={tw`bg-gray-50 border border-gray-200 rounded-2xl px-4 py-3`}>
               <TextInput
-                style={tw`text-[14px] text-white h-20`}
+                style={tw`text-[14px] text-gray-900 h-20`}
                 placeholder="What is this transfer for?"
-                placeholderTextColor="rgba(255,255,255,0.2)"
+                placeholderTextColor="#9ca3af"
                 multiline
                 value={description}
                 onChangeText={setDescription}
                 maxLength={120}
               />
             </View>
-            <Text style={tw`text-white/25 text-[11px] mt-1 ml-1`}>{120 - description.length} characters remaining</Text>
+            <Text style={tw`text-gray-300 text-[11px] mt-1 ml-1`}>{120 - description.length} characters remaining</Text>
           </View>
 
           <View style={tw`mb-5`}>
-            <Text style={tw`text-white/55 text-[12px] font-semibold tracking-wide mb-2`}>Transaction PIN</Text>
-            <View style={tw`bg-white/5 border ${errors.pin ? 'border-red-500/70' : 'border-white/10'} rounded-2xl px-4 h-[52px] flex-row items-center`}>
+            <Text style={tw`text-gray-600 text-[12px] font-semibold tracking-wide mb-2`}>Transaction PIN</Text>
+            <View style={tw`bg-gray-50 border ${errors.pin ? 'border-red-500/70' : 'border-gray-200'} rounded-2xl px-4 h-[52px] flex-row items-center`}>
               <TextInput
-                style={tw`flex-1 text-[14px] text-white`}
+                style={tw`flex-1 text-[14px] text-gray-900`}
                 placeholder="Enter your PIN"
-                placeholderTextColor="rgba(255,255,255,0.2)"
+                placeholderTextColor="#9ca3af"
                 keyboardType="number-pad"
                 secureTextEntry={!showPin}
                 maxLength={4}
@@ -266,7 +266,7 @@ export default function TransferScreen() {
                 onChangeText={(text) => { setPin(text.replace(/[^0-9]/g, '').slice(0, 4)); if (errors.pin) setErrors(p => ({ ...p, pin: '' })); }}
               />
               <TouchableOpacity onPress={() => setShowPin(!showPin)}>
-                <Ionicons name={showPin ? 'eye-outline' : 'eye-off-outline'} size={20} color="rgba(255,255,255,0.35)" />
+                <Ionicons name={showPin ? 'eye-outline' : 'eye-off-outline'} size={20} color="#9ca3af" />
               </TouchableOpacity>
             </View>
             {errors.pin ? <Text style={tw`text-red-400 text-[11px] mt-1.5 ml-1`}>{errors.pin}</Text> : null}
@@ -287,9 +287,9 @@ export default function TransferScreen() {
             }
           </TouchableOpacity>
 
-          <View style={tw`bg-white/4 border border-white/7 rounded-2xl p-4`}>
-            <Text style={tw`text-white/55 text-[12px] font-semibold mb-1.5`}>Tip</Text>
-            <Text style={tw`text-white/30 text-[12px] leading-5`}>
+          <View style={tw`bg-gray-50 border border-gray-200 rounded-2xl p-4`}>
+            <Text style={tw`text-gray-600 text-[12px] font-semibold mb-1.5`}>Tip</Text>
+            <Text style={tw`text-gray-300 text-[12px] leading-5`}>
               WanPay cannot reverse transfers sent to the wrong account. Always verify recipient details.
             </Text>
           </View>

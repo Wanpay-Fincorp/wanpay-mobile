@@ -74,16 +74,16 @@ export default function ManageCardsScreen() {
   };
 
   return (
-    <SafeAreaView style={tw`flex-1 bg-[${DARK_BG}]`}>
-      <View style={tw`px-3 py-4 border-b border-white/7`}>
+    <SafeAreaView style={tw`flex-1 pb-8 bg-[${DARK_BG}]`}>
+      <View style={tw`px-3 pt-12 pb-4 border-b border-gray-200`}>
         <View style={tw`flex-row items-center justify-between`}>
           <View style={tw`flex-row items-center`}>
             <TouchableOpacity onPress={() => router.back()} style={tw`mr-4`} activeOpacity={0.7}>
-              <Ionicons name="arrow-back" size={24} color="rgba(255,255,255,0.75)" />
+              <Ionicons name="arrow-back" size={24} color="#374151" />
             </TouchableOpacity>
             <View>
-              <Text style={tw`text-xl font-bold text-white`}>Manage Cards</Text>
-              <Text style={tw`text-xs text-white/40`}>View and manage your cards</Text>
+              <Text style={tw`text-xl font-bold text-gray-900`}>Manage Cards</Text>
+              <Text style={tw`text-xs text-gray-400`}>View and manage your cards</Text>
             </View>
           </View>
           <TouchableOpacity style={tw`bg-blue-600 w-9 h-9 rounded-full items-center justify-center`} onPress={() => Alert.alert('Add Card', 'Adding a new card coming soon.')} activeOpacity={0.7}>
@@ -95,20 +95,20 @@ export default function ManageCardsScreen() {
       <RefreshableScrollView style={tw`flex-1 px-3 pt-6`} showsVerticalScrollIndicator={false} contentContainerStyle={tw`pb-8`} refreshing={refreshing} onRefresh={onRefresh}>
         {loading ? (
           <View style={tw`items-center py-10`}>
-            <ActivityIndicator color="rgba(255,255,255,0.3)" />
+            <ActivityIndicator color="#D1D5DB" />
           </View>
         ) : cards.length === 0 ? (
           <View style={tw`items-center py-10`}>
-            <Ionicons name="card-outline" size={64} color="rgba(255,255,255,0.1)" />
-            <Text style={tw`text-white/30 text-lg mt-4`}>No cards found</Text>
-            <Text style={tw`text-white/20 text-sm mt-2`}>Add a card to get started</Text>
+            <Ionicons name="card-outline" size={64} color="#E5E7EB" />
+            <Text style={tw`text-gray-300 text-lg mt-4`}>No cards found</Text>
+            <Text style={tw`text-gray-200 text-sm mt-2`}>Add a card to get started</Text>
             <TouchableOpacity style={tw`bg-blue-600 px-6 py-3 rounded-xl mt-6`} onPress={() => Alert.alert('Add Card', 'Adding a new card coming soon.')} activeOpacity={0.8}>
               <Text style={tw`text-white font-bold`}>Add Card</Text>
             </TouchableOpacity>
           </View>
         ) : (
           cards.map((card, index) => (
-            <View key={card.id || index} style={tw`bg-white/4 border border-white/7 rounded-2xl mb-4 overflow-hidden`}>
+            <View key={card.id || index} style={tw`bg-gray-50 border border-gray-200 rounded-2xl mb-4 overflow-hidden`}>
               <View style={tw`bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 p-5`}>
                 <View style={tw`flex-row justify-between items-start mb-6`}>
                   <Ionicons name={getCardTypeIcon(card.type) as any} size={36} color="rgba(255,255,255,0.8)" />
@@ -127,17 +127,17 @@ export default function ManageCardsScreen() {
               </View>
               <View style={tw`px-5 py-4`}>
                 <View style={tw`flex-row items-center justify-between mb-1`}>
-                  <Text style={tw`text-white/55 text-xs`}>Status</Text>
+                  <Text style={tw`text-gray-600 text-xs`}>Status</Text>
                   <View style={tw`flex-row items-center`}>
                     <View style={tw`${card.status === 'ACTIVE' ? 'bg-emerald-500' : 'bg-red-500'} w-2 h-2 rounded-full mr-2`} />
                     <Text style={tw`${card.status === 'ACTIVE' ? 'text-emerald-400' : 'text-red-400'} text-sm capitalize`}>{card.status === 'ACTIVE' ? 'active' : card.status === 'BLOCKED' ? 'blocked' : 'expired'}</Text>
                   </View>
                 </View>
-                <View style={tw`border-t border-white/7 my-4`}>
+                <View style={tw`border-t border-gray-200 my-4`}>
                   <View style={tw`flex-row justify-between mt-4`}>
                     <TouchableOpacity style={tw`flex-row items-center`} onPress={() => handleToggleDefault(card.id)} activeOpacity={0.7}>
-                      <Ionicons name={card.isDefault ? 'star' : 'star-outline'} size={18} color={card.isDefault ? '#fbbf24' : 'rgba(255,255,255,0.35)'} />
-                      <Text style={tw`text-white/55 text-sm ml-2`}>{card.isDefault ? 'Default' : 'Set as Default'}</Text>
+                      <Ionicons name={card.isDefault ? 'star' : 'star-outline'} size={18} color={card.isDefault ? '#fbbf24' : '#9CA3AF'} />
+                      <Text style={tw`text-gray-600 text-sm ml-2`}>{card.isDefault ? 'Default' : 'Set as Default'}</Text>
                     </TouchableOpacity>
                     <TouchableOpacity style={tw`flex-row items-center`} onPress={() => handleBlockCard(card.id)} activeOpacity={0.7}>
                       <Ionicons name="lock-closed-outline" size={18} color="#ef4444" />

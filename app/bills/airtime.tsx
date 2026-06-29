@@ -86,24 +86,24 @@ export default function AirtimeScreen() {
   const isDisabled = isSubmitting || !selectedNetwork || phoneNumber.length !== 10 || !amount || pin.length !== 4;
 
   return (
-    <SafeAreaView style={[tw`flex-1 py-5`, { backgroundColor: DARK_BG }]}>
-      <StatusBar style="light" />
+    <SafeAreaView style={[tw`flex-1 pt-5 pb-8`, { backgroundColor: DARK_BG }]}>
+      <StatusBar style="dark" />
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={tw`flex-1`}>
-        <View style={tw`px-5 pt-4 pb-5 border-b border-white/7`}>
+        <View style={tw`px-5 pt-12 pb-5 border-b border-gray-200`}>
           <View style={tw`flex-row items-center`}>
-            <TouchableOpacity onPress={() => router.back()} style={tw`w-[38px] h-[38px] rounded-xl bg-white/7 items-center justify-center mr-4`} activeOpacity={0.7}>
-              <Ionicons name="arrow-back" size={20} color="rgba(255,255,255,0.75)" />
+            <TouchableOpacity onPress={() => router.back()} style={tw`w-[38px] h-[38px] rounded-xl bg-gray-100 items-center justify-center mr-4`} activeOpacity={0.7}>
+              <Ionicons name="arrow-back" size={20} color="#374151" />
             </TouchableOpacity>
             <View>
-              <Text style={tw`text-white text-[20px] font-bold tracking-tight`}>Buy airtime</Text>
-              <Text style={tw`text-white/35 text-[12px] mt-0.5`}>Instant airtime top-up</Text>
+              <Text style={tw`text-gray-900 text-[20px] font-bold tracking-tight`}>Buy airtime</Text>
+              <Text style={tw`text-gray-400 text-[12px] mt-0.5`}>Instant airtime top-up</Text>
             </View>
           </View>
         </View>
 
         <RefreshableScrollView style={tw`flex-1 px-5 pt-6`} showsVerticalScrollIndicator={false} contentContainerStyle={tw`pb-10`}>
           <View style={tw`mb-6`}>
-            <Text style={tw`text-white/55 text-[12px] font-semibold tracking-wide mb-3`}>Select network</Text>
+            <Text style={tw`text-gray-600 text-[12px] font-semibold tracking-wide mb-3`}>Select network</Text>
             <View style={tw`flex-row justify-between gap-2`}>
               {networks.map(network => {
                 const isSelected = selectedNetwork?.id === network.id;
@@ -114,7 +114,7 @@ export default function AirtimeScreen() {
                       tw`flex-1 py-3.5 rounded-2xl items-center border`,
                       isSelected
                         ? { borderColor: `${network.color}60`, backgroundColor: `${network.color}18` }
-                        : tw`border-white/10 bg-white/4`,
+                        : tw`border-gray-200 bg-gray-50`,
                     ]}
                     onPress={() => { setSelectedNetwork(network); if (errors.network) setErrors(p => ({ ...p, network: '' })); }}
                     activeOpacity={0.75}
@@ -122,7 +122,7 @@ export default function AirtimeScreen() {
                     <View style={[tw`w-9 h-9 rounded-xl items-center justify-center mb-2`, { backgroundColor: `${network.color}20` }]}>
                       <Ionicons name="phone-portrait-outline" size={18} color={network.color} />
                     </View>
-                    <Text style={[tw`text-[11px] font-semibold`, { color: isSelected ? network.color : 'rgba(255,255,255,0.5)' }]}>{network.name}</Text>
+                    <Text style={[tw`text-[11px] font-semibold`, { color: isSelected ? network.color : '#6B7280' }]}>{network.name}</Text>
                   </TouchableOpacity>
                 );
               })}
@@ -131,14 +131,14 @@ export default function AirtimeScreen() {
           </View>
 
           <View style={tw`mb-5`}>
-            <Text style={tw`text-white/55 text-[12px] font-semibold tracking-wide mb-2`}>Phone number</Text>
-            <View style={tw`flex-row items-center bg-white/5 border ${errors.phone ? 'border-red-500/70' : 'border-white/10'} rounded-2xl px-4 h-[52px]`}>
-              <Text style={tw`text-white/65 text-[13px] font-semibold`}>+234</Text>
-              <View style={tw`w-px h-[18px] bg-white/15 mx-2.5`} />
+            <Text style={tw`text-gray-600 text-[12px] font-semibold tracking-wide mb-2`}>Phone number</Text>
+            <View style={tw`flex-row items-center bg-gray-50 border ${errors.phone ? 'border-red-500/70' : 'border-gray-200'} rounded-2xl px-4 h-[52px]`}>
+              <Text style={tw`text-gray-700 text-[13px] font-semibold`}>+234</Text>
+              <View style={tw`w-px h-[18px] bg-gray-300 mx-2.5`} />
               <TextInput
-                style={tw`flex-1 text-[14px] text-white`}
+                style={tw`flex-1 text-[14px] text-gray-900`}
                 placeholder="8012345678"
-                placeholderTextColor="rgba(255,255,255,0.2)"
+                placeholderTextColor="#E5E7EB"
                 keyboardType="phone-pad"
                 maxLength={10}
                 value={phoneNumber}
@@ -149,13 +149,13 @@ export default function AirtimeScreen() {
           </View>
 
           <View style={tw`mb-4`}>
-            <Text style={tw`text-white/55 text-[12px] font-semibold tracking-wide mb-2`}>Amount</Text>
-            <View style={tw`bg-white/5 border ${errors.amount ? 'border-red-500/70' : 'border-white/10'} rounded-2xl px-4 h-[60px] flex-row items-center`}>
-              <Text style={tw`text-white/40 text-[20px] mr-2`}>₦</Text>
+            <Text style={tw`text-gray-600 text-[12px] font-semibold tracking-wide mb-2`}>Amount</Text>
+            <View style={tw`bg-gray-50 border ${errors.amount ? 'border-red-500/70' : 'border-gray-200'} rounded-2xl px-4 h-[60px] flex-row items-center`}>
+              <Text style={tw`text-gray-400 text-[20px] mr-2`}>₦</Text>
               <TextInput
-                style={tw`flex-1 text-[24px] font-bold text-white`}
+                style={tw`flex-1 text-[24px] font-bold text-gray-900`}
                 placeholder="0"
-                placeholderTextColor="rgba(255,255,255,0.15)"
+                placeholderTextColor="#E5E7EB"
                 keyboardType="decimal-pad"
                 value={amount}
                 onChangeText={handleAmountChange}
@@ -165,12 +165,12 @@ export default function AirtimeScreen() {
           </View>
 
           <View style={tw`mb-4`}>
-            <Text style={tw`text-white/55 text-[12px] font-semibold tracking-wide mb-2`}>Transaction PIN</Text>
-            <View style={tw`bg-white/5 border ${errors.pin ? 'border-red-500/70' : 'border-white/10'} rounded-2xl px-4 h-[52px] flex-row items-center`}>
+            <Text style={tw`text-gray-600 text-[12px] font-semibold tracking-wide mb-2`}>Transaction PIN</Text>
+            <View style={tw`bg-gray-50 border ${errors.pin ? 'border-red-500/70' : 'border-gray-200'} rounded-2xl px-4 h-[52px] flex-row items-center`}>
               <TextInput
-                style={tw`flex-1 text-[14px] text-white`}
+                style={tw`flex-1 text-[14px] text-gray-900`}
                 placeholder="Enter your PIN"
-                placeholderTextColor="rgba(255,255,255,0.2)"
+                placeholderTextColor="#E5E7EB"
                 keyboardType="number-pad"
                 secureTextEntry={!showPin}
                 maxLength={4}
@@ -178,7 +178,7 @@ export default function AirtimeScreen() {
                 onChangeText={(text) => { setPin(text.replace(/[^0-9]/g, '').slice(0, 4)); if (errors.pin) setErrors(p => ({ ...p, pin: '' })); }}
               />
               <TouchableOpacity onPress={() => setShowPin(!showPin)}>
-                <Ionicons name={showPin ? 'eye-outline' : 'eye-off-outline'} size={20} color="rgba(255,255,255,0.35)" />
+                <Ionicons name={showPin ? 'eye-outline' : 'eye-off-outline'} size={20} color="#9CA3AF" />
               </TouchableOpacity>
             </View>
             {errors.pin ? <Text style={tw`text-red-400 text-[11px] mt-1.5 ml-1`}>{errors.pin}</Text> : null}
@@ -192,7 +192,7 @@ export default function AirtimeScreen() {
                 onPress={() => { setAmount(amt.toString()); if (errors.amount) setErrors(p => ({ ...p, amount: '' })); }}
                 activeOpacity={0.7}
               >
-                <Text style={tw`text-blue-400 text-[13px] font-semibold`}>₦{amt.toLocaleString()}</Text>
+                <Text style={tw`text-blue-600 text-[13px] font-semibold`}>₦{amt.toLocaleString()}</Text>
               </TouchableOpacity>
             ))}
           </View>

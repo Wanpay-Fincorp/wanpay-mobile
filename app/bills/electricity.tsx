@@ -101,65 +101,65 @@ export default function ElectricityScreen() {
   const isDisabled = isSubmitting || !selectedDisco || meterNumber.length < 11 || !amount || pin.length !== 4;
 
   return (
-    <SafeAreaView style={[tw`flex-1 py-5`, { backgroundColor: DARK_BG }]}>
-      <StatusBar style="light" />
+    <SafeAreaView style={[tw`flex-1 pt-5 pb-8`, { backgroundColor: DARK_BG }]}>
+      <StatusBar style="dark" />
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={tw`flex-1`}>
-        <View style={tw`px-5 pt-4 pb-5 border-b border-white/7`}>
+        <View style={tw`px-5 pt-12 pb-5 border-b border-gray-200`}>
           <View style={tw`flex-row items-center`}>
-            <TouchableOpacity onPress={() => router.back()} style={tw`w-[38px] h-[38px] rounded-xl bg-white/7 items-center justify-center mr-4`} activeOpacity={0.7}>
-              <Ionicons name="arrow-back" size={20} color="rgba(255,255,255,0.75)" />
+            <TouchableOpacity onPress={() => router.back()} style={tw`w-[38px] h-[38px] rounded-xl bg-gray-100 items-center justify-center mr-4`} activeOpacity={0.7}>
+              <Ionicons name="arrow-back" size={20} color="#374151" />
             </TouchableOpacity>
             <View>
-              <Text style={tw`text-white text-[20px] font-bold tracking-tight`}>Electricity bill</Text>
-              <Text style={tw`text-white/35 text-[12px] mt-0.5`}>Pay your electricity bills</Text>
+              <Text style={tw`text-gray-900 text-[20px] font-bold tracking-tight`}>Electricity bill</Text>
+              <Text style={tw`text-gray-400 text-[12px] mt-0.5`}>Pay your electricity bills</Text>
             </View>
           </View>
         </View>
 
         <RefreshableScrollView style={tw`flex-1 px-5 pt-6`} showsVerticalScrollIndicator={false} contentContainerStyle={tw`pb-10`}>
           <View style={tw`mb-5`}>
-            <Text style={tw`text-white/55 text-[12px] font-semibold tracking-wide mb-2`}>Select disco</Text>
+            <Text style={tw`text-gray-600 text-[12px] font-semibold tracking-wide mb-2`}>Select disco</Text>
             <TouchableOpacity
-              style={tw`bg-white/5 border ${errors.disco ? 'border-red-500/70' : 'border-white/10'} rounded-2xl px-4 h-[56px] flex-row justify-between items-center`}
+              style={tw`bg-gray-50 border ${errors.disco ? 'border-red-500/70' : 'border-gray-200'} rounded-2xl px-4 h-[56px] flex-row justify-between items-center`}
               onPress={() => setShowDiscos(true)}
               activeOpacity={0.75}
             >
               {selectedDisco ? (
                 <View>
-                  <Text style={tw`text-white text-[14px] font-semibold`}>{selectedDisco.shortName}</Text>
-                  <Text style={tw`text-white/35 text-[11px]`}>{selectedDisco.name}</Text>
+                  <Text style={tw`text-gray-900 text-[14px] font-semibold`}>{selectedDisco.shortName}</Text>
+                  <Text style={tw`text-gray-400 text-[11px]`}>{selectedDisco.name}</Text>
                 </View>
               ) : (
-                <Text style={tw`text-white/25 text-[14px]`}>Choose your electricity provider</Text>
+                <Text style={tw`text-gray-300 text-[14px]`}>Choose your electricity provider</Text>
               )}
-              <Ionicons name="chevron-down" size={18} color="rgba(255,255,255,0.3)" />
+              <Ionicons name="chevron-down" size={18} color="#D1D5DB" />
             </TouchableOpacity>
             {errors.disco ? <Text style={tw`text-red-400 text-[11px] mt-1.5 ml-1`}>{errors.disco}</Text> : null}
           </View>
 
           <View style={tw`mb-5`}>
-            <Text style={tw`text-white/55 text-[12px] font-semibold tracking-wide mb-2`}>Meter type</Text>
+            <Text style={tw`text-gray-600 text-[12px] font-semibold tracking-wide mb-2`}>Meter type</Text>
             <View style={tw`flex-row gap-2`}>
               {(['prepaid', 'postpaid'] as const).map(type => (
                 <TouchableOpacity
                   key={type}
-                  style={tw`flex-1 h-[46px] rounded-2xl border items-center justify-center ${meterType === type ? 'bg-amber-500/15 border-amber-500/40' : 'bg-white/4 border-white/10'}`}
+                  style={tw`flex-1 h-[46px] rounded-2xl border items-center justify-center ${meterType === type ? 'bg-amber-500/15 border-amber-500/40' : 'bg-gray-50 border-gray-200'}`}
                   onPress={() => setMeterType(type)}
                   activeOpacity={0.75}
                 >
-                  <Text style={tw`text-[13px] font-semibold capitalize ${meterType === type ? 'text-amber-400' : 'text-white/40'}`}>{type}</Text>
+                  <Text style={tw`text-[13px] font-semibold capitalize ${meterType === type ? 'text-amber-400' : 'text-gray-400'}`}>{type}</Text>
                 </TouchableOpacity>
               ))}
             </View>
           </View>
 
           <View style={tw`mb-2`}>
-            <Text style={tw`text-white/55 text-[12px] font-semibold tracking-wide mb-2`}>Meter number</Text>
-            <View style={tw`bg-white/5 border ${errors.meter ? 'border-red-500/70' : 'border-white/10'} rounded-2xl px-4 h-[52px] flex-row items-center`}>
+            <Text style={tw`text-gray-600 text-[12px] font-semibold tracking-wide mb-2`}>Meter number</Text>
+            <View style={tw`bg-gray-50 border ${errors.meter ? 'border-red-500/70' : 'border-gray-200'} rounded-2xl px-4 h-[52px] flex-row items-center`}>
               <TextInput
-                style={tw`flex-1 text-[14px] text-white`}
+                style={tw`flex-1 text-[14px] text-gray-900`}
                 placeholder="Enter meter number"
-                placeholderTextColor="rgba(255,255,255,0.2)"
+                placeholderTextColor="#E5E7EB"
                 keyboardType="number-pad"
                 value={meterNumber}
                 onChangeText={handleMeterChange}
@@ -179,13 +179,13 @@ export default function ElectricityScreen() {
           ) : <View style={tw`mb-5`} />}
 
           <View style={tw`mb-4`}>
-            <Text style={tw`text-white/55 text-[12px] font-semibold tracking-wide mb-2`}>Amount</Text>
-            <View style={tw`bg-white/5 border ${errors.amount ? 'border-red-500/70' : 'border-white/10'} rounded-2xl px-4 h-[60px] flex-row items-center`}>
-              <Text style={tw`text-white/40 text-[20px] mr-2`}>₦</Text>
+            <Text style={tw`text-gray-600 text-[12px] font-semibold tracking-wide mb-2`}>Amount</Text>
+            <View style={tw`bg-gray-50 border ${errors.amount ? 'border-red-500/70' : 'border-gray-200'} rounded-2xl px-4 h-[60px] flex-row items-center`}>
+              <Text style={tw`text-gray-400 text-[20px] mr-2`}>₦</Text>
               <TextInput
-                style={tw`flex-1 text-[24px] font-bold text-white`}
+                style={tw`flex-1 text-[24px] font-bold text-gray-900`}
                 placeholder="0"
-                placeholderTextColor="rgba(255,255,255,0.15)"
+                placeholderTextColor="#E5E7EB"
                 keyboardType="decimal-pad"
                 value={amount}
                 onChangeText={handleAmountChange}
@@ -195,12 +195,12 @@ export default function ElectricityScreen() {
           </View>
 
           <View style={tw`mb-4`}>
-            <Text style={tw`text-white/55 text-[12px] font-semibold tracking-wide mb-2`}>Transaction PIN</Text>
-            <View style={tw`bg-white/5 border ${errors.pin ? 'border-red-500/70' : 'border-white/10'} rounded-2xl px-4 h-[52px] flex-row items-center`}>
+            <Text style={tw`text-gray-600 text-[12px] font-semibold tracking-wide mb-2`}>Transaction PIN</Text>
+            <View style={tw`bg-gray-50 border ${errors.pin ? 'border-red-500/70' : 'border-gray-200'} rounded-2xl px-4 h-[52px] flex-row items-center`}>
               <TextInput
-                style={tw`flex-1 text-[14px] text-white`}
+                style={tw`flex-1 text-[14px] text-gray-900`}
                 placeholder="Enter your PIN"
-                placeholderTextColor="rgba(255,255,255,0.2)"
+                placeholderTextColor="#E5E7EB"
                 keyboardType="number-pad"
                 secureTextEntry={!showPin}
                 maxLength={4}
@@ -208,7 +208,7 @@ export default function ElectricityScreen() {
                 onChangeText={(text) => { setPin(text.replace(/[^0-9]/g, '').slice(0, 4)); if (errors.pin) setErrors(p => ({ ...p, pin: '' })); }}
               />
               <TouchableOpacity onPress={() => setShowPin(!showPin)}>
-                <Ionicons name={showPin ? 'eye-outline' : 'eye-off-outline'} size={20} color="rgba(255,255,255,0.35)" />
+                <Ionicons name={showPin ? 'eye-outline' : 'eye-off-outline'} size={20} color="#9CA3AF" />
               </TouchableOpacity>
             </View>
             {errors.pin ? <Text style={tw`text-red-400 text-[11px] mt-1.5 ml-1`}>{errors.pin}</Text> : null}
@@ -239,12 +239,12 @@ export default function ElectricityScreen() {
       </KeyboardAvoidingView>
 
       <Modal visible={showDiscos} animationType="slide" transparent>
-        <View style={tw`flex-1 justify-end bg-black/60`}>
-          <View style={[tw`rounded-t-3xl pt-6 pb-10 max-h-[70%]`, { backgroundColor: '#0f0f1e' }]}>
-            <View style={tw`px-5 pb-4 border-b border-white/7 flex-row justify-between items-center`}>
-              <Text style={tw`text-white text-[17px] font-bold tracking-tight`}>Select disco</Text>
-              <TouchableOpacity onPress={() => setShowDiscos(false)} style={tw`w-[34px] h-[34px] rounded-xl bg-white/7 items-center justify-center`} activeOpacity={0.7}>
-                <Ionicons name="close" size={18} color="rgba(255,255,255,0.7)" />
+        <View style={tw`flex-1 justify-end bg-black/20`}>
+          <View style={[tw`rounded-t-3xl pt-6 pb-10 max-h-[70%]`, { backgroundColor: '#ffffff' }]}>
+            <View style={tw`px-5 pb-4 border-b border-gray-200 flex-row justify-between items-center`}>
+              <Text style={tw`text-gray-900 text-[17px] font-bold tracking-tight`}>Select disco</Text>
+              <TouchableOpacity onPress={() => setShowDiscos(false)} style={tw`w-[34px] h-[34px] rounded-xl bg-gray-100 items-center justify-center`} activeOpacity={0.7}>
+                <Ionicons name="close" size={18} color="#374151" />
               </TouchableOpacity>
             </View>
             <FlatList
@@ -252,12 +252,12 @@ export default function ElectricityScreen() {
               keyExtractor={item => item.id}
               renderItem={({ item }) => (
                 <TouchableOpacity
-                  style={tw`px-5 py-4 border-b border-white/7`}
+                  style={tw`px-5 py-4 border-b border-gray-200`}
                   onPress={() => { setSelectedDisco(item); setShowDiscos(false); if (errors.disco) setErrors(p => ({ ...p, disco: '' })); }}
                   activeOpacity={0.75}
                 >
-                  <Text style={tw`text-white font-bold text-[14px]`}>{item.shortName}</Text>
-                  <Text style={tw`text-white/35 text-[12px] mt-0.5`}>{item.name}</Text>
+                  <Text style={tw`text-gray-900 font-bold text-[14px]`}>{item.shortName}</Text>
+                  <Text style={tw`text-gray-400 text-[12px] mt-0.5`}>{item.name}</Text>
                 </TouchableOpacity>
               )}
             />

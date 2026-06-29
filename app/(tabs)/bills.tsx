@@ -35,41 +35,41 @@ export default function BillsScreen() {
   ];
 
   return (
-    <SafeAreaView style={tw`flex-1 py-4 bg-[${DARK_BG}]`}>
-      <StatusBar style="light" />
+    <SafeAreaView style={tw`flex-1 pt-4 pb-8 bg-[${DARK_BG}]`}>
+      <StatusBar style="dark" />
 
       {/* Header */}
-      <View style={tw`px-5 pt-6 pb-5 border-b border-white/7`}>
-        <Text style={tw`text-white text-[22px] font-bold tracking-tight`}>Pay bills</Text>
-        <Text style={tw`text-white/35 text-[12px] mt-1`}>Quick and easy payments</Text>
+      <View style={tw`px-5 pt-8 pb-5 border-b border-gray-200`}>
+        <Text style={tw`text-gray-900 text-[22px] font-bold tracking-tight`}>Pay bills</Text>
+        <Text style={tw`text-gray-400 text-[12px] mt-1`}>Quick and easy payments</Text>
       </View>
 
-      <RefreshableScrollView style={tw`flex-1 px-5`} showsVerticalScrollIndicator={false} contentContainerStyle={tw`pt-6 pb-10`}>
+      <RefreshableScrollView style={tw`flex-1 px-5`} showsVerticalScrollIndicator={false} contentContainerStyle={tw`pt-6 pb-24`}>
 
         {/* Categories */}
-        <Text style={tw`text-white text-[14px] font-semibold tracking-tight mb-4`}>Services</Text>
+        <Text style={tw`text-gray-900 text-[14px] font-semibold tracking-tight mb-4`}>Services</Text>
         <View style={tw`flex-row flex-wrap justify-between mb-6`}>
           {billCategories.map(cat => (
             <TouchableOpacity
               key={cat.id}
-              style={tw`w-[48%] bg-white/4 border border-white/7 rounded-2xl p-4 items-center mb-3`}
+              style={tw`w-[48%] bg-gray-50 border border-gray-200 rounded-2xl p-4 items-center mb-3`}
               activeOpacity={0.75}
               onPress={() => router.push(cat.route as any)}
             >
-              <View style={tw`w-14 h-14 rounded-2xl items-center justify-center mb-3 ${cat.bgColor} border border-white/10`}>
+              <View style={tw`w-14 h-14 rounded-2xl items-center justify-center mb-3 ${cat.bgColor} border border-gray-200`}>
                 <Ionicons name={cat.icon} size={24} color={cat.iconColor} />
               </View>
-              <Text style={tw`text-white text-[13px] font-semibold text-center`}>{cat.name}</Text>
+              <Text style={tw`text-gray-900 text-[13px] font-semibold text-center`}>{cat.name}</Text>
             </TouchableOpacity>
           ))}
         </View>
 
         {/* Recent bills */}
-        <Text style={tw`text-white text-[14px] font-semibold tracking-tight mb-4`}>Recent bills</Text>
+        <Text style={tw`text-gray-900 text-[14px] font-semibold tracking-tight mb-4`}>Recent bills</Text>
         {recentBills.map(bill => (
           <TouchableOpacity
             key={bill.id}
-            style={tw`bg-white/4 border border-white/7 rounded-2xl p-3.5 mb-2.5 flex-row justify-between items-center`}
+            style={tw`bg-gray-50 border border-gray-200 rounded-2xl p-3.5 mb-2.5 flex-row justify-between items-center`}
             activeOpacity={0.75}
           >
             <View style={tw`flex-row items-center gap-3`}>
@@ -77,11 +77,11 @@ export default function BillsScreen() {
                 <Ionicons name={bill.icon as any} size={18} color={bill.iconColor} />
               </View>
               <View>
-                <Text style={tw`text-white text-[13px] font-semibold mb-0.5`}>{bill.name}</Text>
-                <Text style={tw`text-white/30 text-[11px]`}>{bill.date}</Text>
+                <Text style={tw`text-gray-900 text-[13px] font-semibold mb-0.5`}>{bill.name}</Text>
+                <Text style={tw`text-gray-300 text-[11px]`}>{bill.date}</Text>
               </View>
             </View>
-            <Text style={tw`text-white/80 text-[13px] font-bold`}>₦{bill.amount.toLocaleString()}</Text>
+            <Text style={tw`text-gray-800 text-[13px] font-bold`}>₦{bill.amount.toLocaleString()}</Text>
           </TouchableOpacity>
         ))}
 

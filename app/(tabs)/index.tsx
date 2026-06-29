@@ -53,24 +53,27 @@ export default function HomeScreen() {
     { id: 'receive',  name: 'Receive',  icon: 'arrow-down-outline',    screen: 'receive',  color: 'blue' },
   ];
 
-  const getName = () => user?.fullName || user?.phone || 'User';
+  const getName = () => {
+    const name = user?.fullName || user?.phone || 'User';
+    return name.replace(/\b\w/g, c => c.toUpperCase());
+  };
   const getInitials = () => {
     const name = getName();
     return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
   };
 
   return (
-    <SafeAreaView style={tw`flex-1 pb-5 bg-[${DARK_BG}]`}>
-      <StatusBar barStyle="light-content" />
+    <SafeAreaView style={tw`flex-1 pb-8 bg-gray-50`}>
+      <StatusBar barStyle="dark-content" />
       <RefreshableScrollView onRefresh={onRefresh} refreshing={refreshing} showsVerticalScrollIndicator={false}>
-        <View style={tw`bg-blue-700 px-6 pt-7 pb-7 rounded-b-[32px]`}>
+        <View style={tw`bg-blue-600 px-6 pt-16 pb-7 rounded-b-[32px]`}>
           <View style={tw`flex-row justify-between items-center mb-6`}>
             <View style={tw`flex-row items-center gap-3`}>
               <View style={tw`w-10 h-10 rounded-xl bg-white/20 items-center justify-center`}>
                 <Text style={tw`text-white font-bold text-sm`}>{getInitials()}</Text>
               </View>
               <View>
-                <Text style={tw`text-white/50 text-[12px] mb-0.5`}>Good morning</Text>
+                <Text style={tw`text-white/60 text-[12px] mb-0.5`}>Good morning</Text>
                 <Text style={tw`text-white text-[20px] font-bold tracking-tight`}>{getName()}</Text>
               </View>
             </View>
@@ -83,11 +86,11 @@ export default function HomeScreen() {
             </TouchableOpacity>
           </View>
 
-          <View style={tw`bg-white/10 border border-white/12 rounded-[20px] p-5`}>
+          <View style={tw`bg-white/15 border border-white/20 rounded-[20px] p-5`}>
             <View style={tw`flex-row justify-between items-center mb-1.5`}>
-              <Text style={tw`text-white/55 text-[12px]`}>Wallet balance</Text>
+              <Text style={tw`text-white/70 text-[12px]`}>Wallet balance</Text>
               <TouchableOpacity onPress={() => setShowBalance(!showBalance)} activeOpacity={0.7}>
-                <Ionicons name={showBalance ? 'eye-outline' : 'eye-off-outline'} size={17} color="rgba(255,255,255,0.55)" />
+                <Ionicons name={showBalance ? 'eye-outline' : 'eye-off-outline'} size={17} color="rgba(255,255,255,0.7)" />
               </TouchableOpacity>
             </View>
             {loading ? (
@@ -106,13 +109,13 @@ export default function HomeScreen() {
                 <Ionicons name="add" size={14} color="#1d4ed8" />
                 <Text style={tw`text-blue-700 text-[12px] font-semibold`}>Add money</Text>
               </TouchableOpacity>
-              <Text style={tw`text-white/65 text-[11px]`}>{wallet?.accountNumber || 'N/A'}</Text>
+              <Text style={tw`text-white/70 text-[11px]`}>{wallet?.accountNumber || 'N/A'}</Text>
             </View>
           </View>
         </View>
 
         <View style={tw`px-5 pt-6 pb-24`}>
-          <Text style={tw`text-white text-[14px] font-semibold tracking-tight mb-4`}>Quick actions</Text>
+          <Text style={tw`text-gray-800 text-[14px] font-semibold tracking-tight mb-4`}>Quick actions</Text>
           <View style={tw`flex-row gap-2 mb-7`}>
             {quickActions.map(action => {
               const isGrowth = action.color === 'purple';
@@ -123,34 +126,34 @@ export default function HomeScreen() {
                   activeOpacity={0.75}
                   onPress={() => action.id === 'receive' ? Alert.alert('Receive Money', 'Receiving money into your account will be available soon.') : router.push(`/(tabs)/${action.screen}` as any)}
                 >
-                  <View style={tw`w-14 h-14 rounded-2xl items-center justify-center ${isGrowth ? 'bg-violet-500/15 border border-violet-500/20' : 'bg-blue-500/15 border border-blue-500/20'}`}>
-                    <Ionicons name={action.icon as any} size={22} color={isGrowth ? '#a78bfa' : '#60a5fa'} />
+                  <View style={tw`w-14 h-14 rounded-2xl items-center justify-center ${isGrowth ? 'bg-violet-100 border border-violet-200' : 'bg-blue-100 border border-blue-200'}`}>
+                    <Ionicons name={action.icon as any} size={22} color={isGrowth ? '#7c3aed' : '#2563eb'} />
                   </View>
-                  <Text style={tw`text-white/50 text-[11px] text-center`}>{action.name}</Text>
+                  <Text style={tw`text-gray-600 text-[11px] text-center`}>{action.name}</Text>
                 </TouchableOpacity>
               );
             })}
           </View>
 
           <View style={tw`flex-row justify-between items-center mb-4`}>
-            <Text style={tw`text-white text-[14px] font-semibold tracking-tight`}>Recent transactions</Text>
+            <Text style={tw`text-gray-800 text-[14px] font-semibold tracking-tight`}>Recent transactions</Text>
             <TouchableOpacity onPress={() => router.push('/(tabs)/history')} activeOpacity={0.7}>
-              <Text style={tw`text-blue-400 text-[12px] font-medium`}>See all</Text>
+              <Text style={tw`text-blue-500 text-[12px] font-medium`}>See all</Text>
             </TouchableOpacity>
           </View>
 
           {loading ? (
             <View style={tw`items-center py-10`}>
-              <ActivityIndicator color="rgba(255,255,255,0.3)" />
+              <ActivityIndicator color="#9CA3AF" />
             </View>
           ) : recentTransactions.length === 0 ? (
-            <View style={tw`bg-white/4 border border-white/7 rounded-2xl p-6 items-center`}>
-              <Ionicons name="receipt-outline" size={32} color="rgba(255,255,255,0.15)" />
-              <Text style={tw`text-white/30 text-[13px] mt-3`}>No transactions yet</Text>
+            <View style={tw`bg-white border border-gray-200 rounded-2xl p-6 items-center`}>
+              <Ionicons name="receipt-outline" size={32} color="#D1D5DB" />
+              <Text style={tw`text-gray-400 text-[13px] mt-3`}>No transactions yet</Text>
             </View>
           ) : (
             recentTransactions.map(txn => (
-              <View key={txn.id} style={tw`bg-white/4 border border-white/7 rounded-2xl mb-2.5 overflow-hidden`}>
+              <View key={txn.id} style={tw`bg-white border border-gray-200 rounded-2xl mb-2.5 overflow-hidden`}>
                 <TransactionItem txn={txn} />
               </View>
             ))

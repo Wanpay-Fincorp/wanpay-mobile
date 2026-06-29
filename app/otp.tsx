@@ -18,8 +18,10 @@ import { api } from '@/lib/api';
 
 export default function OTPScreen() {
   const router = useRouter();
-  const { phone, purpose: rawPurpose } = useLocalSearchParams<{ phone: string; purpose?: string }>();
+  const { phone, email, purpose: rawPurpose, channel: rawChannel } = useLocalSearchParams<{ phone?: string; email?: string; purpose?: string; channel?: string }>();
   const purpose = rawPurpose || 'signup';
+  const otpChannel = rawChannel || (email ? 'EMAIL' : 'SMS');
+  const contact = otpChannel === 'EMAIL' ? email : phone;
   const [otp, setOtp] = useState(['', '', '', '', '', '']);
   const [loading, setLoading] = useState(false);
   const [resendTimer, setResendTimer] = useState(60);
@@ -71,12 +73,18 @@ export default function OTPScreen() {
     }
     setLoading(true);
     try {
-      if (!phone) {
-        Alert.alert('Error', 'Phone number not found. Please sign up again.');
+      if (!contact) {
+        Alert.alert('Error', 'Contact not found. Please sign up again.');
         router.push('/signup');
         return;
       }
-      const result = await api.post<any>('/auth/verify-otp', { phone, otp: code, purpose }, false);
+      const body: Record<string, string> = { otp: code, purpose };
+      if (otpChannel === 'EMAIL') {
+        body.email = contact;
+      } else {
+        body.phone = contact;
+      }
+      const result = await api.post<any>('/auth/verify-otp', body, false);
       if (purpose === 'forgot_pin') {
         router.push({ pathname: '/createPin', params: { userId: result.userId, purpose: 'forgot_pin' } });
       } else {
@@ -98,8 +106,14 @@ export default function OTPScreen() {
     setOtp(['', '', '', '', '', '']);
     inputRefs.current[0]?.focus();
     try {
-      if (phone) {
-        await api.post('/auth/send-otp', { phone, purpose }, false);
+      if (contact) {
+        const body: Record<string, string> = { purpose };
+        if (otpChannel === 'EMAIL') {
+          body.email = contact;
+        } else {
+          body.phone = contact;
+        }
+        await api.post('/auth/send-otp', body, false);
       }
     } catch {
       // silently fail
@@ -126,13 +140,15 @@ export default function OTPScreen() {
           <View style={{ marginBottom: 32 }}>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 10 }}>
               <View style={{ width: 44, height: 44, borderRadius: 14, backgroundColor: `${PRIMARY_COLOR}15`, alignItems: 'center', justifyContent: 'center' }}>
-                <Ionicons name="chatbubble-ellipses" size={22} color={PRIMARY_COLOR} />
+                <Ionicons name={otpChannel === 'EMAIL' ? 'mail-outline' : 'chatbubble-ellipses'} size={22} color={PRIMARY_COLOR} />
               </View>
-              <Text style={{ fontSize: 28, fontWeight: '700', color: CHARCOAL, letterSpacing: -0.5 }}>Verify Phone</Text>
+              <Text style={{ fontSize: 28, fontWeight: '700', color: CHARCOAL, letterSpacing: -0.5 }}>
+                {otpChannel === 'EMAIL' ? 'Verify Email' : 'Verify Phone'}
+              </Text>
             </View>
             <Text style={{ fontSize: 14, color: '#6B7280', lineHeight: 22 }}>
               Enter the 6-digit code sent to{'\n'}
-              <Text style={{ fontWeight: '700', color: CHARCOAL }}>{phone || '+234 801 234 5678'}</Text>
+              <Text style={{ fontWeight: '700', color: CHARCOAL }}>{contact || (otpChannel === 'EMAIL' ? 'user@example.com' : '+234 801 234 5678')}</Text>
             </Text>
           </View>
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 10 }}>
@@ -161,7 +177,9 @@ export default function OTPScreen() {
             })}
           </View>
           <Text style={{ fontSize: 12, color: '#9CA3AF', marginBottom: 28, paddingLeft: 2 }}>
-            Check your SMS inbox — the code expires in 10 minutes.
+            {otpChannel === 'EMAIL'
+              ? 'Check your email inbox (and spam folder) — the code expires in 10 minutes.'
+              : 'Check your SMS inbox — the code expires in 10 minutes.'}
           </Text>
           <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginBottom: 32 }}>
             <Text style={{ fontSize: 14, color: '#6B7280' }}>Didn't receive it? </Text>

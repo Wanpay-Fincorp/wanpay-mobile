@@ -130,15 +130,15 @@ export default function NotificationsScreen() {
   };
 
   return (
-    <SafeAreaView style={tw`flex-1 bg-[${DARK_BG}]`}>
-      <View style={tw`px-3 py-4 border-b border-white/7`}>
+    <SafeAreaView style={tw`flex-1 pb-8 bg-[${DARK_BG}]`}>
+      <View style={tw`px-3 pt-12 pb-4 border-b border-gray-200`}>
         <View style={tw`flex-row items-center`}>
           <TouchableOpacity onPress={() => router.back()} style={tw`mr-4`} activeOpacity={0.7}>
-            <Ionicons name="arrow-back" size={24} color="rgba(255,255,255,0.75)" />
+            <Ionicons name="arrow-back" size={24} color="#374151" />
           </TouchableOpacity>
           <View>
-            <Text style={tw`text-xl font-bold text-white`}>Notifications</Text>
-            <Text style={tw`text-xs text-white/40`}>Manage your notification preferences</Text>
+            <Text style={tw`text-xl font-bold text-gray-900`}>Notifications</Text>
+            <Text style={tw`text-xs text-gray-400`}>Manage your notification preferences</Text>
           </View>
         </View>
       </View>
@@ -146,19 +146,19 @@ export default function NotificationsScreen() {
       <RefreshableScrollView style={tw`flex-1 px-3 pt-6`} showsVerticalScrollIndicator={false} contentContainerStyle={tw`pb-8`} refreshing={refreshing} onRefresh={onRefresh}>
         {loading ? (
           <View style={tw`items-center py-10`}>
-            <ActivityIndicator color="rgba(255,255,255,0.3)" />
+            <ActivityIndicator color="#D1D5DB" />
           </View>
         ) : !settings ? null : (
           SECTIONS.map((section, sectionIndex) => (
             <View key={sectionIndex} style={tw`mb-6`}>
-              <Text style={tw`text-white/45 text-xs font-semibold uppercase mb-3`}>{section.title}</Text>
-              <View style={tw`bg-white/4 border border-white/7 rounded-2xl`}>
+              <Text style={tw`text-gray-500 text-xs font-semibold uppercase mb-3`}>{section.title}</Text>
+              <View style={tw`bg-gray-50 border border-gray-200 rounded-2xl`}>
                 {section.settings.map((setting, settingIndex) => {
                   const value = settings[setting.key] as boolean;
                   return (
                     <TouchableOpacity
                       key={setting.key}
-                      style={tw`flex-row justify-between items-center px-5 py-4 ${settingIndex !== section.settings.length - 1 ? 'border-b border-white/7' : ''}`}
+                      style={tw`flex-row justify-between items-center px-5 py-4 ${settingIndex !== section.settings.length - 1 ? 'border-b border-gray-200' : ''}`}
                       onPress={() => toggleSetting(setting.key, value)}
                       activeOpacity={0.75}
                     >
@@ -169,7 +169,7 @@ export default function NotificationsScreen() {
                           </View>
                         )}
                         <View style={tw`${settingIndex !== 0 ? 'ml-[52px]' : ''} flex-1`}>
-                          <Text style={tw`text-white font-semibold`}>{setting.label}</Text>
+                          <Text style={tw`text-gray-900 font-semibold`}>{setting.label}</Text>
                         </View>
                       </View>
                       <Switch

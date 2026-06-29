@@ -40,9 +40,9 @@ function PinDots({ value, error }: { value: string; error?: string }) {
               width: DOT_SIZE,
               height: DOT_SIZE,
               borderRadius: 14,
-              backgroundColor: "#1C2333",
+              backgroundColor: "#F3F4F6",
               borderWidth: 1.5,
-              borderColor: error ? "#EF4444" : filled ? GOLD : "#1E293B",
+              borderColor: error ? "#EF4444" : filled ? GOLD : "#E5E7EB",
               alignItems: "center",
               justifyContent: "center",
             }}
@@ -149,7 +149,7 @@ export default function CreatePinScreen() {
         style={{
           fontSize: 11,
           fontWeight: "700",
-          color: "#64748B",
+          color: "#4B5563",
           letterSpacing: 1.2,
           textTransform: "uppercase",
           marginBottom: 10,
@@ -163,9 +163,9 @@ export default function CreatePinScreen() {
         style={({ pressed }) => ({
           flexDirection: "row",
           alignItems: "center",
-          backgroundColor: "#111827",
+          backgroundColor: "#F9FAFB",
           borderWidth: 1.5,
-          borderColor: error ? "#EF4444" : activeField === field ? GOLD : "#1E293B",
+          borderColor: error ? "#EF4444" : activeField === field ? GOLD : "#E5E7EB",
           borderRadius: 16,
           paddingHorizontal: 16,
           height: 72,
@@ -191,7 +191,7 @@ export default function CreatePinScreen() {
           <Ionicons
             name={show ? "eye-off-outline" : "eye-outline"}
             size={22}
-            color="#64748B"
+            color="#6B7280"
           />
         </TouchableOpacity>
       </Pressable>
@@ -215,11 +215,11 @@ export default function CreatePinScreen() {
     <SafeAreaView
       style={{
         flex: 1,
-        backgroundColor: "#0D1117",
+        backgroundColor: "#FFFFFF",
         paddingTop: Platform.OS === "android" ? StatusBar.currentHeight : 0,
       }}
     >
-      <StatusBar barStyle="light-content" backgroundColor="#0D1117" />
+      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         style={tw`flex-1`}
@@ -235,11 +235,11 @@ export default function CreatePinScreen() {
               alignItems: "center",
               justifyContent: "center",
               borderRadius: 12,
-              backgroundColor: "#1C2333",
+              backgroundColor: "#F3F4F6",
             }}
             activeOpacity={0.7}
           >
-            <Ionicons name="arrow-back" size={22} color="#94A3B8" />
+            <Ionicons name="arrow-back" size={22} color="#4B5563" />
           </TouchableOpacity>
 
           <View style={tw`flex-row items-center mb-8`}>
@@ -257,7 +257,7 @@ export default function CreatePinScreen() {
                 style={{
                   fontSize: 28,
                   fontWeight: "800",
-                  color: "#F1F5F9",
+                  color: "#111827",
                   letterSpacing: -0.5,
                 }}
               >
@@ -266,7 +266,7 @@ export default function CreatePinScreen() {
               <Text
                 style={{
                   fontSize: 13,
-                  color: "#64748B",
+                  color: "#6B7280",
                   marginTop: 4,
                   lineHeight: 20,
                 }}
@@ -292,7 +292,7 @@ export default function CreatePinScreen() {
             }}
           >
             <Ionicons name="information-circle" size={18} color={GOLD} style={{ marginTop: 1 }} />
-            <Text style={{ fontSize: 12, color: "#94A3B8", lineHeight: 19, flex: 1 }}>
+            <Text style={{ fontSize: 12, color: "#6B7280", lineHeight: 19, flex: 1 }}>
               Avoid obvious patterns like{" "}
               <Text style={{ color: GOLD, fontWeight: "600", fontVariant: ["tabular-nums"] }}>
                 1234
@@ -340,7 +340,7 @@ export default function CreatePinScreen() {
 
           <View style={tw`mt-6 flex-row items-center justify-center gap-2`}>
             <Ionicons name="shield-checkmark" size={14} color="#10B981" />
-            <Text style={{ color: "#475569", fontSize: 11.5 }}>
+            <Text style={{ color: "#6B7280", fontSize: 11.5 }}>
               Encrypted end-to-end — never stored in plain text
             </Text>
           </View>

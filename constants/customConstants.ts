@@ -14,4 +14,4 @@ export const WARNING_AMBER = "#F59E0B";  // Warning Amber - Alerts, attention, c
 export const CHARCOAL = "#1F2937";       // Charcoal - Text, authority
 export const LIGHT_GRAY = "#F3F4F6";     // Light Gray - Backgrounds
 export const WHITE = "#FFFFFF";           // White - Clean, modern
-export const DARK_BG= "#05050e";
+export const DARK_BG= "#ffffff";

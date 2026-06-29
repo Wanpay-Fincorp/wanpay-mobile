@@ -60,7 +60,10 @@ export default function ProfileScreen() {
     router.replace('/welcome');
   };
 
-  const getName = () => user?.fullName || user?.phone || 'User';
+  const getName = () => {
+    const name = user?.fullName || user?.phone || 'User';
+    return name.replace(/\b\w/g, c => c.toUpperCase());
+  };
   const getPhone = () => {
     if (!user?.phone) return '';
     return user.phone.replace(/^\+234/, '0');
@@ -75,20 +78,20 @@ export default function ProfileScreen() {
   };
 
   return (
-    <SafeAreaView style={tw`flex-1 bg-[${DARK_BG}]`}>
-      <StatusBar style="light" />
-      <RefreshableScrollView onRefresh={onRefresh} refreshing={refreshing} style={tw`flex-1 px-5`} contentContainerStyle={tw`pt-6 pb-24`} showsVerticalScrollIndicator={false}>
+    <SafeAreaView style={tw`flex-1 pb-8 bg-[${DARK_BG}]`}>
+      <StatusBar style="dark" />
+      <RefreshableScrollView onRefresh={onRefresh} refreshing={refreshing} style={tw`flex-1 px-5`} contentContainerStyle={tw`pt-16 pb-24`} showsVerticalScrollIndicator={false}>
         <View style={tw`flex-row justify-between items-center mb-6`}>
           <View>
-            <Text style={tw`text-white text-[22px] font-bold tracking-tight`}>Profile</Text>
-            <Text style={tw`text-white/35 text-[12px] mt-0.5`}>Manage your account</Text>
+            <Text style={tw`text-gray-900 text-[22px] font-bold tracking-tight`}>Profile</Text>
+            <Text style={tw`text-gray-400 text-[12px] mt-0.5`}>Manage your account</Text>
           </View>
           <TouchableOpacity
-            style={tw`w-[38px] h-[38px] rounded-xl bg-white/7 items-center justify-center`}
+            style={tw`w-[38px] h-[38px] rounded-xl bg-gray-100 items-center justify-center`}
             activeOpacity={0.7}
             onPress={() => router.push('/profile/security-settings')}
           >
-            <Ionicons name="settings-outline" size={18} color="rgba(255,255,255,0.6)" />
+            <Ionicons name="settings-outline" size={18} color="#4b5563" />
           </TouchableOpacity>
         </View>
 
@@ -139,17 +142,17 @@ export default function ProfileScreen() {
               <View style={tw`w-9 h-9 rounded-xl bg-white/10 items-center justify-center mb-3`}>
                 <Ionicons name={action.icon as any} size={18} color={action.iconColor} />
               </View>
-              <Text style={tw`text-white text-[12px] font-semibold leading-5`}>{action.title}</Text>
+              <Text style={tw`text-gray-800 text-[12px] font-semibold leading-5`}>{action.title}</Text>
             </TouchableOpacity>
           ))}
         </View>
 
-        <Text style={tw`text-white/35 text-[11px] font-semibold uppercase tracking-widest mb-3`}>Account settings</Text>
-        <View style={tw`bg-white/4 border border-white/7 rounded-3xl overflow-hidden mb-5`}>
+        <Text style={tw`text-gray-400 text-[11px] font-semibold uppercase tracking-widest mb-3`}>Account settings</Text>
+        <View style={tw`bg-gray-50 border border-gray-200 rounded-3xl overflow-hidden mb-5`}>
           {menuItems.map((item, index) => (
             <TouchableOpacity
               key={item.id}
-              style={tw`flex-row justify-between items-center px-4 py-4 ${index !== menuItems.length - 1 ? 'border-b border-white/7' : ''}`}
+              style={tw`flex-row justify-between items-center px-4 py-4 ${index !== menuItems.length - 1 ? 'border-b border-gray-200' : ''}`}
               activeOpacity={0.75}
               onPress={() => router.push(item.route as any)}
             >
@@ -158,28 +161,28 @@ export default function ProfileScreen() {
                   <Ionicons name={item.icon as any} size={17} color="#60a5fa" />
                 </View>
                 <View style={tw`flex-1`}>
-                  <Text style={tw`text-white text-[13px] font-semibold`}>{item.title}</Text>
-                  <Text style={tw`text-white/30 text-[11px] mt-0.5`}>{item.subtitle}</Text>
+                  <Text style={tw`text-gray-900 text-[13px] font-semibold`}>{item.title}</Text>
+                  <Text style={tw`text-gray-300 text-[11px] mt-0.5`}>{item.subtitle}</Text>
                 </View>
               </View>
-              <Ionicons name="chevron-forward" size={16} color="rgba(255,255,255,0.2)" />
+              <Ionicons name="chevron-forward" size={16} color="#9ca3af" />
             </TouchableOpacity>
           ))}
         </View>
 
-        <View style={tw`bg-white/4 border border-white/7 rounded-3xl p-5 mb-5`}>
-          <Text style={tw`text-white text-[14px] font-semibold mb-1`}>Need help?</Text>
-          <Text style={tw`text-white/35 text-[12px] leading-5 mb-4`}>
+        <View style={tw`bg-gray-50 border border-gray-200 rounded-3xl p-5 mb-5`}>
+          <Text style={tw`text-gray-900 text-[14px] font-semibold mb-1`}>Need help?</Text>
+          <Text style={tw`text-gray-400 text-[12px] leading-5 mb-4`}>
             Our support team is available 24/7 for any assistance with your account.
           </Text>
           <View style={tw`flex-row gap-3`}>
             <TouchableOpacity
-              style={tw`flex-1 bg-white/7 border border-white/10 rounded-xl h-[44px] items-center justify-center flex-row gap-1.5`}
+              style={tw`flex-1 bg-gray-100 border border-gray-200 rounded-xl h-[44px] items-center justify-center flex-row gap-1.5`}
               activeOpacity={0.75}
               onPress={() => router.push('/profile/help-support' as any)}
             >
-              <Ionicons name="chatbox-ellipses-outline" size={16} color="#60a5fa" />
-              <Text style={tw`text-blue-400 text-[13px] font-semibold`}>Live chat</Text>
+              <Ionicons name="chatbox-ellipses-outline" size={16} color="#2563eb" />
+              <Text style={tw`text-blue-600 text-[13px] font-semibold`}>Live chat</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={tw`flex-1 bg-blue-500 rounded-xl h-[44px] items-center justify-center flex-row gap-1.5`}

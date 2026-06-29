@@ -135,6 +135,41 @@ All types defined in `lib/types.ts`. Key types:
 - `SupportTicket`, `Faq`, `Grant`, `GrantCategory`
 - `UserLimits`, `NotificationSetting`, `AuthTokens`
 
+## Theme & Layout (Light Mode)
+
+**Converted from dark to light theme** across all 22+ screens:
+
+| Constant | Current value |
+|---|---|
+| `DARK_BG` in `constants/customConstants.js` | `#ffffff` (was `#05050e`) |
+| `StatusBar style` | `"dark"` everywhere |
+
+**SafeArea top padding** (consistent across all screens):
+- Tab screens (home, bills, profile): `pt-16` (64px) on header
+- Transfer, history: `mt-16` (64px) on header
+- Grants: `pt-16` (64px)
+- Bill sub-screens (airtime, data, electricity, tv, internet, education): `pt-12` (48px) on header
+- Profile sub-screens (all 8): `pt-12` (48px) on header
+- Login/signup: `mt-14` (56px) on back button
+- All SafeAreaViews: `pb-8` (32px) bottom padding
+
+## API Base URL
+
+Dev: `http://192.168.1.179:4000/api/v1` (machine IP for Expo Go on physical device)
+Fallback env: `EXPO_PUBLIC_API_URL`
+
+## Recent Changes (Jun 2026)
+
+| Change | Detail |
+|---|---|
+| **Light theme** | All `text-white`, `bg-white`, `border-white` changed to `text-gray-*`, `bg-gray-*`, `border-gray-*`. All `bg-[#05050e]` → `bg-white`. |
+| **StatusBar** | All `style="light"` → `style="dark"` across main + bill sub-screens. |
+| **Name display** | `getName()` on home/profile now ucwords (capitalizes each word). |
+| **Bottom padding** | `pb-8` added to all SafeAreaView containers. |
+| **Top spacing** | Uniform 48-64px padding from top across all screens (see table above). |
+| **Profile quick actions** | Labels changed from `text-white` to `text-gray-800`. |
+| **Signup** | First name + last name fields added before submit. |
+
 ## Status of this guide
 
 This file is meant as a living document. Update it when adding:

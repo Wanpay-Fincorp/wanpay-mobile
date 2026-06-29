@@ -57,19 +57,19 @@ export default function TransactionItem({ txn, onPress }: TransactionItemProps) 
         <Ionicons name={icon.icon as any} size={18} color={icon.color} />
       </View>
       <View style={tw`flex-1`}>
-        <Text style={tw`text-white text-sm font-semibold`} numberOfLines={1}>{getLabel(txn)}</Text>
+        <Text style={tw`text-gray-800 text-sm font-semibold`} numberOfLines={1}>{getLabel(txn)}</Text>
         <View style={tw`flex-row items-center mt-0.5 gap-1.5`}>
-          <FormattedDate date={txn.createdAt} style={tw`text-white/35 text-[11px]`} />
+          <FormattedDate date={txn.createdAt} style={tw`text-gray-400 text-[11px]`} />
           {getSubtitle(txn) ? (
             <>
-              <Text style={tw`text-white/20 text-[11px]`}>·</Text>
-              <Text style={tw`text-white/35 text-[11px]`} numberOfLines={1}>{getSubtitle(txn)}</Text>
+              <Text style={tw`text-gray-300 text-[11px]`}>·</Text>
+              <Text style={tw`text-gray-400 text-[11px]`} numberOfLines={1}>{getSubtitle(txn)}</Text>
             </>
           ) : null}
         </View>
       </View>
       <View style={tw`items-end ml-3`}>
-        <Text style={[tw`text-sm font-semibold`, { color: txn.type === 'RECEIVED' || txn.type === 'FUNDING' ? '#10b981' : '#f1f5f9' }]}>
+        <Text style={[tw`text-sm font-semibold`, { color: txn.type === 'RECEIVED' || txn.type === 'FUNDING' ? '#10b981' : '#374151' }]}>
           {txn.type === 'RECEIVED' || txn.type === 'FUNDING' ? '+' : '-'}₦{Number(txn.amount).toLocaleString()}
         </Text>
         <View style={tw`flex-row items-center mt-0.5 gap-1`}>

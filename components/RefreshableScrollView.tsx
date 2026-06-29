@@ -29,9 +29,9 @@ export default function RefreshableScrollView({ onRefresh, refreshing: externalR
           <RefreshControl
             refreshing={isRefreshing}
             onRefresh={handleRefresh}
-            tintColor="rgba(255,255,255,0.4)"
+            tintColor="#6B7280"
             colors={['#3b82f6']}
-            progressBackgroundColor="#1e293b"
+            progressBackgroundColor="#ffffff"
           />
       } : {})}
     >
