@@ -37,8 +37,9 @@ export default function LoginScreen() {
     if (!validateForm()) return;
     setLoading(true);
     try {
+      const cleanPhone = phone.replace(/^0+/, '')
       const tokens = await api.post<AuthTokens>('/auth/login', {
-        phone: `+234${phone}`,
+        phone: `+234${cleanPhone}`,
         pin,
       }, false);
       if (tokens.user) await signIn(tokens.token, tokens.refreshToken, tokens.user);

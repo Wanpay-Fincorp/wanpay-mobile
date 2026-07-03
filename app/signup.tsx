@@ -43,11 +43,12 @@ export default function SignupScreen() {
     if (!validateForm()) return;
     setLoading(true);
     try {
+      const cleanPhone = phone.replace(/^0+/, '')
       const reg = await api.post('/auth/signup', {
         firstName: firstName.trim(),
         lastName: lastName.trim(),
         fullName: `${firstName.trim()} ${lastName.trim()}`,
-        phone: `+234${phone}`,
+        phone: `+234${cleanPhone}`,
         email: email.trim(),
         channel: otpChannel,
       }, false);
@@ -55,7 +56,7 @@ export default function SignupScreen() {
       if (otpChannel === 'EMAIL') {
         router.push({ pathname: '/otp', params: { email: email.trim(), channel: 'EMAIL' } });
       } else {
-        router.push({ pathname: '/otp', params: { phone: `+234${phone}`, channel: 'SMS' } });
+        router.push({ pathname: '/otp', params: { phone: `+234${cleanPhone}`, channel: 'SMS' } });
       }
     } catch (err: any) {
       console.log(err)
