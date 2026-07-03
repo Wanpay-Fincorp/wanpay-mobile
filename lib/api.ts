@@ -5,7 +5,9 @@ const REFRESH_KEY = 'wanpay_refresh_token';
 const DEVICE_ID_KEY = 'wanpay_device_id';
 const USER_KEY = 'wanpay_user';
 
-const API_BASE ='https://wanpay-backend.onrender.com/api/v1';
+const DEV_API  = 'https://www.joinwanpay.app/api/v1';
+const PROD_API = 'https://www.joinwanpay.app/api/v1';
+const API_BASE = process.env.EXPO_PUBLIC_API_URL || (__DEV__ ? DEV_API : PROD_API);
 
 let cachedToken: string | null = null;
 

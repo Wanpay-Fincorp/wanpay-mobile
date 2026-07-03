@@ -219,7 +219,7 @@ export default function GrowthHubScreen() {
                   onPress={() => setSelectedCategory(category.id)}
                   activeOpacity={0.7}
                 >
-                  <Ionicons name={category.icon} size={15} color={isSelected ? '#fff' : category.color} style={tw`mr-1.5`} />
+                  <Ionicons name={category.icon as any} size={15} color={isSelected ? '#fff' : category.color} style={tw`mr-1.5`} />
                   <Text style={tw`text-[12px] font-semibold ${isSelected ? 'text-white' : 'text-white/50'}`}>{category.name}</Text>
                   <View style={tw`ml-1.5 px-1.5 py-0.5 rounded-full ${isSelected ? 'bg-white/20' : 'bg-white/8'}`}>
                     <Text style={tw`text-[11px] font-bold ${isSelected ? 'text-white' : 'text-white/40'}`}>{category.count}</Text>

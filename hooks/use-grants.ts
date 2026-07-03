@@ -49,6 +49,7 @@ import { useMemo } from "react";
           'Innovative business ideas',
           'Job creation focus',
         ],
+        applicationLink: null,
       },
       {
         id: '3',
@@ -71,6 +72,7 @@ import { useMemo } from "react";
           'Tech companies',
           'Growth stage',
         ],
+        applicationLink: null,
       },
       {
         id: '4',
@@ -93,6 +95,7 @@ import { useMemo } from "react";
           'Age 18-30',
           'Strong academic record',
         ],
+        applicationLink: null,
       },
       {
         id: '5',
@@ -115,6 +118,7 @@ import { useMemo } from "react";
           'Nigerian nationals',
           'Business plan required',
         ],
+        applicationLink: null,
       },
       {
         id: '6',
@@ -137,6 +141,7 @@ import { useMemo } from "react";
           'All sectors',
           'Growth-stage companies',
         ],
+        applicationLink: null,
       },
       {
         id: '7',
@@ -159,6 +164,7 @@ import { useMemo } from "react";
           'All sectors',
           'Early to growth stage',
         ],
+        applicationLink: null,
       },
       {
         id: '8',
@@ -181,6 +187,7 @@ import { useMemo } from "react";
           'Developing countries',
           'Open-source commitment',
         ],
+        applicationLink: null,
       },
     ],
     []
