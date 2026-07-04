@@ -1,11 +1,10 @@
-import { DARK_BG } from '@/constants/customConstants';
+import { PRIMARY_COLOR, CHARCOAL, LIGHT_GRAY, SUCCESS_GREEN } from '@/constants/customConstants';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import RefreshableScrollView from '@/components/RefreshableScrollView';
 import React, { useState } from 'react';
 import {
-  ActivityIndicator,
   Alert,
   KeyboardAvoidingView,
   Platform,
@@ -17,6 +16,7 @@ import {
 } from 'react-native';
 import tw from 'twrnc';
 import { api } from '@/lib/api';
+import Button from '@/components/ui/Button';
 
 interface Network { id: string; name: string; color: string; }
 
@@ -86,24 +86,24 @@ export default function AirtimeScreen() {
   const isDisabled = isSubmitting || !selectedNetwork || phoneNumber.length !== 10 || !amount || pin.length !== 4;
 
   return (
-    <SafeAreaView style={[tw`flex-1 pt-5 pb-8`, { backgroundColor: DARK_BG }]}>
+    <SafeAreaView style={[tw`flex-1 pb-8`, { backgroundColor: LIGHT_GRAY }]}>
       <StatusBar style="dark" />
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={tw`flex-1`}>
-        <View style={tw`px-5 pt-12 pb-5 border-b border-gray-200`}>
+        <View style={tw`px-5 pt-14 pb-5`}>
           <View style={tw`flex-row items-center`}>
-            <TouchableOpacity onPress={() => router.back()} style={tw`w-[38px] h-[38px] rounded-xl bg-gray-100 items-center justify-center mr-4`} activeOpacity={0.7}>
-              <Ionicons name="arrow-back" size={20} color="#374151" />
+            <TouchableOpacity onPress={() => router.back()} style={tw`w-10 h-10 rounded-full bg-white border border-gray-200 items-center justify-center mr-4`} activeOpacity={0.7}>
+              <Ionicons name="arrow-back" size={20} color={CHARCOAL} />
             </TouchableOpacity>
             <View>
-              <Text style={tw`text-gray-900 text-[20px] font-bold tracking-tight`}>Buy airtime</Text>
+              <Text style={[tw`text-[22px] font-bold tracking-tight`, { color: CHARCOAL }]}>Buy airtime</Text>
               <Text style={tw`text-gray-400 text-[12px] mt-0.5`}>Instant airtime top-up</Text>
             </View>
           </View>
         </View>
 
-        <RefreshableScrollView style={tw`flex-1 px-5 pt-6`} showsVerticalScrollIndicator={false} contentContainerStyle={tw`pb-10`}>
+        <RefreshableScrollView style={tw`flex-1 px-5`} showsVerticalScrollIndicator={false} contentContainerStyle={tw`pb-28`}>
           <View style={tw`mb-6`}>
-            <Text style={tw`text-gray-600 text-[12px] font-semibold tracking-wide mb-3`}>Select network</Text>
+            <Text style={tw`text-gray-500 text-[12px] font-semibold tracking-wider uppercase mb-3`}>Select network</Text>
             <View style={tw`flex-row justify-between gap-2`}>
               {networks.map(network => {
                 const isSelected = selectedNetwork?.id === network.id;
@@ -114,25 +114,30 @@ export default function AirtimeScreen() {
                       tw`flex-1 py-3.5 rounded-2xl items-center border`,
                       isSelected
                         ? { borderColor: `${network.color}60`, backgroundColor: `${network.color}18` }
-                        : tw`border-gray-200 bg-gray-50`,
+                        : tw`bg-[${LIGHT_GRAY}] border-gray-200`,
                     ]}
                     onPress={() => { setSelectedNetwork(network); if (errors.network) setErrors(p => ({ ...p, network: '' })); }}
                     activeOpacity={0.75}
                   >
                     <View style={[tw`w-9 h-9 rounded-xl items-center justify-center mb-2`, { backgroundColor: `${network.color}20` }]}>
-                      <Ionicons name="phone-portrait-outline" size={18} color={network.color} />
+                      <Ionicons name="phone-portrait-outline" size={18} color={isSelected ? network.color : '#9CA3AF'} />
                     </View>
                     <Text style={[tw`text-[11px] font-semibold`, { color: isSelected ? network.color : '#6B7280' }]}>{network.name}</Text>
+                    {isSelected ? (
+                      <View style={[tw`absolute top-1 right-1 w-3.5 h-3.5 rounded-full items-center justify-center`, { backgroundColor: SUCCESS_GREEN }]}>
+                        <Ionicons name="checkmark" size={10} color="#fff" />
+                      </View>
+                    ) : null}
                   </TouchableOpacity>
                 );
               })}
             </View>
-            {errors.network ? <Text style={tw`text-red-400 text-[11px] mt-1.5 ml-1`}>{errors.network}</Text> : null}
+            {errors.network ? <Text style={tw`text-red-500 text-[12px] mt-1.5 ml-1`}>{errors.network}</Text> : null}
           </View>
 
-          <View style={tw`mb-5`}>
-            <Text style={tw`text-gray-600 text-[12px] font-semibold tracking-wide mb-2`}>Phone number</Text>
-            <View style={tw`flex-row items-center bg-gray-50 border ${errors.phone ? 'border-red-500/70' : 'border-gray-200'} rounded-2xl px-4 h-[52px]`}>
+          <Text style={tw`text-gray-500 text-[12px] font-semibold tracking-wider uppercase mb-3`}>Phone number</Text>
+          <View style={tw`bg-white rounded-2xl p-4 mb-5`}>
+            <View style={tw`flex-row items-center bg-[${LIGHT_GRAY}] border ${errors.phone ? 'border-red-500/70' : 'border-gray-200'} rounded-2xl px-4 h-[52px]`}>
               <Text style={tw`text-gray-700 text-[13px] font-semibold`}>+234</Text>
               <View style={tw`w-px h-[18px] bg-gray-300 mx-2.5`} />
               <TextInput
@@ -145,12 +150,12 @@ export default function AirtimeScreen() {
                 onChangeText={handlePhoneChange}
               />
             </View>
-            {errors.phone ? <Text style={tw`text-red-400 text-[11px] mt-1.5 ml-1`}>{errors.phone}</Text> : null}
+            {errors.phone ? <Text style={tw`text-red-500 text-[12px] mt-1.5 ml-1`}>{errors.phone}</Text> : null}
           </View>
 
-          <View style={tw`mb-4`}>
-            <Text style={tw`text-gray-600 text-[12px] font-semibold tracking-wide mb-2`}>Amount</Text>
-            <View style={tw`bg-gray-50 border ${errors.amount ? 'border-red-500/70' : 'border-gray-200'} rounded-2xl px-4 h-[60px] flex-row items-center`}>
+          <Text style={tw`text-gray-500 text-[12px] font-semibold tracking-wider uppercase mb-3`}>Amount</Text>
+          <View style={tw`bg-white rounded-2xl p-4 mb-5`}>
+            <View style={tw`bg-[${LIGHT_GRAY}] border ${errors.amount ? 'border-red-500/70' : 'border-gray-200'} rounded-2xl px-4 h-[60px] flex-row items-center`}>
               <Text style={tw`text-gray-400 text-[20px] mr-2`}>₦</Text>
               <TextInput
                 style={tw`flex-1 text-[24px] font-bold text-gray-900`}
@@ -161,12 +166,25 @@ export default function AirtimeScreen() {
                 onChangeText={handleAmountChange}
               />
             </View>
-            {errors.amount ? <Text style={tw`text-red-400 text-[11px] mt-1.5 ml-1`}>{errors.amount}</Text> : null}
+            {errors.amount ? <Text style={tw`text-red-500 text-[12px] mt-1.5 ml-1`}>{errors.amount}</Text> : null}
           </View>
 
-          <View style={tw`mb-4`}>
-            <Text style={tw`text-gray-600 text-[12px] font-semibold tracking-wide mb-2`}>Transaction PIN</Text>
-            <View style={tw`bg-gray-50 border ${errors.pin ? 'border-red-500/70' : 'border-gray-200'} rounded-2xl px-4 h-[52px] flex-row items-center`}>
+          <View style={tw`flex-row flex-wrap gap-2 mb-6`}>
+            {quickAmounts.map(amt => (
+              <TouchableOpacity
+                key={amt}
+                style={[tw`px-4 py-2 rounded-full border`, { backgroundColor: `${PRIMARY_COLOR}10`, borderColor: `${PRIMARY_COLOR}20` }]}
+                onPress={() => { setAmount(amt.toString()); if (errors.amount) setErrors(p => ({ ...p, amount: '' })); }}
+                activeOpacity={0.7}
+              >
+                <Text style={[tw`text-[13px] font-semibold`, { color: PRIMARY_COLOR }]}>₦{amt.toLocaleString()}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+
+          <Text style={tw`text-gray-500 text-[12px] font-semibold tracking-wider uppercase mb-3`}>Transaction PIN</Text>
+          <View style={tw`bg-white rounded-2xl p-4 mb-6`}>
+            <View style={tw`bg-[${LIGHT_GRAY}] border ${errors.pin ? 'border-red-500/70' : 'border-gray-200'} rounded-2xl px-4 h-[52px] flex-row items-center`}>
               <TextInput
                 style={tw`flex-1 text-[14px] text-gray-900`}
                 placeholder="Enter your PIN"
@@ -181,30 +199,19 @@ export default function AirtimeScreen() {
                 <Ionicons name={showPin ? 'eye-outline' : 'eye-off-outline'} size={20} color="#9CA3AF" />
               </TouchableOpacity>
             </View>
-            {errors.pin ? <Text style={tw`text-red-400 text-[11px] mt-1.5 ml-1`}>{errors.pin}</Text> : null}
+            {errors.pin ? <Text style={tw`text-red-500 text-[12px] mt-1.5 ml-1`}>{errors.pin}</Text> : null}
           </View>
 
-          <View style={tw`flex-row flex-wrap gap-2 mb-7`}>
-            {quickAmounts.map(amt => (
-              <TouchableOpacity
-                key={amt}
-                style={tw`bg-blue-500/10 border border-blue-500/20 px-4 py-2 rounded-full`}
-                onPress={() => { setAmount(amt.toString()); if (errors.amount) setErrors(p => ({ ...p, amount: '' })); }}
-                activeOpacity={0.7}
-              >
-                <Text style={tw`text-blue-600 text-[13px] font-semibold`}>₦{amt.toLocaleString()}</Text>
-              </TouchableOpacity>
-            ))}
+          <View style={tw`mb-4`}>
+            <Button
+              label="Buy airtime"
+              icon="arrow-forward"
+              iconPosition="right"
+              onPress={handleSubmit}
+              loading={isSubmitting}
+              disabled={isDisabled}
+            />
           </View>
-
-          <TouchableOpacity
-            style={tw`bg-blue-500 h-[52px] rounded-2xl items-center justify-center ${isDisabled ? 'opacity-50' : ''}`}
-            disabled={isDisabled}
-            onPress={handleSubmit}
-            activeOpacity={0.85}
-          >
-            {isSubmitting ? <ActivityIndicator color="#fff" /> : <Text style={tw`text-white font-semibold text-[15px] tracking-tight`}>Continue</Text>}
-          </TouchableOpacity>
         </RefreshableScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>

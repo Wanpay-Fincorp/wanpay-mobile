@@ -1,15 +1,16 @@
-import { DARK_BG } from '@/constants/customConstants';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import React, { useState } from 'react';
 import {
-  ActivityIndicator, Alert, FlatList, KeyboardAvoidingView, Modal,
+  Alert, FlatList, KeyboardAvoidingView, Modal,
   Platform, SafeAreaView, Text, TextInput, TouchableOpacity, View,
 } from 'react-native';
 import tw from 'twrnc';
 import { api } from '@/lib/api';
 import RefreshableScrollView from '@/components/RefreshableScrollView';
+import Button from '@/components/ui/Button';
+import { CHARCOAL, LIGHT_GRAY } from '@/constants/customConstants';
 
 export default function EducationScreen() {
   const router = useRouter();
@@ -68,106 +69,113 @@ export default function EducationScreen() {
   const isDisabled = isSubmitting || !selectedProvider || !studentId || !amount || pin.length !== 4;
 
   return (
-    <SafeAreaView style={[tw`flex-1 pt-5 pb-8`, { backgroundColor: DARK_BG }]}>
+    <SafeAreaView style={tw`flex-1 bg-[${LIGHT_GRAY}]`}>
       <StatusBar style="dark" />
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={tw`flex-1`}>
-        <View style={tw`px-5 pt-12 pb-5 border-b border-gray-200`}>
-          <View style={tw`flex-row items-center`}>
-            <TouchableOpacity onPress={() => router.back()} style={tw`w-[38px] h-[38px] rounded-xl bg-gray-100 items-center justify-center mr-4`} activeOpacity={0.7}>
-              <Ionicons name="arrow-back" size={20} color="#374151" />
+        <RefreshableScrollView showsVerticalScrollIndicator={false} contentContainerStyle={tw`px-5 pb-28`}>
+          <View style={tw`flex-row items-center mt-14 mb-8`}>
+            <TouchableOpacity onPress={() => router.back()} style={tw`w-10 h-10 rounded-full bg-white border border-gray-200 items-center justify-center mr-4`} activeOpacity={0.7}>
+              <Ionicons name="arrow-back" size={20} color={CHARCOAL} />
             </TouchableOpacity>
             <View>
-              <Text style={tw`text-gray-900 text-[20px] font-bold tracking-tight`}>Education payment</Text>
-              <Text style={tw`text-gray-400 text-[12px] mt-0.5`}>Pay school fees and education bills</Text>
+              <Text style={tw`text-[${CHARCOAL}] text-[22px] font-bold tracking-tight`}>Education</Text>
+              <Text style={tw`text-gray-400 text-[12px] mt-0.5`}>Pay school fees and exam bills</Text>
             </View>
           </View>
-        </View>
 
-        <RefreshableScrollView style={tw`flex-1 px-5 pt-6`} showsVerticalScrollIndicator={false} contentContainerStyle={tw`pb-10`}>
-          <View style={tw`mb-5`}>
-            <Text style={tw`text-gray-600 text-[12px] font-semibold tracking-wide mb-2`}>Provider / Exam body</Text>
-            <TouchableOpacity
-              style={tw`bg-gray-50 border ${errors.provider ? 'border-red-500/70' : 'border-gray-200'} rounded-2xl px-4 h-[56px] flex-row justify-between items-center`}
-              onPress={() => setShowProviders(true)}
-              activeOpacity={0.75}
-            >
-              {selectedProvider ? (
-                <Text style={tw`text-gray-900 text-[14px] font-semibold`}>{selectedProvider.name}</Text>
-              ) : (
-                <Text style={tw`text-gray-300 text-[14px]`}>Choose provider</Text>
-              )}
-              <Ionicons name="chevron-down" size={18} color="#D1D5DB" />
-            </TouchableOpacity>
-            {errors.provider ? <Text style={tw`text-red-400 text-[11px] mt-1.5 ml-1`}>{errors.provider}</Text> : null}
-          </View>
-
-          <View style={tw`mb-5`}>
-            <Text style={tw`text-gray-600 text-[12px] font-semibold tracking-wide mb-2`}>Student ID / matric number</Text>
-            <View style={tw`bg-gray-50 border ${errors.studentId ? 'border-red-500/70' : 'border-gray-200'} rounded-2xl px-4 h-[52px] justify-center`}>
-              <TextInput
-                style={tw`text-[14px] text-gray-900`}
-                placeholder="Enter student ID"
-                placeholderTextColor="#E5E7EB"
-                value={studentId}
-                onChangeText={t => { setStudentId(t); if (errors.studentId) setErrors(p => ({ ...p, studentId: '' })); }}
-              />
-            </View>
-            {errors.studentId ? <Text style={tw`text-red-400 text-[11px] mt-1.5 ml-1`}>{errors.studentId}</Text> : null}
-          </View>
-
-          <View style={tw`mb-4`}>
-            <Text style={tw`text-gray-600 text-[12px] font-semibold tracking-wide mb-2`}>Transaction PIN</Text>
-            <View style={tw`bg-gray-50 border ${errors.pin ? 'border-red-500/70' : 'border-gray-200'} rounded-2xl px-4 h-[52px] flex-row items-center`}>
-              <TextInput
-                style={tw`flex-1 text-[14px] text-gray-900`}
-                placeholder="Enter your PIN"
-                placeholderTextColor="#E5E7EB"
-                keyboardType="number-pad"
-                secureTextEntry={!showPin}
-                maxLength={4}
-                value={pin}
-                onChangeText={(text) => { setPin(text.replace(/[^0-9]/g, '').slice(0, 4)); if (errors.pin) setErrors(p => ({ ...p, pin: '' })); }}
-              />
-              <TouchableOpacity onPress={() => setShowPin(!showPin)}>
-                <Ionicons name={showPin ? 'eye-outline' : 'eye-off-outline'} size={20} color="#9CA3AF" />
+          <View style={tw`mb-6`}>
+            <Text style={tw`text-gray-500 text-[12px] font-semibold tracking-wider uppercase mb-3`}>Provider</Text>
+            <View style={tw`bg-white rounded-2xl p-4`}>
+              <TouchableOpacity
+                style={tw`bg-[${LIGHT_GRAY}] rounded-xl px-4 h-[56px] flex-row justify-between items-center ${errors.provider ? 'border border-red-500' : ''}`}
+                onPress={() => setShowProviders(true)}
+                activeOpacity={0.75}
+              >
+                {selectedProvider ? (
+                  <Text style={tw`text-[${CHARCOAL}] text-[14px] font-semibold`}>{selectedProvider.name}</Text>
+                ) : (
+                  <Text style={tw`text-gray-400 text-[14px]`}>Choose provider</Text>
+                )}
+                <Ionicons name="chevron-down" size={18} color="#9CA3AF" />
               </TouchableOpacity>
+              {errors.provider ? <Text style={tw`text-red-500 text-[12px] mt-1.5 ml-1`}>{errors.provider}</Text> : null}
             </View>
-            {errors.pin ? <Text style={tw`text-red-400 text-[11px] mt-1.5 ml-1`}>{errors.pin}</Text> : null}
           </View>
 
-          <View style={tw`mb-7`}>
-            <Text style={tw`text-gray-600 text-[12px] font-semibold tracking-wide mb-2`}>Amount</Text>
-            <View style={tw`bg-gray-50 border ${errors.amount ? 'border-red-500/70' : 'border-gray-200'} rounded-2xl px-4 h-[60px] flex-row items-center`}>
-              <Text style={tw`text-gray-400 text-[20px] mr-2`}>₦</Text>
-              <TextInput
-                style={tw`flex-1 text-[24px] font-bold text-gray-900`}
-                placeholder="0"
-                placeholderTextColor="#E5E7EB"
-                keyboardType="decimal-pad"
-                value={amount}
-                onChangeText={handleAmountChange}
-              />
+          <View style={tw`mb-6`}>
+            <Text style={tw`text-gray-500 text-[12px] font-semibold tracking-wider uppercase mb-3`}>Student ID</Text>
+            <View style={tw`bg-white rounded-2xl p-4`}>
+              <View style={tw`bg-[${LIGHT_GRAY}] rounded-xl px-4 h-[50px] justify-center ${errors.studentId ? 'border border-red-500' : ''}`}>
+                <TextInput
+                  style={tw`text-[14px] text-[${CHARCOAL}]`}
+                  placeholder="Enter student ID or matric number"
+                  placeholderTextColor="#9CA3AF"
+                  value={studentId}
+                  onChangeText={t => { setStudentId(t); if (errors.studentId) setErrors(p => ({ ...p, studentId: '' })); }}
+                />
+              </View>
+              {errors.studentId ? <Text style={tw`text-red-500 text-[12px] mt-1.5 ml-1`}>{errors.studentId}</Text> : null}
             </View>
-            {errors.amount ? <Text style={tw`text-red-400 text-[11px] mt-1.5 ml-1`}>{errors.amount}</Text> : null}
           </View>
 
-          <TouchableOpacity
-            style={tw`bg-blue-500 h-[52px] rounded-2xl items-center justify-center ${isDisabled ? 'opacity-50' : ''}`}
-            disabled={isDisabled}
+          <View style={tw`mb-6`}>
+            <Text style={tw`text-gray-500 text-[12px] font-semibold tracking-wider uppercase mb-3`}>Amount</Text>
+            <View style={tw`bg-white rounded-2xl p-4`}>
+              <View style={tw`bg-[${LIGHT_GRAY}] rounded-xl px-4 h-[56px] flex-row items-center ${errors.amount ? 'border border-red-500' : ''}`}>
+                <Text style={tw`text-gray-400 text-[20px] mr-2 font-bold`}>₦</Text>
+                <TextInput
+                  style={tw`flex-1 text-[24px] font-bold text-[${CHARCOAL}]`}
+                  placeholder="0"
+                  placeholderTextColor="#D1D5DB"
+                  keyboardType="decimal-pad"
+                  value={amount}
+                  onChangeText={handleAmountChange}
+                />
+              </View>
+              {errors.amount ? <Text style={tw`text-red-500 text-[12px] mt-1.5 ml-1`}>{errors.amount}</Text> : null}
+            </View>
+          </View>
+
+          <View style={tw`mb-6`}>
+            <Text style={tw`text-gray-500 text-[12px] font-semibold tracking-wider uppercase mb-3`}>Confirm</Text>
+            <View style={tw`bg-white rounded-2xl p-4`}>
+              <View style={tw`bg-[${LIGHT_GRAY}] rounded-xl px-4 h-[50px] flex-row items-center ${errors.pin ? 'border border-red-500' : ''}`}>
+                <TextInput
+                  style={tw`flex-1 text-[14px] text-[${CHARCOAL}]`}
+                  placeholder="Enter your PIN"
+                  placeholderTextColor="#9CA3AF"
+                  keyboardType="number-pad"
+                  secureTextEntry={!showPin}
+                  maxLength={4}
+                  value={pin}
+                  onChangeText={(text) => { setPin(text.replace(/[^0-9]/g, '').slice(0, 4)); if (errors.pin) setErrors(p => ({ ...p, pin: '' })); }}
+                />
+                <TouchableOpacity onPress={() => setShowPin(!showPin)} style={tw`p-1`}>
+                  <Ionicons name={showPin ? 'eye-outline' : 'eye-off-outline'} size={20} color="#9CA3AF" />
+                </TouchableOpacity>
+              </View>
+              {errors.pin ? <Text style={tw`text-red-500 text-[12px] mt-1.5 ml-1`}>{errors.pin}</Text> : null}
+            </View>
+          </View>
+
+          <Button
+            label="Continue"
+            icon="arrow-forward"
+            iconPosition="right"
             onPress={handleSubmit}
-            activeOpacity={0.85}
-          >
-            {isSubmitting ? <ActivityIndicator color="#fff" /> : <Text style={tw`text-white font-semibold text-[15px] tracking-tight`}>Continue</Text>}
-          </TouchableOpacity>
+            disabled={isDisabled}
+            loading={isSubmitting}
+          />
         </RefreshableScrollView>
       </KeyboardAvoidingView>
-      <Modal visible={showProviders} animationType="slide" transparent>
-        <View style={tw`flex-1 justify-end bg-black/20`}>
-          <View style={[tw`rounded-t-3xl pt-6 pb-10 max-h-[70%]`, { backgroundColor: '#ffffff' }]}>
-            <View style={tw`px-5 pb-4 border-b border-gray-200 flex-row justify-between items-center`}>
-              <Text style={tw`text-gray-900 text-[17px] font-bold tracking-tight`}>Select provider</Text>
-              <TouchableOpacity onPress={() => setShowProviders(false)} style={tw`w-[34px] h-[34px] rounded-xl bg-gray-100 items-center justify-center`} activeOpacity={0.7}>
-                <Ionicons name="close" size={18} color="#374151" />
+
+      <Modal visible={showProviders} animationType="slide" transparent onRequestClose={() => setShowProviders(false)}>
+        <TouchableOpacity style={tw`flex-1 bg-black/40 justify-end`} activeOpacity={1} onPress={() => setShowProviders(false)}>
+          <TouchableOpacity activeOpacity={1} onPress={() => {}} style={tw`bg-white rounded-t-3xl min-h-[50%] max-h-[70%]`}>
+            <View style={tw`flex-row items-center justify-between px-5 pt-5 pb-3 border-b border-[${LIGHT_GRAY}]`}>
+              <Text style={tw`text-[${CHARCOAL}] text-[18px] font-bold`}>Select provider</Text>
+              <TouchableOpacity onPress={() => setShowProviders(false)} activeOpacity={0.7}>
+                <Ionicons name="close" size={22} color="#6B7280" />
               </TouchableOpacity>
             </View>
             <FlatList
@@ -175,16 +183,16 @@ export default function EducationScreen() {
               keyExtractor={item => item.id}
               renderItem={({ item }) => (
                 <TouchableOpacity
-                  style={tw`px-5 py-4 border-b border-gray-200`}
+                  style={tw`px-5 py-4 border-b border-[${LIGHT_GRAY}]`}
                   onPress={() => { setSelectedProvider(item); setShowProviders(false); if (errors.provider) setErrors(p => ({ ...p, provider: '' })); }}
                   activeOpacity={0.75}
                 >
-                  <Text style={tw`text-gray-900 font-bold text-[14px]`}>{item.name}</Text>
+                  <Text style={tw`text-[${CHARCOAL}] font-bold text-[14px]`}>{item.name}</Text>
                 </TouchableOpacity>
               )}
             />
-          </View>
-        </View>
+          </TouchableOpacity>
+        </TouchableOpacity>
       </Modal>
     </SafeAreaView>
   );

@@ -4,7 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { Alert, SafeAreaView, Switch, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import * as SecureStore from 'expo-secure-store';
 import tw from 'twrnc';
-import { DARK_BG } from '@/constants/customConstants';
+import { LIGHT_GRAY } from '@/constants/customConstants';
 import { api } from '@/lib/api';
 import RefreshableScrollView from '@/components/RefreshableScrollView';
 
@@ -86,39 +86,39 @@ export default function SecuritySettingsScreen() {
   ];
 
   return (
-    <SafeAreaView style={tw`flex-1 pb-8 bg-[${DARK_BG}]`}>
-      <View style={tw`px-3 pt-12 pb-4 border-b border-gray-200`}>
+    <SafeAreaView style={tw`flex-1 pb-8 bg-[${LIGHT_GRAY}]`}>
+      <View style={tw`px-3 pt-12 pb-4`}>
         <View style={tw`flex-row items-center`}>
-          <TouchableOpacity onPress={() => router.back()} style={tw`mr-4`} activeOpacity={0.7}>
-            <Ionicons name="arrow-back" size={24} color="#374151" />
+          <TouchableOpacity onPress={() => router.back()} style={tw`rounded-full bg-white border border-gray-200 w-10 h-10 items-center justify-center mr-4`} activeOpacity={0.7}>
+            <Ionicons name="arrow-back" size={22} color="#374151" />
           </TouchableOpacity>
           <View>
             <Text style={tw`text-xl font-bold text-gray-900`}>Security Settings</Text>
-            <Text style={tw`text-xs text-gray-400`}>Manage your account security</Text>
+            <Text style={tw`text-xs text-gray-500`}>Manage your account security</Text>
           </View>
         </View>
       </View>
 
-      <RefreshableScrollView style={tw`flex-1 px-3 pt-6`} showsVerticalScrollIndicator={false} contentContainerStyle={tw`pb-8`}>
-        <View style={tw`bg-emerald-500/10 border border-emerald-500/20 rounded-2xl p-5 mb-6`}>
+      <RefreshableScrollView style={tw`flex-1 px-3 pt-6`} showsVerticalScrollIndicator={false} contentContainerStyle={tw`pb-28`}>
+        <View style={tw`bg-white border border-gray-200 rounded-2xl p-5 mb-6`}>
           <View style={tw`flex-row items-center mb-2`}>
             <Ionicons name="shield-checkmark" size={24} color="#10b981" />
-            <Text style={tw`text-emerald-300 font-bold text-lg ml-3`}>Account Secure</Text>
+            <Text style={tw`text-gray-900 font-bold text-lg ml-3`}>Account Secure</Text>
           </View>
-          <Text style={tw`text-emerald-400/70 text-sm`}>Your account is protected with multiple security layers.</Text>
+          <Text style={tw`text-gray-500 text-sm`}>Your account is protected with multiple security layers.</Text>
         </View>
 
         <View style={tw`mb-6`}>
-          <Text style={tw`text-gray-500 text-xs font-semibold uppercase mb-3`}>PIN Settings</Text>
-          <View style={tw`bg-gray-50 border border-gray-200 rounded-2xl`}>
+          <Text style={tw`text-gray-500 text-xs font-semibold uppercase tracking-wider mb-3`}>PIN Settings</Text>
+          <View style={tw`bg-white border border-gray-200 rounded-2xl`}>
             <View style={tw`px-5 py-4 border-b border-gray-200`}>
               <Text style={tw`text-base font-semibold text-gray-900 mb-1`}>Change PIN</Text>
-              <Text style={tw`text-sm text-gray-400`}>Update your transaction PIN</Text>
+              <Text style={tw`text-sm text-gray-500`}>Update your transaction PIN</Text>
             </View>
             <View style={tw`px-5 py-4`}>
               <View style={tw`mb-4`}>
                 <Text style={tw`text-gray-600 text-[12px] font-semibold tracking-wide mb-2`}>Current PIN</Text>
-                <View style={tw`bg-gray-50 border border-gray-200 rounded-2xl px-4 h-[52px] flex-row items-center`}>
+                <View style={tw`bg-[${LIGHT_GRAY}] border border-gray-200 rounded-2xl px-4 h-[52px] flex-row items-center`}>
                   <TextInput style={tw`flex-1 text-[14px] text-gray-900`} value={pinData.currentPin} onChangeText={(text) => setPinData({ ...pinData, currentPin: text.replace(/[^0-9]/g, '').slice(0, 4) })} placeholder="Enter current PIN" placeholderTextColor="#E5E7EB" keyboardType="number-pad" secureTextEntry={!showCurrentPin} maxLength={4} />
                   <TouchableOpacity onPress={() => setShowCurrentPin(!showCurrentPin)}>
                     <Ionicons name={showCurrentPin ? 'eye-outline' : 'eye-off-outline'} size={20} color="#9CA3AF" />
@@ -127,7 +127,7 @@ export default function SecuritySettingsScreen() {
               </View>
               <View style={tw`mb-4`}>
                 <Text style={tw`text-gray-600 text-[12px] font-semibold tracking-wide mb-2`}>New PIN</Text>
-                <View style={tw`bg-gray-50 border border-gray-200 rounded-2xl px-4 h-[52px] flex-row items-center`}>
+                <View style={tw`bg-[${LIGHT_GRAY}] border border-gray-200 rounded-2xl px-4 h-[52px] flex-row items-center`}>
                   <TextInput style={tw`flex-1 text-[14px] text-gray-900`} value={pinData.newPin} onChangeText={(text) => setPinData({ ...pinData, newPin: text.replace(/[^0-9]/g, '').slice(0, 4) })} placeholder="Enter new PIN" placeholderTextColor="#E5E7EB" keyboardType="number-pad" secureTextEntry={!showNewPin} maxLength={4} />
                   <TouchableOpacity onPress={() => setShowNewPin(!showNewPin)}>
                     <Ionicons name={showNewPin ? 'eye-outline' : 'eye-off-outline'} size={20} color="#9CA3AF" />
@@ -136,14 +136,14 @@ export default function SecuritySettingsScreen() {
               </View>
               <View style={tw`mb-4`}>
                 <Text style={tw`text-gray-600 text-[12px] font-semibold tracking-wide mb-2`}>Confirm New PIN</Text>
-                <View style={tw`bg-gray-50 border border-gray-200 rounded-2xl px-4 h-[52px] flex-row items-center`}>
+                <View style={tw`bg-[${LIGHT_GRAY}] border border-gray-200 rounded-2xl px-4 h-[52px] flex-row items-center`}>
                   <TextInput style={tw`flex-1 text-[14px] text-gray-900`} value={pinData.confirmPin} onChangeText={(text) => setPinData({ ...pinData, confirmPin: text.replace(/[^0-9]/g, '').slice(0, 4) })} placeholder="Confirm new PIN" placeholderTextColor="#E5E7EB" keyboardType="number-pad" secureTextEntry={!showConfirmPin} maxLength={4} />
                   <TouchableOpacity onPress={() => setShowConfirmPin(!showConfirmPin)}>
                     <Ionicons name={showConfirmPin ? 'eye-outline' : 'eye-off-outline'} size={20} color="#9CA3AF" />
                   </TouchableOpacity>
                 </View>
               </View>
-              <TouchableOpacity style={tw`bg-blue-600 py-3 rounded-xl ${changingPin ? 'opacity-60' : ''}`} onPress={handleChangePin} disabled={changingPin} activeOpacity={0.8}>
+              <TouchableOpacity style={tw`bg-blue-600 py-3 rounded-2xl ${changingPin ? 'opacity-60' : ''}`} onPress={handleChangePin} disabled={changingPin} activeOpacity={0.8}>
                 <Text style={tw`text-white text-center font-bold`}>{changingPin ? 'Updating...' : 'Update PIN'}</Text>
               </TouchableOpacity>
             </View>
@@ -151,8 +151,8 @@ export default function SecuritySettingsScreen() {
         </View>
 
         <View style={tw`mb-6`}>
-          <Text style={tw`text-gray-500 text-xs font-semibold uppercase mb-3`}>Security Features</Text>
-          <View style={tw`bg-gray-50 border border-gray-200 rounded-2xl`}>
+          <Text style={tw`text-gray-500 text-xs font-semibold uppercase tracking-wider mb-3`}>Security Features</Text>
+          <View style={tw`bg-white border border-gray-200 rounded-2xl`}>
             {securityFeatures.map((feature, index) => (
               <TouchableOpacity
                 key={feature.id}
@@ -167,15 +167,15 @@ export default function SecuritySettingsScreen() {
                   </View>
                   <View style={tw`flex-1`}>
                     <Text style={tw`text-gray-900 font-semibold`}>{feature.title}</Text>
-                    {feature.subtitle && <Text style={tw`text-gray-400 text-xs mt-1`}>{feature.subtitle}</Text>}
+                    {feature.subtitle && <Text style={tw`text-gray-500 text-xs mt-1`}>{feature.subtitle}</Text>}
                   </View>
                 </View>
                 {feature.toggle !== undefined ? (
-                  <Switch value={feature.toggle} onValueChange={feature.onToggle} trackColor={{ false: '#374151', true: '#3b82f6' }} thumbColor="#fff" />
+                  <Switch value={feature.toggle} onValueChange={feature.onToggle} trackColor={{ false: '#D1D5DB', true: '#93C5FD' }} thumbColor="#fff" />
                 ) : (
                   <View style={tw`flex-row items-center gap-1`}>
-                    <Text style={tw`text-gray-300 text-[11px]`}>Coming soon</Text>
-                    <Ionicons name="chevron-forward" size={18} color="#E5E7EB" />
+                    <Text style={tw`text-gray-400 text-[11px]`}>Coming soon</Text>
+                    <Ionicons name="chevron-forward" size={18} color="#D1D5DB" />
                   </View>
                 )}
               </TouchableOpacity>
@@ -183,14 +183,14 @@ export default function SecuritySettingsScreen() {
           </View>
         </View>
 
-        <View style={tw`bg-blue-500/10 border border-blue-500/20 p-4 rounded-xl`}>
+        <View style={tw`bg-white border border-gray-200 p-4 rounded-xl`}>
           <View style={tw`flex-row items-center mb-2`}>
-            <Ionicons name="information-circle" size={20} color="#60a5fa" />
-            <Text style={tw`text-blue-300 font-semibold ml-2`}>Security Tips</Text>
+            <Ionicons name="information-circle" size={20} color="#2563EB" />
+            <Text style={tw`text-gray-900 font-semibold ml-2`}>Security Tips</Text>
           </View>
-          <Text style={tw`text-xs text-gray-400 mb-1`}>• Never share your PIN with anyone</Text>
-          <Text style={tw`text-xs text-gray-400 mb-1`}>• Use a strong, unique PIN</Text>
-          <Text style={tw`text-xs text-gray-400`}>• Enable biometric authentication for faster access</Text>
+          <Text style={tw`text-xs text-gray-500 mb-1`}>• Never share your PIN with anyone</Text>
+          <Text style={tw`text-xs text-gray-500 mb-1`}>• Use a strong, unique PIN</Text>
+          <Text style={tw`text-xs text-gray-500`}>• Enable biometric authentication for faster access</Text>
         </View>
       </RefreshableScrollView>
     </SafeAreaView>

@@ -4,16 +4,16 @@ import React, { useState, useCallback } from 'react';
 import { Alert, SafeAreaView, Text, TouchableOpacity, View, ActivityIndicator } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import tw from 'twrnc';
-import { DARK_BG } from '@/constants/customConstants';
+import { LIGHT_GRAY } from '@/constants/customConstants';
 import { api } from '@/lib/api';
 import { useAuth } from '@/contexts/AuthContext';
 import RefreshableScrollView from '@/components/RefreshableScrollView';
 import type { Wallet } from '@/lib/types';
 
 const quickActions = [
-  { id: 'limits',  title: 'Limits',       icon: 'trending-up-outline',  iconColor: '#60a5fa', bg: 'bg-blue-500/15',   border: 'border-blue-500/20',   route: '/profile/increase-limits' },
-  { id: 'cards',   title: 'Cards',        icon: 'card-outline',          iconColor: '#a78bfa', bg: 'bg-violet-500/15', border: 'border-violet-500/20', route: '/profile/manage-cards' },
-  { id: 'support', title: 'Support',      icon: 'chatbubbles-outline',   iconColor: '#fbbf24', bg: 'bg-amber-500/15',  border: 'border-amber-500/20',  route: '/profile/help-support' },
+  { id: 'limits',  title: 'Limits',       icon: 'trending-up-outline',  iconColor: '#60a5fa', route: '/profile/increase-limits' },
+  { id: 'cards',   title: 'Cards',        icon: 'card-outline',          iconColor: '#a78bfa', route: '/profile/manage-cards' },
+  { id: 'support', title: 'Support',      icon: 'chatbubbles-outline',   iconColor: '#fbbf24', route: '/profile/help-support' },
 ];
 
 const menuItems = [
@@ -43,7 +43,6 @@ export default function ProfileScreen() {
       const walletData = await api.get<Wallet>('/wallet').catch(() => null);
       setWallet(walletData as Wallet);
     } catch {
-      // silently fail
     } finally {
       setLoading(false);
     }
@@ -78,16 +77,16 @@ export default function ProfileScreen() {
   };
 
   return (
-    <SafeAreaView style={tw`flex-1 pb-8 bg-[${DARK_BG}]`}>
+    <SafeAreaView style={tw`flex-1 pb-8 bg-[${LIGHT_GRAY}]`}>
       <StatusBar style="dark" />
-      <RefreshableScrollView onRefresh={onRefresh} refreshing={refreshing} style={tw`flex-1 px-5`} contentContainerStyle={tw`pt-16 pb-24`} showsVerticalScrollIndicator={false}>
+      <RefreshableScrollView onRefresh={onRefresh} refreshing={refreshing} style={tw`flex-1 px-5`} contentContainerStyle={tw`pt-16 pb-28`} showsVerticalScrollIndicator={false}>
         <View style={tw`flex-row justify-between items-center mb-6`}>
           <View>
             <Text style={tw`text-gray-900 text-[22px] font-bold tracking-tight`}>Profile</Text>
-            <Text style={tw`text-gray-400 text-[12px] mt-0.5`}>Manage your account</Text>
+            <Text style={tw`text-gray-500 text-[12px] mt-0.5`}>Manage your account</Text>
           </View>
           <TouchableOpacity
-            style={tw`w-[38px] h-[38px] rounded-xl bg-gray-100 items-center justify-center`}
+            style={tw`w-[38px] h-[38px] rounded-xl bg-white border border-gray-200 items-center justify-center`}
             activeOpacity={0.7}
             onPress={() => router.push('/profile/security-settings')}
           >
@@ -135,11 +134,11 @@ export default function ProfileScreen() {
           {quickActions.map(action => (
             <TouchableOpacity
               key={action.id}
-              style={tw`flex-1 ${action.bg} border ${action.border} rounded-2xl p-4`}
+              style={tw`flex-1 bg-white border border-gray-200 rounded-2xl p-4`}
               activeOpacity={0.75}
               onPress={() => router.push(action.route as any)}
             >
-              <View style={tw`w-9 h-9 rounded-xl bg-white/10 items-center justify-center mb-3`}>
+              <View style={tw`w-9 h-9 rounded-xl bg-white border border-gray-200 items-center justify-center mb-3`}>
                 <Ionicons name={action.icon as any} size={18} color={action.iconColor} />
               </View>
               <Text style={tw`text-gray-800 text-[12px] font-semibold leading-5`}>{action.title}</Text>
@@ -147,7 +146,7 @@ export default function ProfileScreen() {
           ))}
         </View>
 
-        <Text style={tw`text-gray-400 text-[11px] font-semibold uppercase tracking-widest mb-3`}>Account settings</Text>
+        <Text style={tw`text-gray-500 text-[11px] font-semibold uppercase tracking-widest mb-3`}>Account settings</Text>
         <View style={tw`bg-gray-50 border border-gray-200 rounded-3xl overflow-hidden mb-5`}>
           {menuItems.map((item, index) => (
             <TouchableOpacity
@@ -157,7 +156,7 @@ export default function ProfileScreen() {
               onPress={() => router.push(item.route as any)}
             >
               <View style={tw`flex-row items-center flex-1`}>
-                <View style={tw`w-9 h-9 rounded-xl bg-blue-500/15 border border-blue-500/20 items-center justify-center mr-3`}>
+                <View style={tw`w-9 h-9 rounded-xl bg-blue-50 border border-blue-100 items-center justify-center mr-3`}>
                   <Ionicons name={item.icon as any} size={17} color="#60a5fa" />
                 </View>
                 <View style={tw`flex-1`}>
@@ -172,7 +171,7 @@ export default function ProfileScreen() {
 
         <View style={tw`bg-gray-50 border border-gray-200 rounded-3xl p-5 mb-5`}>
           <Text style={tw`text-gray-900 text-[14px] font-semibold mb-1`}>Need help?</Text>
-          <Text style={tw`text-gray-400 text-[12px] leading-5 mb-4`}>
+          <Text style={tw`text-gray-500 text-[12px] leading-5 mb-4`}>
             Our support team is available 24/7 for any assistance with your account.
           </Text>
           <View style={tw`flex-row gap-3`}>
@@ -196,12 +195,12 @@ export default function ProfileScreen() {
         </View>
 
         <TouchableOpacity
-          style={tw`bg-red-500/10 border border-red-500/20 h-[52px] rounded-2xl flex-row justify-center items-center gap-2`}
+          style={tw`bg-red-50 border border-red-200 h-[52px] rounded-2xl flex-row justify-center items-center gap-2`}
           onPress={handleLogout}
           activeOpacity={0.85}
         >
-          <Ionicons name="log-out-outline" size={18} color="#f87171" />
-          <Text style={tw`text-red-400 font-semibold text-[14px]`}>Log out</Text>
+          <Ionicons name="log-out-outline" size={18} color="#dc2626" />
+          <Text style={tw`text-red-600 font-semibold text-[14px]`}>Log out</Text>
         </TouchableOpacity>
 
       </RefreshableScrollView>

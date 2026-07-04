@@ -1,10 +1,9 @@
-import { PRIMARY_COLOR, VIBRANT_ORANGE } from "@/constants/customConstants";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter, useLocalSearchParams } from "expo-router";
-import React, { useRef, useState } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import {
-  ActivityIndicator,
   Alert,
+  Animated,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -19,48 +18,54 @@ import tw from "twrnc";
 import { api } from "@/lib/api";
 import { useAuth } from "@/contexts/AuthContext";
 import type { AuthTokens } from "@/lib/types";
+import Button from "@/components/ui/Button";
 
-type PinErrors = { pin: string; confirmPin: string };
+const GOLD = "#C9A227";
 
-const GOLD = VIBRANT_ORANGE || "#C9A227";
-const ACCENT = PRIMARY_COLOR || "#2563EB";
+interface DotProps {
+  filled: boolean;
+  active: boolean;
+  error?: boolean;
+}
 
-const DOT_SIZE = 56;
-const DOT_GAP = 8;
+function PinDot({ filled, active, error }: DotProps) {
+  const scaleAnim = useRef(new Animated.Value(filled ? 1 : 0)).current;
 
-function PinDots({ value, error }: { value: string; error?: string }) {
+  useEffect(() => {
+    Animated.spring(scaleAnim, {
+      toValue: filled ? 1 : 0,
+      damping: 10,
+      stiffness: 200,
+      useNativeDriver: true,
+    }).start();
+  }, [filled, scaleAnim]);
+
   return (
-    <View style={[tw`flex-row items-center justify-center`, { gap: DOT_GAP }]}>
-      {[0, 1, 2, 3].map((i) => {
-        const filled = i < value.length;
-        return (
-          <View
-            key={i}
-            style={{
-              width: DOT_SIZE,
-              height: DOT_SIZE,
-              borderRadius: 14,
-              backgroundColor: "#F3F4F6",
-              borderWidth: 1.5,
-              borderColor: error ? "#EF4444" : filled ? GOLD : "#E5E7EB",
-              alignItems: "center",
-              justifyContent: "center",
-            }}
-          >
-            {filled && (
-              <View
-                style={{
-                  width: 12,
-                  height: 12,
-                  borderRadius: 6,
-                  backgroundColor: GOLD,
-                }}
-              />
-            )}
-          </View>
-        );
-      })}
-    </View>
+    <Animated.View
+      style={{
+        width: 56,
+        height: 56,
+        borderRadius: 16,
+        backgroundColor: "#F9FAFB",
+        borderWidth: 1.5,
+        borderColor: error ? "#EF4444" : filled ? GOLD : active ? GOLD : "#E5E7EB",
+        alignItems: "center",
+        justifyContent: "center",
+        transform: [{ scale: scaleAnim.interpolate({ inputRange: [0, 1], outputRange: [1, 1.05] }) }],
+      }}
+    >
+      {filled && (
+        <Animated.View
+          style={{
+            width: 12,
+            height: 12,
+            borderRadius: 6,
+            backgroundColor: GOLD,
+            transform: [{ scale: scaleAnim }],
+          }}
+        />
+      )}
+    </Animated.View>
   );
 }
 
@@ -73,14 +78,14 @@ export default function CreatePinScreen() {
   const [showPin, setShowPin] = useState(false);
   const [showConfirmPin, setShowConfirmPin] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [errors, setErrors] = useState<PinErrors>({ pin: "", confirmPin: "" });
+  const [errors, setErrors] = useState({ pin: "", confirmPin: "" });
   const [activeField, setActiveField] = useState<"pin" | "confirm">("pin");
 
   const pinRef = useRef<TextInput>(null);
   const confirmRef = useRef<TextInput>(null);
 
   const validatePin = () => {
-    const newErrors: PinErrors = { pin: "", confirmPin: "" };
+    const newErrors: { pin: string; confirmPin: string } = { pin: "", confirmPin: "" };
     let isValid = true;
     if (pin.length !== 4) {
       newErrors.pin = "PIN must be exactly 4 digits";
@@ -145,35 +150,29 @@ export default function CreatePinScreen() {
     autoFocus: boolean,
   ) => (
     <View style={tw`mb-6`}>
-      <Text
-        style={{
-          fontSize: 11,
-          fontWeight: "700",
-          color: "#4B5563",
-          letterSpacing: 1.2,
-          textTransform: "uppercase",
-          marginBottom: 10,
-          marginLeft: 2,
-        }}
-      >
+      <Text style={tw`text-gray-500 text-[11px] font-bold tracking-wider uppercase mb-2.5 ml-1`}>
         {label}
       </Text>
       <Pressable
         onPress={() => focusField(field)}
-        style={({ pressed }) => ({
-          flexDirection: "row",
-          alignItems: "center",
-          backgroundColor: "#F9FAFB",
-          borderWidth: 1.5,
-          borderColor: error ? "#EF4444" : activeField === field ? GOLD : "#E5E7EB",
-          borderRadius: 16,
-          paddingHorizontal: 16,
-          height: 72,
-          opacity: pressed ? 0.9 : 1,
-        })}
+        style={({ pressed }) => [
+          tw`flex-row items-center bg-gray-50 border rounded-2xl px-4 h-[76px]`,
+          {
+            borderColor: error ? "#EF4444" : activeField === field ? GOLD : "#E5E7EB",
+            borderWidth: 1.5,
+            opacity: pressed ? 0.95 : 1,
+          },
+        ]}
       >
-        <View style={tw`flex-1 items-center justify-center`}>
-          <PinDots value={value} error={error} />
+        <View style={tw`flex-1 flex-row items-center justify-center gap-3`}>
+          {[0, 1, 2, 3].map((i) => (
+            <PinDot
+              key={i}
+              filled={i < value.length}
+              active={activeField === field && i === value.length}
+              error={!!error}
+            />
+          ))}
         </View>
         <TextInput
           ref={ref}
@@ -188,120 +187,49 @@ export default function CreatePinScreen() {
           onFocus={() => setActiveField(field)}
         />
         <TouchableOpacity onPress={onToggleShow} activeOpacity={0.6} style={tw`ml-3`}>
-          <Ionicons
-            name={show ? "eye-off-outline" : "eye-outline"}
-            size={22}
-            color="#6B7280"
-          />
+          <Ionicons name={show ? "eye-off-outline" : "eye-outline"} size={22} color="#9CA3AF" />
         </TouchableOpacity>
       </Pressable>
       {error ? (
-        <Text
-          style={{
-            color: "#EF4444",
-            fontSize: 11,
-            marginTop: 6,
-            marginLeft: 4,
-            fontWeight: "500",
-          }}
-        >
-          {error}
-        </Text>
+        <Text style={tw`text-red-500 text-[11px] mt-1.5 ml-1 font-medium`}>{error}</Text>
       ) : null}
     </View>
   );
 
   return (
-    <SafeAreaView
-      style={{
-        flex: 1,
-        backgroundColor: "#FFFFFF",
-        paddingTop: Platform.OS === "android" ? StatusBar.currentHeight : 0,
-      }}
-    >
+    <SafeAreaView style={tw`flex-1 bg-white`}>
       <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
-      <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
-        style={tw`flex-1`}
-      >
+      <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={tw`flex-1`}>
         <View style={tw`flex-1 px-6`}>
           <TouchableOpacity
             onPress={() => router.back()}
-            style={{
-              width: 42,
-              height: 42,
-              marginTop: 8,
-              marginBottom: 20,
-              alignItems: "center",
-              justifyContent: "center",
-              borderRadius: 12,
-              backgroundColor: "#F3F4F6",
-            }}
+            style={tw`mt-2 mb-5 w-11 h-11 rounded-xl bg-gray-100 items-center justify-center`}
             activeOpacity={0.7}
           >
             <Ionicons name="arrow-back" size={22} color="#4B5563" />
           </TouchableOpacity>
 
           <View style={tw`flex-row items-center mb-8`}>
-            <View
-              style={{
-                width: 4,
-                height: 36,
-                backgroundColor: GOLD,
-                borderRadius: 2,
-                marginRight: 14,
-              }}
-            />
+            <View style={{ width: 4, height: 40, backgroundColor: GOLD, borderRadius: 2, marginRight: 14 }} />
             <View style={tw`flex-1`}>
-              <Text
-                style={{
-                  fontSize: 28,
-                  fontWeight: "800",
-                  color: "#111827",
-                  letterSpacing: -0.5,
-                }}
-              >
+              <Text style={tw`text-gray-900 text-[26px] font-bold tracking-tight`}>
                 Create your PIN
               </Text>
-              <Text
-                style={{
-                  fontSize: 13,
-                  color: "#6B7280",
-                  marginTop: 4,
-                  lineHeight: 20,
-                }}
-              >
+              <Text style={tw`text-gray-500 text-[13px] mt-1 leading-5`}>
                 Authorises transactions on your WanPay account.
               </Text>
             </View>
           </View>
 
-          <View
-            style={{
-              flexDirection: "row",
-              alignItems: "flex-start",
-              backgroundColor: "rgba(201, 162, 39, 0.08)",
-              borderWidth: 1,
-              borderColor: "rgba(201, 162, 39, 0.2)",
-              borderLeftWidth: 3,
-              borderLeftColor: GOLD,
-              borderRadius: 12,
-              padding: 14,
-              marginBottom: 28,
-              gap: 10,
-            }}
-          >
+          <View style={{
+            flexDirection: 'row', gap: 10, borderLeftColor: GOLD, backgroundColor: 'rgba(201,162,39,0.08)', borderWidth: 1, borderColor: 'rgba(201,162,39,0.2)', borderLeftWidth: 3, borderRadius: 12, padding: 14, marginBottom: 28,
+          }}>
             <Ionicons name="information-circle" size={18} color={GOLD} style={{ marginTop: 1 }} />
-            <Text style={{ fontSize: 12, color: "#6B7280", lineHeight: 19, flex: 1 }}>
-              Avoid obvious patterns like{" "}
-              <Text style={{ color: GOLD, fontWeight: "600", fontVariant: ["tabular-nums"] }}>
-                1234
-              </Text>{" "}
-              or{" "}
-              <Text style={{ color: GOLD, fontWeight: "600", fontVariant: ["tabular-nums"] }}>
-                1111
-              </Text>
-              . Choose something memorable but unique.
+            <Text style={tw`text-gray-500 text-[12px] leading-5 flex-1`}>
+              Avoid obvious patterns like{' '}
+              <Text style={{ color: GOLD, fontWeight: '600' }}>1234</Text> or{' '}
+              <Text style={{ color: GOLD, fontWeight: '600' }}>1111</Text>.
+              Choose something memorable but unique.
             </Text>
           </View>
 
@@ -309,38 +237,19 @@ export default function CreatePinScreen() {
 
           {renderPinInput("Confirm PIN", "confirm", confirmPin, errors.confirmPin, showConfirmPin, () => setShowConfirmPin(!showConfirmPin), confirmRef, false)}
 
-          <TouchableOpacity
-            style={{
-              borderRadius: 16,
-              paddingVertical: 16,
-              alignItems: "center",
-              backgroundColor: GOLD,
-              opacity: isSubmitting ? 0.6 : 1,
-              marginTop: 4,
-            }}
+          <Button
+            label="Create PIN"
             onPress={handleComplete}
             disabled={isSubmitting}
-            activeOpacity={0.85}
-          >
-            {isSubmitting ? (
-              <ActivityIndicator color="#0D1117" />
-            ) : (
-              <Text
-                style={{
-                  color: "#0D1117",
-                  fontWeight: "800",
-                  fontSize: 16,
-                  letterSpacing: 0.3,
-                }}
-              >
-                Create PIN
-              </Text>
-            )}
-          </TouchableOpacity>
+            loading={isSubmitting}
+            variant="primary"
+            size="lg"
+            icon="shield-checkmark-outline"
+          />
 
           <View style={tw`mt-6 flex-row items-center justify-center gap-2`}>
             <Ionicons name="shield-checkmark" size={14} color="#10B981" />
-            <Text style={{ color: "#6B7280", fontSize: 11.5 }}>
+            <Text style={tw`text-gray-400 text-[12px]`}>
               Encrypted end-to-end — never stored in plain text
             </Text>
           </View>

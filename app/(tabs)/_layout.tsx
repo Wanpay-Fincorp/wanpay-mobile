@@ -1,5 +1,6 @@
 import { Tabs, useRootNavigationState, Redirect } from 'expo-router';
-import React from "react";
+import React, { useEffect, useRef } from 'react';
+import { Animated } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -76,6 +77,55 @@ const TABS: TabConfig[] = [
   },
 ];
 
+function AnimatedTabIcon({ focused, icon, iconOutline, activeColor, activeBg }: {
+  focused: boolean;
+  icon: IoniconName;
+  iconOutline: IoniconName;
+  activeColor: string;
+  activeBg: string;
+}) {
+  const scaleAnim = useRef(new Animated.Value(focused ? 1 : 0)).current;
+  const translateYAnim = useRef(new Animated.Value(focused ? 0 : 4)).current;
+
+  useEffect(() => {
+    Animated.spring(scaleAnim, {
+      toValue: focused ? 1 : 0,
+      useNativeDriver: true,
+      damping: 12,
+      stiffness: 200,
+    }).start();
+    Animated.spring(translateYAnim, {
+      toValue: focused ? 0 : 4,
+      useNativeDriver: true,
+      damping: 12,
+      stiffness: 200,
+    }).start();
+  }, [focused, scaleAnim, translateYAnim]);
+
+  const bgScale = scaleAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0.7, 1],
+  });
+
+  return (
+    <Animated.View
+      style={{
+        transform: [{ scale: bgScale }, { translateY: translateYAnim }],
+        backgroundColor: focused ? activeBg : 'transparent',
+        borderRadius: 12,
+        padding: 4,
+        overflow: 'hidden',
+      }}
+    >
+      <Ionicons
+        name={focused ? icon : iconOutline}
+        size={22}
+        color={focused ? activeColor : '#9CA3AF'}
+      />
+    </Animated.View>
+  );
+}
+
 export default function TabLayout() {
   const { user, isLoading } = useAuth();
   const navState = useRootNavigationState();
@@ -103,20 +153,21 @@ export default function TabLayout() {
           right: 16,
           bottom: 20,
           backgroundColor: '#FFFFFF',
-          borderRadius: 26,
+          borderRadius: 28,
           borderTopWidth: 0,
           shadowColor: CHARCOAL,
           shadowOffset: { width: 0, height: 8 },
-          shadowOpacity: 0.12,
-          shadowRadius: 24,
-          elevation: 0,
-          height: 68,
+          shadowOpacity: 0.15,
+          shadowRadius: 28,
+          elevation: 8,
+          height: 72,
           paddingBottom: 0,
-          paddingTop: 0,
+          paddingTop: 6,
         },
         tabBarItemStyle: {
-          paddingVertical: 6,
+          paddingVertical: 4,
           borderRadius: 20,
+          height: 56,
         },
       }}
     >
@@ -128,16 +179,12 @@ export default function TabLayout() {
             title,
             tabBarActiveTintColor: activeColor,
             tabBarIcon: ({ focused }) => (
-              <Ionicons
-                name={focused ? icon : iconOutline}
-                size={22}
-                color={focused ? activeColor : '#9CA3AF'}
-                style={{
-                  backgroundColor: focused ? activeBg : 'transparent',
-                  borderRadius: 10,
-                  padding: 3,
-                  overflow: 'hidden',
-                }}
+              <AnimatedTabIcon
+                focused={focused}
+                icon={icon}
+                iconOutline={iconOutline}
+                activeColor={activeColor}
+                activeBg={activeBg}
               />
             ),
           }}

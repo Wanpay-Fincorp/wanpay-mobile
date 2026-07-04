@@ -1,14 +1,15 @@
-import { DARK_BG } from '@/constants/customConstants';
+import { PRIMARY_COLOR, CHARCOAL, LIGHT_GRAY } from '@/constants/customConstants';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import React, { useState } from 'react';
 import {
-  ActivityIndicator, Alert, FlatList, KeyboardAvoidingView, Modal,
+  Alert, FlatList, KeyboardAvoidingView, Modal,
   Platform, SafeAreaView, Text, TextInput, TouchableOpacity, View,
 } from 'react-native';
 import tw from 'twrnc';
 import { api } from '@/lib/api';
+import Button from '@/components/ui/Button';
 import RefreshableScrollView from '@/components/RefreshableScrollView';
 
 interface Network { id: string; name: string; color: string; }
@@ -84,24 +85,24 @@ export default function DataScreen() {
   const isDisabled = isSubmitting || !selectedNetwork || phoneNumber.length !== 10 || !selectedPlan || pin.length !== 4;
 
   return (
-    <SafeAreaView style={[tw`flex-1 pt-5 pb-8`, { backgroundColor: DARK_BG }]}>
+    <SafeAreaView style={[tw`flex-1 pt-5 pb-8`, { backgroundColor: LIGHT_GRAY }]}>
       <StatusBar style="dark" />
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={tw`flex-1`}>
-        <View style={tw`px-5 pt-12 pb-5 border-b border-gray-200`}>
+        <View style={tw`px-5 pt-14 pb-5 border-b border-gray-200`}>
           <View style={tw`flex-row items-center`}>
-            <TouchableOpacity onPress={() => router.back()} style={tw`w-[38px] h-[38px] rounded-xl bg-gray-100 items-center justify-center mr-4`} activeOpacity={0.7}>
+            <TouchableOpacity onPress={() => router.back()} style={tw`w-10 h-10 rounded-full bg-white border border-gray-200 items-center justify-center mr-4`} activeOpacity={0.7}>
               <Ionicons name="arrow-back" size={20} color="#374151" />
             </TouchableOpacity>
             <View>
-              <Text style={tw`text-gray-900 text-[20px] font-bold tracking-tight`}>Buy data</Text>
-              <Text style={tw`text-gray-400 text-[12px] mt-0.5`}>Subscribe to data bundles</Text>
+              <Text style={tw`text-[${CHARCOAL}] text-[22px] font-bold tracking-tight`}>Buy data</Text>
+              <Text style={tw`text-gray-500 text-[12px] mt-0.5`}>Subscribe to data bundles</Text>
             </View>
           </View>
         </View>
 
-        <RefreshableScrollView style={tw`flex-1 px-5 pt-6`} showsVerticalScrollIndicator={false} contentContainerStyle={tw`pb-10`}>
+        <RefreshableScrollView style={tw`flex-1 px-5 pt-6`} showsVerticalScrollIndicator={false} contentContainerStyle={tw`pb-28`}>
           <View style={tw`mb-6`}>
-            <Text style={tw`text-gray-600 text-[12px] font-semibold tracking-wide mb-3`}>Select network</Text>
+            <Text style={tw`text-gray-500 text-[12px] font-semibold tracking-wider uppercase mb-3`}>Select network</Text>
             <View style={tw`flex-row gap-2`}>
               {networks.map(network => {
                 const isSelected = selectedNetwork?.id === network.id;
@@ -112,7 +113,7 @@ export default function DataScreen() {
                       tw`flex-1 py-3.5 rounded-2xl items-center border`,
                       isSelected
                         ? { borderColor: `${network.color}60`, backgroundColor: `${network.color}18` }
-                        : tw`border-gray-200 bg-gray-50`,
+                        : tw`border-gray-200 bg-[${LIGHT_GRAY}]`,
                     ]}
                     onPress={() => { setSelectedNetwork(network); setSelectedPlan(null); if (errors.network) setErrors(p => ({ ...p, network: '' })); }}
                     activeOpacity={0.75}
@@ -125,93 +126,96 @@ export default function DataScreen() {
                 );
               })}
             </View>
-            {errors.network ? <Text style={tw`text-red-400 text-[11px] mt-1.5 ml-1`}>{errors.network}</Text> : null}
+            {errors.network ? <Text style={tw`text-red-500 text-[12px] mt-1.5 ml-1`}>{errors.network}</Text> : null}
           </View>
 
-          <View style={tw`mb-5`}>
-            <Text style={tw`text-gray-600 text-[12px] font-semibold tracking-wide mb-2`}>Phone number</Text>
-            <View style={tw`flex-row items-center bg-gray-50 border ${errors.phone ? 'border-red-500/70' : 'border-gray-200'} rounded-2xl px-4 h-[52px]`}>
-              <Text style={tw`text-gray-700 text-[13px] font-semibold`}>+234</Text>
-              <View style={tw`w-px h-[18px] bg-gray-300 mx-2.5`} />
-              <TextInput
-                style={tw`flex-1 text-[14px] text-gray-900`}
-                placeholder="8012345678"
-                placeholderTextColor="#E5E7EB"
-                keyboardType="phone-pad"
-                maxLength={10}
-                value={phoneNumber}
-                onChangeText={handlePhoneChange}
-              />
+          <View style={tw`bg-white rounded-2xl p-4 mb-6`}>
+            <View style={tw`mb-5`}>
+              <Text style={tw`text-gray-500 text-[12px] font-semibold tracking-wider uppercase mb-3`}>Phone number</Text>
+              <View style={tw`flex-row items-center bg-[${LIGHT_GRAY}] border ${errors.phone ? 'border-red-500/70' : 'border-gray-200'} rounded-2xl px-4 h-[52px]`}>
+                <Text style={tw`text-gray-700 text-[13px] font-semibold`}>+234</Text>
+                <View style={tw`w-px h-[18px] bg-gray-300 mx-2.5`} />
+                <TextInput
+                  style={tw`flex-1 text-[14px] text-gray-900`}
+                  placeholder="8012345678"
+                  placeholderTextColor="#E5E7EB"
+                  keyboardType="phone-pad"
+                  maxLength={10}
+                  value={phoneNumber}
+                  onChangeText={handlePhoneChange}
+                />
+              </View>
+              {errors.phone ? <Text style={tw`text-red-500 text-[12px] mt-1.5 ml-1`}>{errors.phone}</Text> : null}
             </View>
-            {errors.phone ? <Text style={tw`text-red-400 text-[11px] mt-1.5 ml-1`}>{errors.phone}</Text> : null}
-          </View>
 
-          <View style={tw`mb-5`}>
-            <Text style={tw`text-gray-600 text-[12px] font-semibold tracking-wide mb-2`}>Data plan</Text>
-            <TouchableOpacity
-              style={tw`bg-gray-50 border ${errors.plan ? 'border-red-500/70' : 'border-gray-200'} rounded-2xl px-4 h-[56px] flex-row justify-between items-center`}
-              onPress={() => setShowPlans(true)}
-              activeOpacity={0.75}
-            >
-              {selectedPlan ? (
-                <View>
-                  <Text style={tw`text-gray-900 text-[14px] font-semibold`}>{selectedPlan.name}</Text>
-                  <Text style={tw`text-gray-400 text-[11px]`}>{selectedPlan.validity} · ₦{selectedPlan.price.toLocaleString()}</Text>
-                </View>
-              ) : (
-                <Text style={tw`text-gray-300 text-[14px]`}>Choose a data plan</Text>
-              )}
-              <Ionicons name="chevron-down" size={18} color="#D1D5DB" />
-            </TouchableOpacity>
-            {errors.plan ? <Text style={tw`text-red-400 text-[11px] mt-1.5 ml-1`}>{errors.plan}</Text> : null}
-          </View>
-
-          <View style={tw`mb-4`}>
-            <Text style={tw`text-gray-600 text-[12px] font-semibold tracking-wide mb-2`}>Transaction PIN</Text>
-            <View style={tw`bg-gray-50 border ${errors.pin ? 'border-red-500/70' : 'border-gray-200'} rounded-2xl px-4 h-[52px] flex-row items-center`}>
-              <TextInput
-                style={tw`flex-1 text-[14px] text-gray-900`}
-                placeholder="Enter your PIN"
-                placeholderTextColor="#E5E7EB"
-                keyboardType="number-pad"
-                secureTextEntry={!showPin}
-                maxLength={4}
-                value={pin}
-                onChangeText={(text) => { setPin(text.replace(/[^0-9]/g, '').slice(0, 4)); if (errors.pin) setErrors(p => ({ ...p, pin: '' })); }}
-              />
-              <TouchableOpacity onPress={() => setShowPin(!showPin)}>
-                <Ionicons name={showPin ? 'eye-outline' : 'eye-off-outline'} size={20} color="#9CA3AF" />
+            <View style={tw`mb-5`}>
+              <Text style={tw`text-gray-500 text-[12px] font-semibold tracking-wider uppercase mb-3`}>Data plan</Text>
+              <TouchableOpacity
+                style={tw`bg-[${LIGHT_GRAY}] border ${errors.plan ? 'border-red-500/70' : 'border-gray-200'} rounded-2xl px-4 h-[56px] flex-row justify-between items-center`}
+                onPress={() => setShowPlans(true)}
+                activeOpacity={0.75}
+              >
+                {selectedPlan ? (
+                  <View>
+                    <Text style={tw`text-gray-900 text-[14px] font-semibold`}>{selectedPlan.name}</Text>
+                    <Text style={tw`text-gray-500 text-[11px]`}>{selectedPlan.validity} · ₦{selectedPlan.price.toLocaleString()}</Text>
+                  </View>
+                ) : (
+                  <Text style={tw`text-gray-400 text-[14px]`}>Choose a data plan</Text>
+                )}
+                <Ionicons name="chevron-down" size={18} color="#9CA3AF" />
               </TouchableOpacity>
+              {errors.plan ? <Text style={tw`text-red-500 text-[12px] mt-1.5 ml-1`}>{errors.plan}</Text> : null}
             </View>
-            {errors.pin ? <Text style={tw`text-red-400 text-[11px] mt-1.5 ml-1`}>{errors.pin}</Text> : null}
+
+            <View>
+              <Text style={tw`text-gray-500 text-[12px] font-semibold tracking-wider uppercase mb-3`}>Transaction PIN</Text>
+              <View style={tw`bg-[${LIGHT_GRAY}] border ${errors.pin ? 'border-red-500/70' : 'border-gray-200'} rounded-2xl px-4 h-[52px] flex-row items-center`}>
+                <TextInput
+                  style={tw`flex-1 text-[14px] text-gray-900`}
+                  placeholder="Enter your PIN"
+                  placeholderTextColor="#E5E7EB"
+                  keyboardType="number-pad"
+                  secureTextEntry={!showPin}
+                  maxLength={4}
+                  value={pin}
+                  onChangeText={(text) => { setPin(text.replace(/[^0-9]/g, '').slice(0, 4)); if (errors.pin) setErrors(p => ({ ...p, pin: '' })); }}
+                />
+                <TouchableOpacity onPress={() => setShowPin(!showPin)}>
+                  <Ionicons name={showPin ? 'eye-outline' : 'eye-off-outline'} size={20} color="#9CA3AF" />
+                </TouchableOpacity>
+              </View>
+              {errors.pin ? <Text style={tw`text-red-500 text-[12px] mt-1.5 ml-1`}>{errors.pin}</Text> : null}
+            </View>
           </View>
 
-          <View style={tw`mb-7`}>
-            <Text style={tw`text-gray-600 text-[12px] font-semibold tracking-wide mb-3`}>Popular plans</Text>
+          <View style={tw`mb-6`}>
+            <Text style={tw`text-gray-500 text-[12px] font-semibold tracking-wider uppercase mb-3`}>Popular plans</Text>
             <View style={tw`flex-row gap-2`}>
               {dataPlans.slice(0, 3).map(plan => (
                 <TouchableOpacity
                   key={plan.id}
-                  style={tw`flex-1 bg-blue-500/10 border border-blue-500/20 p-3 rounded-2xl`}
+                  style={tw`flex-1 bg-[${PRIMARY_COLOR}]/10 border border-[${PRIMARY_COLOR}]/20 p-3 rounded-2xl`}
                   onPress={() => { setSelectedPlan(plan); if (errors.plan) setErrors(p => ({ ...p, plan: '' })); }}
                   activeOpacity={0.75}
                 >
-                  <Text style={tw`text-blue-600 font-bold text-[13px]`}>{plan.name}</Text>
-                  <Text style={tw`text-gray-400 text-[11px] mt-1`}>₦{plan.price.toLocaleString()}</Text>
-                  <Text style={tw`text-gray-300 text-[10px] mt-0.5`}>{plan.validity}</Text>
+                  <Text style={tw`text-[${PRIMARY_COLOR}] font-bold text-[13px]`}>{plan.name}</Text>
+                  <Text style={tw`text-gray-500 text-[11px] mt-1`}>₦{plan.price.toLocaleString()}</Text>
+                  <Text style={tw`text-gray-400 text-[10px] mt-0.5`}>{plan.validity}</Text>
                 </TouchableOpacity>
               ))}
             </View>
           </View>
 
-          <TouchableOpacity
-            style={tw`bg-blue-500 h-[52px] rounded-2xl items-center justify-center ${isDisabled ? 'opacity-50' : ''}`}
-            disabled={isDisabled}
+          <Button
+            label="Continue"
             onPress={handleSubmit}
-            activeOpacity={0.85}
-          >
-            {isSubmitting ? <ActivityIndicator color="#fff" /> : <Text style={tw`text-white font-semibold text-[15px] tracking-tight`}>Continue</Text>}
-          </TouchableOpacity>
+            icon="arrow-forward"
+            iconPosition="right"
+            loading={isSubmitting}
+            disabled={isDisabled}
+            size="lg"
+          />
         </RefreshableScrollView>
       </KeyboardAvoidingView>
 
@@ -220,7 +224,7 @@ export default function DataScreen() {
           <View style={[tw`rounded-t-3xl pt-6 pb-10 max-h-[80%]`, { backgroundColor: '#ffffff' }]}>
             <View style={tw`px-5 pb-4 border-b border-gray-200 flex-row justify-between items-center`}>
               <Text style={tw`text-gray-900 text-[17px] font-bold tracking-tight`}>Select data plan</Text>
-              <TouchableOpacity onPress={() => setShowPlans(false)} style={tw`w-[34px] h-[34px] rounded-xl bg-gray-100 items-center justify-center`} activeOpacity={0.7}>
+              <TouchableOpacity onPress={() => setShowPlans(false)} style={tw`w-[34px] h-[34px] rounded-xl bg-[${LIGHT_GRAY}] items-center justify-center`} activeOpacity={0.7}>
                 <Ionicons name="close" size={18} color="#374151" />
               </TouchableOpacity>
             </View>
@@ -235,9 +239,9 @@ export default function DataScreen() {
                 >
                   <View>
                     <Text style={tw`text-gray-900 font-bold text-[14px]`}>{item.name}</Text>
-                    <Text style={tw`text-gray-400 text-[12px] mt-0.5`}>Valid for {item.validity}</Text>
+                    <Text style={tw`text-gray-500 text-[12px] mt-0.5`}>Valid for {item.validity}</Text>
                   </View>
-                  <Text style={tw`text-blue-600 font-bold text-[15px]`}>₦{item.price.toLocaleString()}</Text>
+                  <Text style={tw`text-[${PRIMARY_COLOR}] font-bold text-[15px]`}>₦{item.price.toLocaleString()}</Text>
                 </TouchableOpacity>
               )}
             />

@@ -1,11 +1,13 @@
-import React, { useState, useCallback } from 'react';
-import { View, Text, TextInput, TouchableOpacity, ScrollView, SafeAreaView, ActivityIndicator, KeyboardAvoidingView, Platform, Alert } from 'react-native';
+import React, { useState, useRef, useEffect } from 'react';
+import { Animated, View, Text, TouchableOpacity, ScrollView, SafeAreaView, KeyboardAvoidingView, Platform, Alert } from 'react-native';
 import { useRouter, useRootNavigationState, Redirect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { StatusBar } from 'expo-status-bar';
 import tw from 'twrnc';
 import { api } from '@/lib/api';
 import { useAuth } from '@/contexts/AuthContext';
+import Input from '@/components/ui/Input';
+import Button from '@/components/ui/Button';
 import type { AuthTokens } from '@/lib/types';
 
 export default function LoginScreen() {
@@ -17,6 +19,16 @@ export default function LoginScreen() {
   const [showPin, setShowPin] = useState(false);
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({ phone: '', pin: '' });
+
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const slideAnim = useRef(new Animated.Value(30)).current;
+
+  useEffect(() => {
+    Animated.parallel([
+      Animated.timing(fadeAnim, { toValue: 1, duration: 600, useNativeDriver: true }),
+      Animated.spring(slideAnim, { toValue: 0, damping: 18, stiffness: 150, useNativeDriver: true }),
+    ]).start();
+  }, [fadeAnim, slideAnim]);
 
   if (!navState?.key) return null;
   if (isLoading) return null;
@@ -67,61 +79,62 @@ export default function LoginScreen() {
           <TouchableOpacity onPress={() => router.back()} style={tw`mt-14 mb-8 w-[38px] h-[38px] rounded-xl bg-gray-100 items-center justify-center`} activeOpacity={0.7}>
             <Ionicons name="arrow-back" size={20} color="#374151" />
           </TouchableOpacity>
-          <Text style={tw`text-gray-900 text-[26px] font-bold tracking-tight mb-1.5`}>Welcome back</Text>
-          <Text style={tw`text-gray-500 text-[13px] leading-5 mb-9`}>Log in to continue to your account</Text>
-          <View style={tw`mb-5`}>
-            <Text style={tw`text-gray-600 text-[12px] font-semibold tracking-wide mb-2`}>Phone number</Text>
-            <View style={tw`flex-row items-center bg-gray-50 border ${errors.phone ? 'border-red-500' : 'border-gray-200'} rounded-2xl px-4 h-[52px]`}>
-              <Text style={tw`text-gray-500 text-[13px] font-semibold`}>+234</Text>
-              <View style={tw`w-px h-[18px] bg-gray-300 mx-2.5`} />
-              <TextInput
-                style={tw`flex-1 text-[14px] text-gray-900`}
-                placeholder="8012345678"
-                placeholderTextColor="#9CA3AF"
-                keyboardType="phone-pad"
+
+          <Animated.View style={{ opacity: fadeAnim, transform: [{ translateY: slideAnim }] }}>
+            <View style={tw`w-14 h-14 rounded-2xl bg-blue-100 items-center justify-center mb-5`}>
+              <Ionicons name="log-in-outline" size={26} color="#2563EB" />
+            </View>
+            <Text style={tw`text-gray-900 text-[26px] font-bold tracking-tight mb-1.5`}>Welcome back</Text>
+            <Text style={tw`text-gray-500 text-[13px] leading-5 mb-9`}>Log in to continue to your account</Text>
+
+            <View style={tw`mb-5`}>
+              <Input
+                label="Phone number"
                 value={phone}
                 onChangeText={handlePhoneChange}
+                placeholder="8012345678"
+                keyboardType="phone-pad"
                 maxLength={10}
+                prefix="+234"
+                error={errors.phone}
               />
             </View>
-            {errors.phone ? <Text style={tw`text-red-500 text-[11px] mt-1.5 ml-1`}>{errors.phone}</Text> : null}
-          </View>
-          <View style={tw`mb-3`}>
-            <Text style={tw`text-gray-600 text-[12px] font-semibold tracking-wide mb-2`}>PIN</Text>
-            <View style={tw`flex-row items-center bg-gray-50 border ${errors.pin ? 'border-red-500' : 'border-gray-200'} rounded-2xl px-4 h-[52px]`}>
-              <TextInput
-                style={tw`flex-1 text-[14px] text-gray-900 tracking-[6px]`}
-                placeholder="• • • •"
-                placeholderTextColor="#9CA3AF"
-                secureTextEntry={!showPin}
-                keyboardType="number-pad"
-                maxLength={4}
+
+            <View style={tw`mb-3`}>
+              <Input
+                label="PIN"
                 value={pin}
                 onChangeText={handlePinChange}
+                placeholder="••••"
+                keyboardType="number-pad"
+                maxLength={4}
+                secureTextEntry={!showPin}
+                rightIcon={showPin ? 'eye-outline' : 'eye-off-outline'}
+                onRightIconPress={() => setShowPin(!showPin)}
+                error={errors.pin}
               />
-              <TouchableOpacity onPress={() => setShowPin(!showPin)} activeOpacity={0.7} style={tw`p-1`}>
-                <Ionicons name={showPin ? 'eye-outline' : 'eye-off-outline'} size={20} color="#9CA3AF" />
+            </View>
+
+            <TouchableOpacity style={tw`mb-9 self-end`} activeOpacity={0.7} onPress={() => Alert.alert('Forgot PIN', 'Enter your phone number and we will send you an OTP to reset your PIN.')}>
+              <Text style={tw`text-blue-500 text-[12px] font-semibold`}>Forgot PIN?</Text>
+            </TouchableOpacity>
+
+            <Button
+              label="Log in"
+              onPress={handleLogin}
+              loading={loading}
+              disabled={loading}
+              variant="primary"
+              size="lg"
+            />
+
+            <View style={tw`flex-row justify-center items-center gap-1 mt-5`}>
+              <Text style={tw`text-gray-500 text-[12px]`}>Don&apos;t have an account?</Text>
+              <TouchableOpacity onPress={() => router.push('/signup')} activeOpacity={0.7}>
+                <Text style={tw`text-blue-500 text-[12px] font-semibold`}>Sign up</Text>
               </TouchableOpacity>
             </View>
-            {errors.pin ? <Text style={tw`text-red-500 text-[11px] mt-1.5 ml-1`}>{errors.pin}</Text> : null}
-          </View>
-          <TouchableOpacity style={tw`mb-9 self-end`} activeOpacity={0.7} onPress={() => Alert.alert('Forgot PIN', 'Enter your phone number and we will send you an OTP to reset your PIN.')}>
-            <Text style={tw`text-blue-500 text-[12px] font-semibold`}>Forgot PIN?</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={tw`bg-blue-500 h-[52px] rounded-2xl items-center justify-center mb-5 ${loading ? 'opacity-60' : ''}`}
-            onPress={handleLogin}
-            disabled={loading}
-            activeOpacity={0.85}
-          >
-            {loading ? <ActivityIndicator color="#fff" /> : <Text style={tw`text-white font-semibold text-[15px] tracking-tight`}>Log in</Text>}
-          </TouchableOpacity>
-          <View style={tw`flex-row justify-center items-center gap-1`}>
-            <Text style={tw`text-gray-500 text-[12px]`}>Don't have an account?</Text>
-            <TouchableOpacity onPress={() => router.push('/signup')} activeOpacity={0.7}>
-              <Text style={tw`text-blue-500 text-[12px] font-semibold`}>Sign up</Text>
-            </TouchableOpacity>
-          </View>
+          </Animated.View>
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>

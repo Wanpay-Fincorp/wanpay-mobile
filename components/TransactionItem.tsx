@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
-import React from 'react';
-import { Text, TouchableOpacity, View } from 'react-native';
+import React, { useCallback, useRef } from 'react';
+import { Animated, Text, TouchableOpacity, View } from 'react-native';
 import tw from 'twrnc';
 import FormattedDate from './FormattedDate';
 import type { Transaction } from '@/lib/types';
@@ -18,12 +18,12 @@ const STATUS_COLORS: Record<string, string> = {
   REVERSED: '#8b5cf6',
 };
 
-const TYPE_ICONS: Record<string, { icon: string; color: string }> = {
-  SENT: { icon: 'arrow-up-circle', color: '#ef4444' },
-  RECEIVED: { icon: 'arrow-down-circle', color: '#10b981' },
-  BILLS: { icon: 'receipt-outline', color: '#f59e0b' },
-  FUNDING: { icon: 'add-circle', color: '#10b981' },
-  WITHDRAWAL: { icon: 'remove-circle', color: '#ef4444' },
+const TYPE_ICONS: Record<string, { icon: string; color: string; bg: string }> = {
+  SENT: { icon: 'arrow-up-circle', color: '#ef4444', bg: '#FEE2E2' },
+  RECEIVED: { icon: 'arrow-down-circle', color: '#10b981', bg: '#D1FAE5' },
+  BILLS: { icon: 'receipt-outline', color: '#f59e0b', bg: '#FEF3C7' },
+  FUNDING: { icon: 'add-circle', color: '#10b981', bg: '#D1FAE5' },
+  WITHDRAWAL: { icon: 'remove-circle', color: '#ef4444', bg: '#FEE2E2' },
 };
 
 function getLabel(txn: Transaction): string {
@@ -44,39 +44,53 @@ function getSubtitle(txn: Transaction): string {
 }
 
 export default function TransactionItem({ txn, onPress }: TransactionItemProps) {
-  const icon = TYPE_ICONS[txn.type] || { icon: 'ellipse', color: '#64748b' };
+  const scaleAnim = useRef(new Animated.Value(1)).current;
+  const icon = TYPE_ICONS[txn.type] || { icon: 'ellipse', color: '#64748b', bg: '#F3F4F6' };
   const statusColor = STATUS_COLORS[txn.status] || '#64748b';
+
+  const handlePressIn = useCallback(() => {
+    Animated.spring(scaleAnim, { toValue: 0.98, useNativeDriver: true, damping: 20, stiffness: 300 }).start();
+  }, [scaleAnim]);
+
+  const handlePressOut = useCallback(() => {
+    Animated.spring(scaleAnim, { toValue: 1, useNativeDriver: true, damping: 15, stiffness: 200 }).start();
+  }, [scaleAnim]);
+
+  const isPositive = txn.type === 'RECEIVED' || txn.type === 'FUNDING';
 
   return (
     <TouchableOpacity
+      activeOpacity={1}
       onPress={onPress}
-      activeOpacity={0.75}
-      style={tw`flex-row items-center py-3 px-5`}
+      onPressIn={handlePressIn}
+      onPressOut={handlePressOut}
     >
-      <View style={[tw`w-9 h-9 rounded-xl items-center justify-center mr-3`, { backgroundColor: `${icon.color}20` }]}>
-        <Ionicons name={icon.icon as any} size={18} color={icon.color} />
-      </View>
-      <View style={tw`flex-1`}>
-        <Text style={tw`text-gray-800 text-sm font-semibold`} numberOfLines={1}>{getLabel(txn)}</Text>
-        <View style={tw`flex-row items-center mt-0.5 gap-1.5`}>
-          <FormattedDate date={txn.createdAt} style={tw`text-gray-400 text-[11px]`} />
-          {getSubtitle(txn) ? (
-            <>
-              <Text style={tw`text-gray-300 text-[11px]`}>·</Text>
-              <Text style={tw`text-gray-400 text-[11px]`} numberOfLines={1}>{getSubtitle(txn)}</Text>
-            </>
-          ) : null}
+      <Animated.View style={[tw`flex-row items-center py-3.5 px-5`, { transform: [{ scale: scaleAnim }] }]}>
+        <View style={[tw`w-10 h-10 rounded-xl items-center justify-center mr-3`, { backgroundColor: icon.bg }]}>
+          <Ionicons name={icon.icon as any} size={20} color={icon.color} />
         </View>
-      </View>
-      <View style={tw`items-end ml-3`}>
-        <Text style={[tw`text-sm font-semibold`, { color: txn.type === 'RECEIVED' || txn.type === 'FUNDING' ? '#10b981' : '#374151' }]}>
-          {txn.type === 'RECEIVED' || txn.type === 'FUNDING' ? '+' : '-'}₦{Number(txn.amount).toLocaleString()}
-        </Text>
-        <View style={tw`flex-row items-center mt-0.5 gap-1`}>
-          <View style={[tw`w-1.5 h-1.5 rounded-full`, { backgroundColor: statusColor }]} />
-          <Text style={[tw`text-[10px] capitalize`, { color: statusColor }]}>{txn.status.toLowerCase()}</Text>
+        <View style={tw`flex-1`}>
+          <Text style={tw`text-gray-800 text-[13px] font-semibold`} numberOfLines={1}>{getLabel(txn)}</Text>
+          <View style={tw`flex-row items-center mt-0.5 gap-1.5`}>
+            <FormattedDate date={txn.createdAt} style={tw`text-gray-400 text-[11px]`} />
+            {getSubtitle(txn) ? (
+              <>
+                <Text style={tw`text-gray-300 text-[11px]`}>·</Text>
+                <Text style={tw`text-gray-400 text-[11px]`} numberOfLines={1}>{getSubtitle(txn)}</Text>
+              </>
+            ) : null}
+          </View>
         </View>
-      </View>
+        <View style={tw`items-end ml-3`}>
+          <Text style={[tw`text-[14px] font-bold`, { color: isPositive ? '#10b981' : '#374151' }]}>
+            {isPositive ? '+' : '-'}₦{Number(txn.amount).toLocaleString()}
+          </Text>
+          <View style={tw`flex-row items-center mt-0.5 gap-1`}>
+            <View style={[tw`w-1.5 h-1.5 rounded-full`, { backgroundColor: statusColor }]} />
+            <Text style={[tw`text-[10px] capitalize font-medium`, { color: statusColor }]}>{txn.status.toLowerCase()}</Text>
+          </View>
+        </View>
+      </Animated.View>
     </TouchableOpacity>
   );
 }

@@ -3,7 +3,7 @@ import { useRouter, useFocusEffect } from 'expo-router';
 import React, { useState, useCallback } from 'react';
 import { ActivityIndicator, Alert, SafeAreaView, Switch, Text, TouchableOpacity, View } from 'react-native';
 import tw from 'twrnc';
-import { DARK_BG } from '@/constants/customConstants';
+import { LIGHT_GRAY } from '@/constants/customConstants';
 import { api } from '@/lib/api';
 import type { NotificationSetting } from '@/lib/types';
 import RefreshableScrollView from '@/components/RefreshableScrollView';
@@ -130,20 +130,20 @@ export default function NotificationsScreen() {
   };
 
   return (
-    <SafeAreaView style={tw`flex-1 pb-8 bg-[${DARK_BG}]`}>
+    <SafeAreaView style={tw`flex-1 pb-8 bg-[${LIGHT_GRAY}]`}>
       <View style={tw`px-3 pt-12 pb-4 border-b border-gray-200`}>
         <View style={tw`flex-row items-center`}>
-          <TouchableOpacity onPress={() => router.back()} style={tw`mr-4`} activeOpacity={0.7}>
-            <Ionicons name="arrow-back" size={24} color="#374151" />
+          <TouchableOpacity onPress={() => router.back()} style={tw`rounded-full bg-white border border-gray-200 w-10 h-10 items-center justify-center mr-4`} activeOpacity={0.7}>
+            <Ionicons name="arrow-back" size={22} color="#374151" />
           </TouchableOpacity>
           <View>
             <Text style={tw`text-xl font-bold text-gray-900`}>Notifications</Text>
-            <Text style={tw`text-xs text-gray-400`}>Manage your notification preferences</Text>
+            <Text style={tw`text-xs text-gray-500`}>Manage your notification preferences</Text>
           </View>
         </View>
       </View>
 
-      <RefreshableScrollView style={tw`flex-1 px-3 pt-6`} showsVerticalScrollIndicator={false} contentContainerStyle={tw`pb-8`} refreshing={refreshing} onRefresh={onRefresh}>
+      <RefreshableScrollView style={tw`flex-1 px-3 pt-6`} showsVerticalScrollIndicator={false} contentContainerStyle={tw`pb-28`} refreshing={refreshing} onRefresh={onRefresh}>
         {loading ? (
           <View style={tw`items-center py-10`}>
             <ActivityIndicator color="#D1D5DB" />
@@ -151,8 +151,8 @@ export default function NotificationsScreen() {
         ) : !settings ? null : (
           SECTIONS.map((section, sectionIndex) => (
             <View key={sectionIndex} style={tw`mb-6`}>
-              <Text style={tw`text-gray-500 text-xs font-semibold uppercase mb-3`}>{section.title}</Text>
-              <View style={tw`bg-gray-50 border border-gray-200 rounded-2xl`}>
+              <Text style={tw`text-gray-500 text-xs font-semibold uppercase tracking-wider mb-3`}>{section.title}</Text>
+              <View style={tw`bg-white border border-gray-200 rounded-2xl`}>
                 {section.settings.map((setting, settingIndex) => {
                   const value = settings[setting.key] as boolean;
                   return (
@@ -175,7 +175,7 @@ export default function NotificationsScreen() {
                       <Switch
                         value={value}
                         onValueChange={() => toggleSetting(setting.key, value)}
-                        trackColor={{ false: '#374151', true: '#3b82f6' }}
+                        trackColor={{ false: '#E5E7EB', true: '#2563eb' }}
                         thumbColor="#fff"
                         disabled={saving === setting.key}
                       />

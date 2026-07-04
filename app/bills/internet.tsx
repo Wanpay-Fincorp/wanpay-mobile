@@ -1,4 +1,3 @@
-import { DARK_BG } from '@/constants/customConstants';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
@@ -10,6 +9,8 @@ import {
 import tw from 'twrnc';
 import { api } from '@/lib/api';
 import RefreshableScrollView from '@/components/RefreshableScrollView';
+import Button from '@/components/ui/Button';
+import { PRIMARY_COLOR, CHARCOAL, LIGHT_GRAY, SUCCESS_GREEN } from '@/constants/customConstants';
 
 interface InternetProvider { id: string; name: string; color: string; }
 interface InternetPlan { id: string; name: string; speed: string; price: number; validity: string; }
@@ -110,164 +111,151 @@ export default function InternetScreen() {
       Alert.alert('Success', `${selectedPlan?.name} internet plan has been activated`, [
         { text: 'Done', onPress: () => router.back() },
       ]);
-    } catch (err: any) {
-      Alert.alert('Error', err.message || 'Unable to process request. Please try again.');
-    } finally { setIsSubmitting(false); }
+    } catch (err: any) { Alert.alert('Error', err.message || 'Unable to process request. Please try again.'); }
+    finally { setIsSubmitting(false); }
   };
 
   const isDisabled = isSubmitting || !selectedProvider || accountNumber.length < 8 || !selectedPlan || pin.length !== 4;
   const providerPlans = selectedProvider ? internetPlans[selectedProvider.id] : [];
 
   return (
-    <SafeAreaView style={[tw`flex-1 pt-5 pb-8`, { backgroundColor: DARK_BG }]}>
+    <SafeAreaView style={tw`flex-1 bg-[${LIGHT_GRAY}]`}>
       <StatusBar style="dark" />
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={tw`flex-1`}>
-        <View style={tw`px-5 pt-12 pb-5 border-b border-gray-200`}>
-          <View style={tw`flex-row items-center`}>
-            <TouchableOpacity onPress={() => router.back()} style={tw`w-[38px] h-[38px] rounded-xl bg-gray-100 items-center justify-center mr-4`} activeOpacity={0.7}>
-              <Ionicons name="arrow-back" size={20} color="#374151" />
+        <RefreshableScrollView showsVerticalScrollIndicator={false} contentContainerStyle={tw`px-5 pb-28`}>
+          <View style={tw`flex-row items-center mt-14 mb-8`}>
+            <TouchableOpacity onPress={() => router.back()} style={tw`w-10 h-10 rounded-full bg-white border border-gray-200 items-center justify-center mr-4`} activeOpacity={0.7}>
+              <Ionicons name="arrow-back" size={20} color={CHARCOAL} />
             </TouchableOpacity>
             <View>
-              <Text style={tw`text-gray-900 text-[20px] font-bold tracking-tight`}>Internet/Broadband</Text>
+              <Text style={tw`text-[${CHARCOAL}] text-[22px] font-bold tracking-tight`}>Internet</Text>
               <Text style={tw`text-gray-400 text-[12px] mt-0.5`}>Subscribe to internet plans</Text>
             </View>
           </View>
-        </View>
 
-        <RefreshableScrollView style={tw`flex-1 px-5 pt-6`} showsVerticalScrollIndicator={false} contentContainerStyle={tw`pb-10`}>
           <View style={tw`mb-6`}>
-            <Text style={tw`text-gray-600 text-[12px] font-semibold tracking-wide mb-3`}>Select Provider</Text>
-            <View style={tw`flex-row gap-3 flex-wrap`}>
-              {internetProviders.map((provider) => {
-                const isSelected = selectedProvider?.id === provider.id;
-                return (
-                  <TouchableOpacity
-                    key={provider.id}
-                    style={[
-                      tw`w-[48%] py-4 rounded-2xl items-center border`,
-                      isSelected
-                        ? { borderColor: provider.color, backgroundColor: `${provider.color}18` }
-                        : tw`border-gray-200 bg-gray-50`,
-                    ]}
-                    onPress={() => { setSelectedProvider(provider); setSelectedPlan(null); if (errors.provider) setErrors((prev) => ({ ...prev, provider: '' })); }}
-                    activeOpacity={0.75}
-                  >
-                    <View style={[tw`w-10 h-10 rounded-xl items-center justify-center mb-2`, { backgroundColor: `${provider.color}20` }]}>
-                      <Ionicons name="globe" size={20} color={provider.color} />
-                    </View>
-                    <Text style={[tw`text-[12px] font-semibold`, { color: isSelected ? provider.color : '#6B7280' }]}>{provider.name}</Text>
-                  </TouchableOpacity>
-                );
-              })}
+            <Text style={tw`text-gray-500 text-[12px] font-semibold tracking-wider uppercase mb-3`}>Provider</Text>
+            <View style={tw`bg-white rounded-2xl p-4`}>
+              <View style={tw`flex-row flex-wrap gap-2`}>
+                {internetProviders.map((provider) => {
+                  const isSelected = selectedProvider?.id === provider.id;
+                  return (
+                    <TouchableOpacity
+                      key={provider.id}
+                      style={[
+                        tw`w-[48%] py-4 rounded-2xl items-center border`,
+                        isSelected
+                          ? { borderColor: provider.color, backgroundColor: `${provider.color}18` }
+                          : tw`border-gray-200 bg-[${LIGHT_GRAY}]`,
+                      ]}
+                      onPress={() => { setSelectedProvider(provider); setSelectedPlan(null); if (errors.provider) setErrors((prev) => ({ ...prev, provider: '' })); }}
+                      activeOpacity={0.75}
+                    >
+                      <View style={[tw`w-10 h-10 rounded-xl items-center justify-center mb-2`, { backgroundColor: `${provider.color}20` }]}>
+                        <Ionicons name="globe" size={20} color={provider.color} />
+                      </View>
+                      <Text style={[tw`text-[12px] font-semibold`, { color: isSelected ? provider.color : '#6B7280' }]}>{provider.name}</Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+              {errors.provider ? <Text style={tw`text-red-500 text-[12px] mt-2 ml-1`}>{errors.provider}</Text> : null}
             </View>
-            {errors.provider ? <Text style={tw`text-red-400 text-[11px] mt-1.5 ml-1`}>{errors.provider}</Text> : null}
           </View>
 
-          <View style={tw`mb-2`}>
-            <Text style={tw`text-gray-600 text-[12px] font-semibold tracking-wide mb-2`}>Account Number</Text>
-            <View style={tw`bg-gray-50 border ${errors.account ? 'border-red-500/70' : 'border-gray-200'} rounded-2xl px-4 h-[52px] flex-row items-center`}>
-              <TextInput
-                style={tw`flex-1 text-[14px] text-gray-900`}
-                placeholder="Enter account number"
-                placeholderTextColor="#E5E7EB"
-                keyboardType="number-pad"
-                value={accountNumber}
-                onChangeText={handleAccountChange}
-                onBlur={handleValidateAccount}
-                maxLength={15}
-              />
-              {isValidating && <ActivityIndicator size="small" color="#22d3ee" />}
-            </View>
-            {errors.account ? <Text style={tw`text-red-400 text-[11px] mt-1.5 ml-1`}>{errors.account}</Text> : null}
-          </View>
+          <View style={tw`mb-6`}>
+            <Text style={tw`text-gray-500 text-[12px] font-semibold tracking-wider uppercase mb-3`}>Account</Text>
+            <View style={tw`bg-white rounded-2xl p-4`}>
+              <View style={tw`bg-[${LIGHT_GRAY}] rounded-xl px-4 h-[50px] flex-row items-center ${errors.account ? 'border border-red-500' : ''}`}>
+                <TextInput
+                  style={tw`flex-1 text-[14px] text-[${CHARCOAL}]`}
+                  placeholder="Enter account number"
+                  placeholderTextColor="#9CA3AF"
+                  keyboardType="number-pad"
+                  value={accountNumber}
+                  onChangeText={handleAccountChange}
+                  onBlur={handleValidateAccount}
+                  maxLength={15}
+                />
+                {isValidating && <ActivityIndicator size="small" color={PRIMARY_COLOR} />}
+              </View>
+              {errors.account ? <Text style={tw`text-red-500 text-[12px] mt-1.5 ml-1`}>{errors.account}</Text> : null}
 
-          {customerName ? (
-            <View style={tw`bg-emerald-500/10 border border-emerald-500/20 p-3 rounded-2xl mb-5 flex-row items-center gap-2`}>
-              <Ionicons name="checkmark-circle" size={17} color="#10b981" />
-              <Text style={tw`text-emerald-400 font-semibold text-[13px]`}>{customerName}</Text>
+              {customerName ? (
+                <View style={tw`bg-[${SUCCESS_GREEN}]/10 rounded-xl p-3 mt-3 flex-row items-center gap-2.5`}>
+                  <View style={tw`w-7 h-7 rounded-full bg-[${SUCCESS_GREEN}]/20 items-center justify-center`}>
+                    <Ionicons name="checkmark-circle" size={16} color={SUCCESS_GREEN} />
+                  </View>
+                  <Text style={tw`text-[${SUCCESS_GREEN}] font-bold text-[13px]`}>{customerName}</Text>
+                </View>
+              ) : null}
             </View>
-          ) : <View style={tw`mb-5`} />}
-
-          <View style={tw`mb-4`}>
-            <Text style={tw`text-gray-600 text-[12px] font-semibold tracking-wide mb-2`}>Transaction PIN</Text>
-            <View style={tw`bg-gray-50 border ${errors.pin ? 'border-red-500/70' : 'border-gray-200'} rounded-2xl px-4 h-[52px] flex-row items-center`}>
-              <TextInput
-                style={tw`flex-1 text-[14px] text-gray-900`}
-                placeholder="Enter your PIN"
-                placeholderTextColor="#E5E7EB"
-                keyboardType="number-pad"
-                secureTextEntry={!showPin}
-                maxLength={4}
-                value={pin}
-                onChangeText={(text) => { setPin(text.replace(/[^0-9]/g, '').slice(0, 4)); if (errors.pin) setErrors((prev) => ({ ...prev, pin: '' })); }}
-              />
-              <TouchableOpacity onPress={() => setShowPin(!showPin)}>
-                <Ionicons name={showPin ? 'eye-outline' : 'eye-off-outline'} size={20} color="#9CA3AF" />
-              </TouchableOpacity>
-            </View>
-            {errors.pin ? <Text style={tw`text-red-400 text-[11px] mt-1.5 ml-1`}>{errors.pin}</Text> : null}
           </View>
 
           {selectedProvider && providerPlans && providerPlans.length > 0 && (
-            <>
-              <View style={tw`mb-6`}>
-                <Text style={tw`text-gray-600 text-[12px] font-semibold tracking-wide mb-3`}>Select Plan</Text>
+            <View style={tw`mb-6`}>
+              <Text style={tw`text-gray-500 text-[12px] font-semibold tracking-wider uppercase mb-3`}>Plan</Text>
+              <View style={tw`bg-white rounded-2xl p-4`}>
                 <TouchableOpacity
-                  style={tw`bg-gray-50 border ${errors.plan ? 'border-red-500/70' : 'border-gray-200'} rounded-2xl px-4 h-[56px] flex-row justify-between items-center`}
+                  style={tw`bg-[${LIGHT_GRAY}] rounded-xl px-4 h-[56px] flex-row justify-between items-center ${errors.plan ? 'border border-red-500' : ''}`}
                   onPress={() => setShowPlans(true)}
                   activeOpacity={0.75}
                 >
                   {selectedPlan ? (
                     <View>
-                      <Text style={tw`text-gray-900 text-[14px] font-semibold`}>{selectedPlan.name}</Text>
+                      <Text style={tw`text-[${CHARCOAL}] text-[14px] font-semibold`}>{selectedPlan.name}</Text>
                       <Text style={tw`text-gray-400 text-[11px]`}>{selectedPlan.speed} · {selectedPlan.validity}</Text>
                     </View>
                   ) : (
-                    <Text style={tw`text-gray-300 text-[14px]`}>Choose a plan</Text>
+                    <Text style={tw`text-gray-400 text-[14px]`}>Choose a plan</Text>
                   )}
-                  <Ionicons name="chevron-down" size={18} color="#D1D5DB" />
+                  <Ionicons name="chevron-down" size={18} color="#9CA3AF" />
                 </TouchableOpacity>
-                {errors.plan ? <Text style={tw`text-red-400 text-[11px] mt-1.5 ml-1`}>{errors.plan}</Text> : null}
-
-                <View style={tw`gap-3 mt-4`}>
-                  <Text style={tw`text-gray-600 text-[12px] font-semibold tracking-wide`}>Popular plans</Text>
-                  {providerPlans.slice(0, 3).map((plan) => (
-                    <TouchableOpacity
-                      key={plan.id}
-                      style={tw`bg-cyan-500/10 border border-cyan-500/20 p-4 rounded-2xl flex-row justify-between items-center`}
-                      onPress={() => { setSelectedPlan(plan); if (errors.plan) setErrors((prev) => ({ ...prev, plan: '' })); }}
-                      activeOpacity={0.75}
-                    >
-                      <View>
-                        <Text style={tw`text-gray-900 font-bold text-[13px]`}>{plan.name}</Text>
-                        <Text style={tw`text-gray-400 text-[11px] mt-0.5`}>{plan.speed} · {plan.validity}</Text>
-                      </View>
-                      <Text style={tw`text-cyan-400 font-bold text-[14px]`}>₦{plan.price.toLocaleString()}</Text>
-                    </TouchableOpacity>
-                  ))}
-                </View>
+                {errors.plan ? <Text style={tw`text-red-500 text-[12px] mt-1.5 ml-1`}>{errors.plan}</Text> : null}
               </View>
-            </>
+            </View>
           )}
 
-          <TouchableOpacity
-            style={tw`bg-blue-500 h-[52px] rounded-2xl items-center justify-center ${isDisabled ? 'opacity-50' : ''}`}
-            disabled={isDisabled}
+          <View style={tw`mb-6`}>
+            <Text style={tw`text-gray-500 text-[12px] font-semibold tracking-wider uppercase mb-3`}>Confirm</Text>
+            <View style={tw`bg-white rounded-2xl p-4`}>
+              <View style={tw`bg-[${LIGHT_GRAY}] rounded-xl px-4 h-[50px] flex-row items-center ${errors.pin ? 'border border-red-500' : ''}`}>
+                <TextInput
+                  style={tw`flex-1 text-[14px] text-[${CHARCOAL}]`}
+                  placeholder="Enter your PIN"
+                  placeholderTextColor="#9CA3AF"
+                  keyboardType="number-pad"
+                  secureTextEntry={!showPin}
+                  maxLength={4}
+                  value={pin}
+                  onChangeText={(text) => { setPin(text.replace(/[^0-9]/g, '').slice(0, 4)); if (errors.pin) setErrors((prev) => ({ ...prev, pin: '' })); }}
+                />
+                <TouchableOpacity onPress={() => setShowPin(!showPin)} style={tw`p-1`}>
+                  <Ionicons name={showPin ? 'eye-outline' : 'eye-off-outline'} size={20} color="#9CA3AF" />
+                </TouchableOpacity>
+              </View>
+              {errors.pin ? <Text style={tw`text-red-500 text-[12px] mt-1.5 ml-1`}>{errors.pin}</Text> : null}
+            </View>
+          </View>
+
+          <Button
+            label="Continue"
+            icon="arrow-forward"
+            iconPosition="right"
             onPress={handleSubmit}
-            activeOpacity={0.85}
-          >
-            {isSubmitting ? <ActivityIndicator color="#fff" /> : <Text style={tw`text-white font-semibold text-[15px] tracking-tight`}>Continue</Text>}
-          </TouchableOpacity>
+            disabled={isDisabled}
+            loading={isSubmitting}
+          />
         </RefreshableScrollView>
       </KeyboardAvoidingView>
 
-      <Modal visible={showPlans} animationType="slide" transparent>
-        <View style={tw`flex-1 justify-end bg-black/20`}>
-          <View style={[tw`rounded-t-3xl pt-6 pb-10 max-h-[80%]`, { backgroundColor: '#ffffff' }]}>
-            <View style={tw`px-5 pb-4 border-b border-gray-200 flex-row justify-between items-center`}>
-              <Text style={tw`text-gray-900 text-[17px] font-bold tracking-tight`}>Select Plan</Text>
-              <TouchableOpacity onPress={() => setShowPlans(false)} style={tw`w-[34px] h-[34px] rounded-xl bg-gray-100 items-center justify-center`} activeOpacity={0.7}>
-                <Ionicons name="close" size={18} color="#374151" />
+      <Modal visible={showPlans} animationType="slide" transparent onRequestClose={() => setShowPlans(false)}>
+        <TouchableOpacity style={tw`flex-1 bg-black/40 justify-end`} activeOpacity={1} onPress={() => setShowPlans(false)}>
+          <TouchableOpacity activeOpacity={1} onPress={() => {}} style={tw`bg-white rounded-t-3xl min-h-[60%] max-h-[80%]`}>
+            <View style={tw`flex-row items-center justify-between px-5 pt-5 pb-3 border-b border-[${LIGHT_GRAY}]`}>
+              <Text style={tw`text-[${CHARCOAL}] text-[18px] font-bold`}>Select plan</Text>
+              <TouchableOpacity onPress={() => setShowPlans(false)} activeOpacity={0.7}>
+                <Ionicons name="close" size={22} color="#6B7280" />
               </TouchableOpacity>
             </View>
             <FlatList
@@ -275,20 +263,20 @@ export default function InternetScreen() {
               keyExtractor={(item) => item.id}
               renderItem={({ item }) => (
                 <TouchableOpacity
-                  style={tw`px-5 py-4 border-b border-gray-200 flex-row justify-between items-center`}
+                  style={tw`px-5 py-4 border-b border-[${LIGHT_GRAY}] flex-row justify-between items-center`}
                   onPress={() => { setSelectedPlan(item); setShowPlans(false); if (errors.plan) setErrors((prev) => ({ ...prev, plan: '' })); }}
                   activeOpacity={0.75}
                 >
-                  <View style={tw`flex-1`}>
-                    <Text style={tw`text-gray-900 font-bold text-[14px]`}>{item.name}</Text>
+                  <View style={tw`flex-1 mr-3`}>
+                    <Text style={tw`text-[${CHARCOAL}] font-bold text-[14px]`}>{item.name}</Text>
                     <Text style={tw`text-gray-400 text-[12px] mt-0.5`}>Speed: {item.speed} · {item.validity}</Text>
                   </View>
-                  <Text style={tw`text-cyan-400 font-bold text-[15px]`}>₦{item.price.toLocaleString()}</Text>
+                  <Text style={tw`text-[${PRIMARY_COLOR}] font-bold text-[15px]`}>₦{item.price.toLocaleString()}</Text>
                 </TouchableOpacity>
               )}
             />
-          </View>
-        </View>
+          </TouchableOpacity>
+        </TouchableOpacity>
       </Modal>
     </SafeAreaView>
   );

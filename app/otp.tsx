@@ -1,11 +1,10 @@
-import { CHARCOAL, ELECTRIC_BLUE, LIGHT_GRAY, PRIMARY_COLOR, SUCCESS_GREEN } from '@/constants/customConstants';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
-  ActivityIndicator,
   Alert,
+  Animated,
   KeyboardAvoidingView,
   Platform,
   SafeAreaView,
@@ -14,7 +13,9 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import tw from 'twrnc';
 import { api } from '@/lib/api';
+import Button from '@/components/ui/Button';
 
 export default function OTPScreen() {
   const router = useRouter();
@@ -27,6 +28,7 @@ export default function OTPScreen() {
   const [resendTimer, setResendTimer] = useState(60);
   const [canResend, setCanResend] = useState(false);
   const inputRefs = useRef<(TextInput | null)[]>([]);
+  const bounceAnims = useRef(otp.map(() => new Animated.Value(0))).current;
 
   useEffect(() => {
     inputRefs.current[0]?.focus();
@@ -41,12 +43,24 @@ export default function OTPScreen() {
     }
   }, [resendTimer, canResend]);
 
+  const triggerBounce = useCallback((index: number) => {
+    Animated.spring(bounceAnims[index], {
+      toValue: 1,
+      damping: 8,
+      stiffness: 200,
+      useNativeDriver: true,
+    }).start(() => {
+      bounceAnims[index].setValue(0);
+    });
+  }, [bounceAnims]);
+
   const handleOtpChange = (value: string, index: number) => {
     const numericValue = value.replace(/[^0-9]/g, '');
     if (numericValue.length > 1) return;
     const newOtp = [...otp];
     newOtp[index] = numericValue;
     setOtp(newOtp);
+    if (numericValue) triggerBounce(index);
     if (numericValue && index < 5) {
       inputRefs.current[index + 1]?.focus();
     }
@@ -116,99 +130,99 @@ export default function OTPScreen() {
         await api.post('/auth/send-otp', body, false);
       }
     } catch {
-      // silently fail
     }
   };
 
   const isOtpComplete = otp.every((d) => d !== '');
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: '#FFFFFF', paddingTop: Platform.OS === 'android' ? 25 : 0 }}>
+    <SafeAreaView style={tw`flex-1 bg-white`}>
       <StatusBar style="dark" />
-      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }}>
-        <View style={{ flex: 1, paddingHorizontal: 24 }}>
+      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={tw`flex-1`}>
+        <View style={tw`flex-1 px-6`}>
           <TouchableOpacity
             onPress={() => router.back()}
-            style={{
-              marginTop: 16, marginBottom: 24, width: 40, height: 40, borderRadius: 12,
-              backgroundColor: LIGHT_GRAY, alignItems: 'center', justifyContent: 'center',
-            }}
+            style={tw`mt-4 mb-6 w-10 h-10 rounded-xl bg-gray-100 items-center justify-center`}
             activeOpacity={0.7}
           >
-            <Ionicons name="arrow-back" size={20} color={CHARCOAL} />
+            <Ionicons name="arrow-back" size={20} color="#374151" />
           </TouchableOpacity>
-          <View style={{ marginBottom: 32 }}>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 10 }}>
-              <View style={{ width: 44, height: 44, borderRadius: 14, backgroundColor: `${PRIMARY_COLOR}15`, alignItems: 'center', justifyContent: 'center' }}>
-                <Ionicons name={otpChannel === 'EMAIL' ? 'mail-outline' : 'chatbubble-ellipses'} size={22} color={PRIMARY_COLOR} />
+
+          <View style={tw`mb-8`}>
+            <View style={tw`flex-row items-center gap-3 mb-3`}>
+              <View style={tw`w-11 h-11 rounded-xl bg-blue-100 items-center justify-center`}>
+                <Ionicons name={otpChannel === 'EMAIL' ? 'mail-outline' : 'chatbubble-ellipses'} size={22} color="#2563EB" />
               </View>
-              <Text style={{ fontSize: 28, fontWeight: '700', color: CHARCOAL, letterSpacing: -0.5 }}>
+              <Text style={tw`text-gray-900 text-[26px] font-bold tracking-tight`}>
                 {otpChannel === 'EMAIL' ? 'Verify Email' : 'Verify Phone'}
               </Text>
             </View>
-            <Text style={{ fontSize: 14, color: '#6B7280', lineHeight: 22 }}>
+            <Text style={tw`text-gray-500 text-[14px] leading-6`}>
               Enter the 6-digit code sent to{'\n'}
-              <Text style={{ fontWeight: '700', color: CHARCOAL }}>{contact || (otpChannel === 'EMAIL' ? 'user@example.com' : '+234 801 234 5678')}</Text>
+              <Text style={tw`font-bold text-gray-900`}>{contact || (otpChannel === 'EMAIL' ? 'user@example.com' : '+234 801 234 5678')}</Text>
             </Text>
           </View>
-          <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 10 }}>
+
+          <View style={tw`flex-row justify-between mb-4`}>
             {otp.map((digit, idx) => {
-              const isFilled = digit !== '';
-              const isActive = !isFilled && otp.slice(0, idx).every((d) => d !== '');
+              const filled = digit !== '';
+              const bounce = bounceAnims[idx].interpolate({
+                inputRange: [0, 0.5, 1],
+                outputRange: [1, 1.15, 1],
+              });
               return (
-                <TextInput
+                <Animated.View
                   key={idx}
-                  ref={(ref) => { inputRefs.current[idx] = ref; }}
-                  style={{
-                    width: 48, height: 56, borderRadius: 14,
-                    borderWidth: isFilled ? 2 : 1.5,
-                    borderColor: isFilled ? PRIMARY_COLOR : isActive ? ELECTRIC_BLUE : '#D1D5DB',
-                    backgroundColor: isFilled ? `${PRIMARY_COLOR}10` : LIGHT_GRAY,
-                    textAlign: 'center', fontSize: 22, fontWeight: '700', color: CHARCOAL,
-                  }}
-                  keyboardType="number-pad"
-                  maxLength={1}
-                  value={digit}
-                  onChangeText={(val) => handleOtpChange(val, idx)}
-                  onKeyPress={(e) => handleKeyPress(e, idx)}
-                  selectTextOnFocus
-                />
+                  style={[
+                    tw`w-[50px] h-[58px] rounded-2xl items-center justify-center border-2`,
+                    filled
+                      ? tw`border-blue-500 bg-blue-50`
+                      : tw`border-gray-200 bg-gray-50`,
+                    { transform: [{ scale: bounce }] },
+                  ]}
+                >
+                  <TextInput
+                    ref={(ref) => { inputRefs.current[idx] = ref; }}
+                    style={tw`w-full h-full text-center text-[22px] font-bold text-gray-900`}
+                    keyboardType="number-pad"
+                    maxLength={1}
+                    value={digit}
+                    onChangeText={(val) => handleOtpChange(val, idx)}
+                    onKeyPress={(e) => handleKeyPress(e, idx)}
+                    selectTextOnFocus
+                  />
+                </Animated.View>
               );
             })}
           </View>
-          <Text style={{ fontSize: 12, color: '#9CA3AF', marginBottom: 28, paddingLeft: 2 }}>
+
+          <Text style={tw`text-gray-400 text-[12px] mb-8 ml-1`}>
             {otpChannel === 'EMAIL'
               ? 'Check your email inbox (and spam folder) — the code expires in 10 minutes.'
               : 'Check your SMS inbox — the code expires in 10 minutes.'}
           </Text>
-          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginBottom: 32 }}>
-            <Text style={{ fontSize: 14, color: '#6B7280' }}>Didn't receive it? </Text>
+
+          <View style={tw`flex-row items-center justify-center mb-8`}>
+            <Text style={tw`text-gray-500 text-[14px]`}>Didn&apos;t receive it? </Text>
             <TouchableOpacity onPress={handleResend} disabled={!canResend} activeOpacity={0.7}>
-              <Text style={{ fontSize: 14, fontWeight: '700', color: canResend ? PRIMARY_COLOR : '#9CA3AF' }}>
+              <Text style={tw`text-[14px] font-bold ${canResend ? 'text-blue-500' : 'text-gray-300'}`}>
                 {canResend ? 'Resend Code' : `Resend in ${resendTimer}s`}
               </Text>
             </TouchableOpacity>
           </View>
-          <TouchableOpacity
-            style={{
-              backgroundColor: isOtpComplete && !loading ? PRIMARY_COLOR : `${PRIMARY_COLOR}60`,
-              paddingVertical: 16, borderRadius: 16, alignItems: 'center', justifyContent: 'center',
-              shadowColor: PRIMARY_COLOR, shadowOffset: { width: 0, height: 4 },
-              shadowOpacity: isOtpComplete ? 0.25 : 0, shadowRadius: 12, elevation: isOtpComplete ? 4 : 0,
-            }}
+
+          <Button
+            label="Verify"
             onPress={() => handleVerify()}
             disabled={loading || !isOtpComplete}
-            activeOpacity={0.85}
-          >
-            {loading ? (
-              <ActivityIndicator color="#fff" />
-            ) : (
-              <Text style={{ color: '#FFFFFF', fontWeight: '700', fontSize: 16, letterSpacing: 0.2 }}>Verify</Text>
-            )}
-          </TouchableOpacity>
-          <View style={{ marginTop: 20, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
-            <Ionicons name="shield-checkmark" size={14} color={SUCCESS_GREEN} />
-            <Text style={{ fontSize: 12, color: '#9CA3AF' }}>We'll never share your code with anyone</Text>
+            loading={loading}
+            variant="primary"
+            size="lg"
+          />
+
+          <View style={tw`mt-5 flex-row items-center justify-center gap-2`}>
+            <Ionicons name="shield-checkmark" size={14} color="#10B981" />
+            <Text style={tw`text-gray-400 text-[12px]`}>We&apos;ll never share your code with anyone</Text>
           </View>
         </View>
       </KeyboardAvoidingView>

@@ -1,4 +1,3 @@
-import { DARK_BG } from '@/constants/customConstants';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
@@ -10,6 +9,8 @@ import {
 import tw from 'twrnc';
 import { api } from '@/lib/api';
 import RefreshableScrollView from '@/components/RefreshableScrollView';
+import Button from '@/components/ui/Button';
+import { PRIMARY_COLOR, CHARCOAL, LIGHT_GRAY, SUCCESS_GREEN } from '@/constants/customConstants';
 
 interface TVProvider { id: string; name: string; color: string; }
 interface Package { id: string; name: string; price: number; validity: string; }
@@ -100,157 +101,143 @@ export default function TVSubscriptionScreen() {
   const providerPlans = selectedProvider ? packages[selectedProvider.id] : [];
 
   return (
-    <SafeAreaView style={[tw`flex-1 pt-5 pb-8`, { backgroundColor: DARK_BG }]}>
+    <SafeAreaView style={tw`flex-1 bg-[${LIGHT_GRAY}]`}>
       <StatusBar style="dark" />
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={tw`flex-1`}>
-        <View style={tw`px-5 pt-12 pb-5 border-b border-gray-200`}>
-          <View style={tw`flex-row items-center`}>
-            <TouchableOpacity onPress={() => router.back()} style={tw`w-[38px] h-[38px] rounded-xl bg-gray-100 items-center justify-center mr-4`} activeOpacity={0.7}>
-              <Ionicons name="arrow-back" size={20} color="#374151" />
+        <RefreshableScrollView showsVerticalScrollIndicator={false} contentContainerStyle={tw`px-5 pb-28`}>
+          <View style={tw`flex-row items-center mt-14 mb-8`}>
+            <TouchableOpacity onPress={() => router.back()} style={tw`w-10 h-10 rounded-full bg-white border border-gray-200 items-center justify-center mr-4`} activeOpacity={0.7}>
+              <Ionicons name="arrow-back" size={20} color={CHARCOAL} />
             </TouchableOpacity>
             <View>
-              <Text style={tw`text-gray-900 text-[20px] font-bold tracking-tight`}>TV subscription</Text>
+              <Text style={tw`text-[${CHARCOAL}] text-[22px] font-bold tracking-tight`}>TV subscription</Text>
               <Text style={tw`text-gray-400 text-[12px] mt-0.5`}>Renew your TV subscription</Text>
             </View>
           </View>
-        </View>
 
-        <RefreshableScrollView style={tw`flex-1 px-5 pt-6`} showsVerticalScrollIndicator={false} contentContainerStyle={tw`pb-10`}>
-          <View style={tw`mb-5`}>
-            <Text style={tw`text-gray-600 text-[12px] font-semibold tracking-wide mb-3`}>Select provider</Text>
-            <View style={tw`flex-row flex-wrap gap-2`}>
-              {tvProviders.map(provider => {
-                const isSelected = selectedProvider?.id === provider.id;
-                return (
-                  <TouchableOpacity
-                    key={provider.id}
-                    style={[
-                      tw`w-[48%] py-4 rounded-2xl items-center border`,
-                      isSelected
-                        ? { borderColor: `${provider.color}60`, backgroundColor: `${provider.color}18` }
-                        : tw`border-gray-200 bg-gray-50`,
-                    ]}
-                    onPress={() => { setSelectedProvider(provider); setSelectedPackage(null); if (errors.provider) setErrors(p => ({ ...p, provider: '' })); }}
-                    activeOpacity={0.75}
-                  >
-                    <View style={[tw`w-10 h-10 rounded-xl items-center justify-center mb-2`, { backgroundColor: `${provider.color}20` }]}>
-                      <Ionicons name="tv-outline" size={20} color={provider.color} />
-                    </View>
-                    <Text style={[tw`text-[12px] font-semibold`, { color: isSelected ? provider.color : '#6B7280' }]}>{provider.name}</Text>
-                  </TouchableOpacity>
-                );
-              })}
+          <View style={tw`mb-6`}>
+            <Text style={tw`text-gray-500 text-[12px] font-semibold tracking-wider uppercase mb-3`}>Provider</Text>
+            <View style={tw`bg-white rounded-2xl p-4`}>
+              <View style={tw`flex-row flex-wrap gap-2`}>
+                {tvProviders.map(provider => {
+                  const isSelected = selectedProvider?.id === provider.id;
+                  return (
+                    <TouchableOpacity
+                      key={provider.id}
+                      style={[
+                        tw`w-[48%] py-4 rounded-2xl items-center border`,
+                        isSelected
+                          ? { borderColor: `${provider.color}60`, backgroundColor: `${provider.color}18` }
+                          : tw`border-gray-200 bg-[${LIGHT_GRAY}]`,
+                      ]}
+                      onPress={() => { setSelectedProvider(provider); setSelectedPackage(null); if (errors.provider) setErrors(p => ({ ...p, provider: '' })); }}
+                      activeOpacity={0.75}
+                    >
+                      <View style={[tw`w-10 h-10 rounded-xl items-center justify-center mb-2`, { backgroundColor: `${provider.color}20` }]}>
+                        <Ionicons name="tv-outline" size={20} color={provider.color} />
+                      </View>
+                      <Text style={[tw`text-[12px] font-semibold`, { color: isSelected ? provider.color : '#6B7280' }]}>{provider.name}</Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+              {errors.provider ? <Text style={tw`text-red-500 text-[12px] mt-2 ml-1`}>{errors.provider}</Text> : null}
             </View>
-            {errors.provider ? <Text style={tw`text-red-400 text-[11px] mt-1.5 ml-1`}>{errors.provider}</Text> : null}
           </View>
 
-          <View style={tw`mb-2`}>
-            <Text style={tw`text-gray-600 text-[12px] font-semibold tracking-wide mb-2`}>Smart card number</Text>
-            <View style={tw`bg-gray-50 border ${errors.card ? 'border-red-500/70' : 'border-gray-200'} rounded-2xl px-4 h-[52px] flex-row items-center`}>
-              <TextInput
-                style={tw`flex-1 text-[14px] text-gray-900`}
-                placeholder="Enter smart card number"
-                placeholderTextColor="#E5E7EB"
-                keyboardType="number-pad"
-                value={smartCardNumber}
-                onChangeText={handleCardChange}
-                onBlur={handleValidateCard}
-                maxLength={15}
-              />
-              {isValidating && <ActivityIndicator size="small" color="#f87171" />}
-            </View>
-            {errors.card ? <Text style={tw`text-red-400 text-[11px] mt-1.5 ml-1`}>{errors.card}</Text> : null}
-          </View>
+          <View style={tw`mb-6`}>
+            <Text style={tw`text-gray-500 text-[12px] font-semibold tracking-wider uppercase mb-3`}>Smart card</Text>
+            <View style={tw`bg-white rounded-2xl p-4`}>
+              <View style={tw`bg-[${LIGHT_GRAY}] rounded-xl px-4 h-[50px] flex-row items-center ${errors.card ? 'border border-red-500' : ''}`}>
+                <TextInput
+                  style={tw`flex-1 text-[14px] text-[${CHARCOAL}]`}
+                  placeholder="Enter smart card number"
+                  placeholderTextColor="#9CA3AF"
+                  keyboardType="number-pad"
+                  value={smartCardNumber}
+                  onChangeText={handleCardChange}
+                  onBlur={handleValidateCard}
+                  maxLength={15}
+                />
+                {isValidating && <ActivityIndicator size="small" color={PRIMARY_COLOR} />}
+              </View>
+              {errors.card ? <Text style={tw`text-red-500 text-[12px] mt-1.5 ml-1`}>{errors.card}</Text> : null}
 
-          {customerName ? (
-            <View style={tw`bg-emerald-500/10 border border-emerald-500/20 p-3 rounded-2xl mb-5 flex-row items-center gap-2`}>
-              <Ionicons name="checkmark-circle" size={17} color="#10b981" />
-              <Text style={tw`text-emerald-400 font-semibold text-[13px]`}>{customerName}</Text>
+              {customerName ? (
+                <View style={tw`bg-[${SUCCESS_GREEN}]/10 rounded-xl p-3 mt-3 flex-row items-center gap-2.5`}>
+                  <View style={tw`w-7 h-7 rounded-full bg-[${SUCCESS_GREEN}]/20 items-center justify-center`}>
+                    <Ionicons name="checkmark-circle" size={16} color={SUCCESS_GREEN} />
+                  </View>
+                  <Text style={tw`text-[${SUCCESS_GREEN}] font-bold text-[13px]`}>{customerName}</Text>
+                </View>
+              ) : null}
             </View>
-          ) : <View style={tw`mb-5`} />}
-
-          <View style={tw`mb-4`}>
-            <Text style={tw`text-gray-600 text-[12px] font-semibold tracking-wide mb-2`}>Transaction PIN</Text>
-            <View style={tw`bg-gray-50 border ${errors.pin ? 'border-red-500/70' : 'border-gray-200'} rounded-2xl px-4 h-[52px] flex-row items-center`}>
-              <TextInput
-                style={tw`flex-1 text-[14px] text-gray-900`}
-                placeholder="Enter your PIN"
-                placeholderTextColor="#E5E7EB"
-                keyboardType="number-pad"
-                secureTextEntry={!showPin}
-                maxLength={4}
-                value={pin}
-                onChangeText={(text) => { setPin(text.replace(/[^0-9]/g, '').slice(0, 4)); if (errors.pin) setErrors(p => ({ ...p, pin: '' })); }}
-              />
-              <TouchableOpacity onPress={() => setShowPin(!showPin)}>
-                <Ionicons name={showPin ? 'eye-outline' : 'eye-off-outline'} size={20} color="#9CA3AF" />
-              </TouchableOpacity>
-            </View>
-            {errors.pin ? <Text style={tw`text-red-400 text-[11px] mt-1.5 ml-1`}>{errors.pin}</Text> : null}
           </View>
 
           {selectedProvider && providerPlans.length > 0 && (
-            <>
-              <View style={tw`mb-5`}>
-                <Text style={tw`text-gray-600 text-[12px] font-semibold tracking-wide mb-2`}>Select package</Text>
+            <View style={tw`mb-6`}>
+              <Text style={tw`text-gray-500 text-[12px] font-semibold tracking-wider uppercase mb-3`}>Package</Text>
+              <View style={tw`bg-white rounded-2xl p-4`}>
                 <TouchableOpacity
-                  style={tw`bg-gray-50 border ${errors.package ? 'border-red-500/70' : 'border-gray-200'} rounded-2xl px-4 h-[56px] flex-row justify-between items-center`}
+                  style={tw`bg-[${LIGHT_GRAY}] rounded-xl px-4 h-[56px] flex-row justify-between items-center ${errors.package ? 'border border-red-500' : ''}`}
                   onPress={() => setShowPackages(true)}
                   activeOpacity={0.75}
                 >
                   {selectedPackage ? (
                     <View>
-                      <Text style={tw`text-gray-900 text-[14px] font-semibold`}>{selectedPackage.name}</Text>
+                      <Text style={tw`text-[${CHARCOAL}] text-[14px] font-semibold`}>{selectedPackage.name}</Text>
                       <Text style={tw`text-gray-400 text-[11px]`}>{selectedPackage.validity} · ₦{selectedPackage.price.toLocaleString()}</Text>
                     </View>
                   ) : (
-                    <Text style={tw`text-gray-300 text-[14px]`}>Choose a subscription package</Text>
+                    <Text style={tw`text-gray-400 text-[14px]`}>Choose a package</Text>
                   )}
-                  <Ionicons name="chevron-down" size={18} color="#D1D5DB" />
+                  <Ionicons name="chevron-down" size={18} color="#9CA3AF" />
                 </TouchableOpacity>
-                {errors.package ? <Text style={tw`text-red-400 text-[11px] mt-1.5 ml-1`}>{errors.package}</Text> : null}
+                {errors.package ? <Text style={tw`text-red-500 text-[12px] mt-1.5 ml-1`}>{errors.package}</Text> : null}
               </View>
-
-              <View style={tw`mb-6`}>
-                <Text style={tw`text-gray-600 text-[12px] font-semibold tracking-wide mb-3`}>Popular packages</Text>
-                <View style={tw`gap-2.5`}>
-                  {providerPlans.slice(0, 3).map(pkg => (
-                    <TouchableOpacity
-                      key={pkg.id}
-                      style={tw`bg-red-500/10 border border-red-500/20 p-4 rounded-2xl flex-row justify-between items-center`}
-                      onPress={() => { setSelectedPackage(pkg); if (errors.package) setErrors(p => ({ ...p, package: '' })); }}
-                      activeOpacity={0.75}
-                    >
-                      <View>
-                        <Text style={tw`text-gray-900 text-[13px] font-bold`}>{pkg.name}</Text>
-                        <Text style={tw`text-gray-400 text-[11px] mt-0.5`}>{pkg.validity}</Text>
-                      </View>
-                      <Text style={tw`text-red-400 font-bold text-[14px]`}>₦{pkg.price.toLocaleString()}</Text>
-                    </TouchableOpacity>
-                  ))}
-                </View>
-              </View>
-            </>
+            </View>
           )}
 
-          <TouchableOpacity
-            style={tw`bg-blue-500 h-[52px] rounded-2xl items-center justify-center ${isDisabled ? 'opacity-50' : ''}`}
-            disabled={isDisabled}
+          <View style={tw`mb-6`}>
+            <Text style={tw`text-gray-500 text-[12px] font-semibold tracking-wider uppercase mb-3`}>Confirm</Text>
+            <View style={tw`bg-white rounded-2xl p-4`}>
+              <View style={tw`bg-[${LIGHT_GRAY}] rounded-xl px-4 h-[50px] flex-row items-center ${errors.pin ? 'border border-red-500' : ''}`}>
+                <TextInput
+                  style={tw`flex-1 text-[14px] text-[${CHARCOAL}]`}
+                  placeholder="Enter your PIN"
+                  placeholderTextColor="#9CA3AF"
+                  keyboardType="number-pad"
+                  secureTextEntry={!showPin}
+                  maxLength={4}
+                  value={pin}
+                  onChangeText={(text) => { setPin(text.replace(/[^0-9]/g, '').slice(0, 4)); if (errors.pin) setErrors(p => ({ ...p, pin: '' })); }}
+                />
+                <TouchableOpacity onPress={() => setShowPin(!showPin)} style={tw`p-1`}>
+                  <Ionicons name={showPin ? 'eye-outline' : 'eye-off-outline'} size={20} color="#9CA3AF" />
+                </TouchableOpacity>
+              </View>
+              {errors.pin ? <Text style={tw`text-red-500 text-[12px] mt-1.5 ml-1`}>{errors.pin}</Text> : null}
+            </View>
+          </View>
+
+          <Button
+            label="Continue"
+            icon="arrow-forward"
+            iconPosition="right"
             onPress={handleSubmit}
-            activeOpacity={0.85}
-          >
-            {isSubmitting ? <ActivityIndicator color="#fff" /> : <Text style={tw`text-white font-semibold text-[15px] tracking-tight`}>Continue</Text>}
-          </TouchableOpacity>
+            disabled={isDisabled}
+            loading={isSubmitting}
+          />
         </RefreshableScrollView>
       </KeyboardAvoidingView>
 
-      <Modal visible={showPackages} animationType="slide" transparent>
-        <View style={tw`flex-1 justify-end bg-black/20`}>
-          <View style={[tw`rounded-t-3xl pt-6 pb-10 max-h-[80%]`, { backgroundColor: '#ffffff' }]}>
-            <View style={tw`px-5 pb-4 border-b border-gray-200 flex-row justify-between items-center`}>
-              <Text style={tw`text-gray-900 text-[17px] font-bold tracking-tight`}>Select package</Text>
-              <TouchableOpacity onPress={() => setShowPackages(false)} style={tw`w-[34px] h-[34px] rounded-xl bg-gray-100 items-center justify-center`} activeOpacity={0.7}>
-                <Ionicons name="close" size={18} color="#374151" />
+      <Modal visible={showPackages} animationType="slide" transparent onRequestClose={() => setShowPackages(false)}>
+        <TouchableOpacity style={tw`flex-1 bg-black/40 justify-end`} activeOpacity={1} onPress={() => setShowPackages(false)}>
+          <TouchableOpacity activeOpacity={1} onPress={() => {}} style={tw`bg-white rounded-t-3xl min-h-[60%] max-h-[80%]`}>
+            <View style={tw`flex-row items-center justify-between px-5 pt-5 pb-3 border-b border-[${LIGHT_GRAY}]`}>
+              <Text style={tw`text-[${CHARCOAL}] text-[18px] font-bold`}>Select package</Text>
+              <TouchableOpacity onPress={() => setShowPackages(false)} activeOpacity={0.7}>
+                <Ionicons name="close" size={22} color="#6B7280" />
               </TouchableOpacity>
             </View>
             <FlatList
@@ -258,20 +245,20 @@ export default function TVSubscriptionScreen() {
               keyExtractor={item => item.id}
               renderItem={({ item }) => (
                 <TouchableOpacity
-                  style={tw`px-5 py-4 border-b border-gray-200 flex-row justify-between items-center`}
+                  style={tw`px-5 py-4 border-b border-[${LIGHT_GRAY}] flex-row justify-between items-center`}
                   onPress={() => { setSelectedPackage(item); setShowPackages(false); if (errors.package) setErrors(p => ({ ...p, package: '' })); }}
                   activeOpacity={0.75}
                 >
                   <View>
-                    <Text style={tw`text-gray-900 font-bold text-[14px]`}>{item.name}</Text>
+                    <Text style={tw`text-[${CHARCOAL}] font-bold text-[14px]`}>{item.name}</Text>
                     <Text style={tw`text-gray-400 text-[12px] mt-0.5`}>{item.validity}</Text>
                   </View>
-                  <Text style={tw`text-red-400 font-bold text-[15px]`}>₦{item.price.toLocaleString()}</Text>
+                  <Text style={tw`text-[${PRIMARY_COLOR}] font-bold text-[15px]`}>₦{item.price.toLocaleString()}</Text>
                 </TouchableOpacity>
               )}
             />
-          </View>
-        </View>
+          </TouchableOpacity>
+        </TouchableOpacity>
       </Modal>
     </SafeAreaView>
   );
