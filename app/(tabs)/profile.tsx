@@ -119,7 +119,7 @@ export default function ProfileScreen() {
             <View>
               <Text style={tw`text-white/50 text-[11px] uppercase tracking-wider mb-1`}>Wallet balance</Text>
               <Text style={tw`text-white text-[18px] font-bold tracking-tight`}>
-                {loading ? '...' : `₦${(wallet?.balance || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}`}
+                {loading ? '...' : `₦${((wallet?.balance || 0) / 100).toLocaleString(undefined, { minimumFractionDigits: 2 })}`}
               </Text>
             </View>
             <View style={tw`w-px bg-white/10`} />
