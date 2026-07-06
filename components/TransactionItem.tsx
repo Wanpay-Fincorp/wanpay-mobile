@@ -83,7 +83,7 @@ export default function TransactionItem({ txn, onPress }: TransactionItemProps) 
         </View>
         <View style={tw`items-end ml-3`}>
           <Text style={[tw`text-[14px] font-bold`, { color: isPositive ? '#10b981' : '#374151' }]}>
-            {isPositive ? '+' : '-'}₦{Number(txn.amount).toLocaleString()}
+            {isPositive ? '+' : '-'}₦{(Number(txn.amount) / 100).toLocaleString()}
           </Text>
           <View style={tw`flex-row items-center mt-0.5 gap-1`}>
             <View style={[tw`w-1.5 h-1.5 rounded-full`, { backgroundColor: statusColor }]} />
