@@ -88,8 +88,8 @@ export default function TransferScreen() {
         accountNumber: accNum,
       });
       setAccountName(result.accountName);
-    } catch {
-      Alert.alert('Validation Failed', 'Could not validate account number. Please check and try again.');
+    } catch (err: any) {
+      Alert.alert('Validation Failed', err?.message || 'Could not validate account number.');
     } finally {
       setIsValidating(false);
     }
