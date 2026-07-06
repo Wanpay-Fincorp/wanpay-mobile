@@ -125,13 +125,22 @@ export default function TransferScreen() {
     if (!validateForm()) return;
     setIsSubmitting(true);
     try {
-      await api.post('/transfers', {
-        bankCode: selectedBank!.code,
-        accountNumber,
-        amount: parseFloat(amount),
-        description: description || undefined,
-        pin,
-      });
+      if (selectedBank!.code === 'WANPAY') {
+        await api.post('/transfers/intra', {
+          accountNumber,
+          amount: parseFloat(amount),
+          description: description || undefined,
+          pin,
+        });
+      } else {
+        await api.post('/transfers', {
+          bankCode: selectedBank!.code,
+          accountNumber,
+          amount: parseFloat(amount),
+          description: description || undefined,
+          pin,
+        });
+      }
       Alert.alert('Transfer initiated', `₦${formattedAmount || amount} sent to ${accountName || selectedBank!.name}.`, [
         { text: 'Done', onPress: () => router.push('/(tabs)/history') },
       ]);
