@@ -130,7 +130,7 @@ export default function HomeScreen() {
               <ActivityIndicator color="rgba(255,255,255,0.5)" style={tw`mb-4`} />
             ) : (
               <Text style={tw`text-white text-[30px] font-bold tracking-tight mb-4`}>
-                {showBalance ? `₦${(wallet?.balance || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : '₦ ••••••'}
+                {showBalance ? `₦${((wallet?.balance || 0) / 100).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : '₦ ••••••'}
               </Text>
             )}
             <View style={tw`flex-row justify-between items-center`}>

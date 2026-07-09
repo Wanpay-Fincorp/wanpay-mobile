@@ -176,7 +176,7 @@ export default function HistoryScreen() {
                       </View>
                       <Text style={tw`text-[${CHARCOAL}] text-[18px] font-bold text-center`}>{tc.label}</Text>
                       <Text style={[tw`text-[32px] font-bold mt-2`, { color: isPositive ? SUCCESS_GREEN : CHARCOAL }]}>
-                        {isPositive ? '+' : '-'}₦{Number(txn.amount).toLocaleString()}
+                        {isPositive ? '+' : '-'}₦{(Number(txn.amount) / 100).toLocaleString()}
                       </Text>
                       <View style={[tw`rounded-full px-3 py-1 mt-3`, { backgroundColor: sc.bg }]}>
                         <Text style={[tw`text-[12px] font-semibold`, { color: sc.color }]}>{sc.label}</Text>
