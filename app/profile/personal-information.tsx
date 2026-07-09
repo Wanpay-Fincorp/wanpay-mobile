@@ -11,6 +11,7 @@ import { api } from '@/lib/api';
 import { useAuth } from '@/contexts/AuthContext';
 import type { User } from '@/lib/types';
 import RefreshableScrollView from '@/components/RefreshableScrollView';
+import DatePickerModal from '@/components/DatePickerModal';
 
 export default function PersonalInformationScreen() {
   const router = useRouter();
@@ -33,6 +34,7 @@ export default function PersonalInformationScreen() {
 
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [refreshing, setRefreshing] = useState(false);
+  const [showCalendar, setShowCalendar] = useState(false);
 
   const loadProfile = useCallback(async () => {
     setFetching(true);
@@ -180,10 +182,24 @@ export default function PersonalInformationScreen() {
 
             <View style={tw`mb-5`}>
               <Text style={tw`text-gray-600 text-[12px] font-semibold tracking-wide mb-2`}>Date of Birth</Text>
-              <View style={[tw`bg-[${LIGHT_GRAY}] border border-gray-200 rounded-2xl px-4 justify-center`, { height: 52 }]}>
-                <TextInput style={tw`text-[14px] text-gray-900`} value={formData.dateOfBirth} onChangeText={(text) => handleChange('dateOfBirth', text)} editable={editing} placeholder="DD/MM/YYYY" placeholderTextColor="#E5E7EB" />
-              </View>
+              <TouchableOpacity
+                onPress={() => { if (editing) setShowCalendar(true); }}
+                activeOpacity={editing ? 0.7 : 1}
+                style={[tw`bg-[${LIGHT_GRAY}] border border-gray-200 rounded-2xl px-4 justify-center`, { height: 52 }]}
+              >
+                <Text style={tw`text-[14px] ${formData.dateOfBirth ? 'text-gray-900' : 'text-gray-300'}`}>
+                  {formData.dateOfBirth || 'DD/MM/YYYY'}
+                </Text>
+              </TouchableOpacity>
             </View>
+            <DatePickerModal
+              visible={showCalendar}
+              value={formData.dateOfBirth || new Date().toISOString()}
+              onChange={(d) => handleChange('dateOfBirth', d)}
+              onClose={() => setShowCalendar(false)}
+              maxDate={new Date()}
+              title="Select Date of Birth"
+            />
 
             <View style={tw`mb-5`}>
               <Text style={tw`text-gray-600 text-[12px] font-semibold tracking-wide mb-2`}>Address</Text>

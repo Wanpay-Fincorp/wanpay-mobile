@@ -5,14 +5,18 @@ import { ActivityIndicator, Alert, KeyboardAvoidingView, Platform, SafeAreaView,
 import tw from 'twrnc';
 import { LIGHT_GRAY } from '@/constants/customConstants';
 import { api } from '@/lib/api';
+import { useAuth } from '@/contexts/AuthContext';
 import RefreshableScrollView from '@/components/RefreshableScrollView';
+import DatePickerModal from '@/components/DatePickerModal';
 
 export default function BvnVerificationScreen() {
   const router = useRouter();
+  const { refreshUser } = useAuth();
   const [bvn, setBvn] = useState('');
   const [dateOfBirth, setDateOfBirth] = useState('');
   const [nin, setNin] = useState('');
   const [loading, setLoading] = useState(false);
+  const [showCalendar, setShowCalendar] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const validate = () => {
@@ -29,6 +33,7 @@ export default function BvnVerificationScreen() {
     setLoading(true);
     try {
       const result = await api.post<{ verified: boolean; kycLevel: string }>('/users/verify-bvn', { bvn, dateOfBirth, nin });
+      await refreshUser();
       Alert.alert(
         'BVN Verified',
         `Your identity has been verified. Account upgraded to ${result.kycLevel.replace('_', ' ')}.`,
@@ -85,11 +90,25 @@ export default function BvnVerificationScreen() {
 
           <View style={tw`mb-6`}>
             <Text style={tw`text-gray-600 text-[12px] font-semibold tracking-wide mb-2`}>Date of Birth</Text>
-            <View style={[tw`bg-[${LIGHT_GRAY}] border ${errors.dateOfBirth ? 'border-red-500/70' : 'border-gray-200'} rounded-2xl px-4 justify-center`, { height: 52 }]}>
-              <TextInput style={tw`text-[14px] text-gray-900`} value={dateOfBirth} onChangeText={(t) => { setDateOfBirth(t); if (errors.dateOfBirth) setErrors({ ...errors, dateOfBirth: '' }); }} placeholder="DD/MM/YYYY" placeholderTextColor="#E5E7EB" />
-            </View>
+            <TouchableOpacity
+              onPress={() => setShowCalendar(true)}
+              activeOpacity={0.7}
+              style={[tw`bg-[${LIGHT_GRAY}] border ${errors.dateOfBirth ? 'border-red-500/70' : 'border-gray-200'} rounded-2xl px-4 justify-center`, { height: 52 }]}
+            >
+              <Text style={tw`text-[14px] ${dateOfBirth ? 'text-gray-900' : 'text-gray-300'}`}>
+                {dateOfBirth || 'DD/MM/YYYY'}
+              </Text>
+            </TouchableOpacity>
             {errors.dateOfBirth ? <Text style={tw`text-red-400 text-[11px] mt-1.5 ml-1`}>{errors.dateOfBirth}</Text> : null}
           </View>
+          <DatePickerModal
+            visible={showCalendar}
+            value={dateOfBirth}
+            onChange={setDateOfBirth}
+            onClose={() => setShowCalendar(false)}
+            maxDate={new Date()}
+            title="Select Date of Birth"
+          />
 
           <View style={tw`mb-6`}>
             <Text style={tw`text-gray-600 text-[12px] font-semibold tracking-wide mb-2`}>NIN (National Identification Number)</Text>

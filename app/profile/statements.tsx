@@ -4,7 +4,7 @@ import { StatusBar } from 'expo-status-bar';
 import React, { useState, useRef, useEffect } from 'react';
 import {
   ActivityIndicator, Alert, Modal, SafeAreaView, Share, Text,
-  TextInput, TouchableOpacity, View, Animated,
+  TouchableOpacity, View, Animated,
 } from 'react-native';
 import tw from 'twrnc';
 import { LIGHT_GRAY, PRIMARY_COLOR } from '@/constants/customConstants';
@@ -12,6 +12,7 @@ import { api } from '@/lib/api';
 import RefreshableScrollView from '@/components/RefreshableScrollView';
 import TransactionItem from '@/components/TransactionItem';
 import type { Transaction } from '@/lib/types';
+import DatePickerModal from '@/components/DatePickerModal';
 
 export default function StatementsScreen() {
   const router = useRouter();
@@ -22,6 +23,7 @@ export default function StatementsScreen() {
   const [loading, setLoading] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
   const [showFormatPicker, setShowFormatPicker] = useState(false);
+  const [showCalendar, setShowCalendar] = useState<'start' | 'end' | null>(null);
   const fadeAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
@@ -97,14 +99,14 @@ export default function StatementsScreen() {
                 <Text style={tw`text-gray-400 text-[11px] mb-1.5`}>From</Text>
                 <View style={tw`bg-[${LIGHT_GRAY}] rounded-xl px-4 h-[48px] flex-row items-center`}>
                   <Ionicons name="calendar-outline" size={16} color="#9CA3AF" style={tw`mr-2`} />
-                  <TextInput
-                    style={tw`flex-1 text-[14px] text-gray-900`}
-                    placeholder="YYYY-MM-DD"
-                    placeholderTextColor="#D1D5DB"
-                    value={startDate}
-                    onChangeText={setStartDate}
-                    maxLength={10}
-                  />
+                  <TouchableOpacity
+                    style={tw`flex-1 h-full justify-center`}
+                    onPress={() => setShowCalendar('start')}
+                  >
+                    <Text style={tw`text-[14px] ${startDate ? 'text-gray-900' : 'text-gray-300'}`}>
+                      {startDate || 'YYYY-MM-DD'}
+                    </Text>
+                  </TouchableOpacity>
                   {!startDate && (
                     <TouchableOpacity onPress={() => {
                       const d = new Date(); d.setMonth(d.getMonth() - 1);
@@ -119,14 +121,14 @@ export default function StatementsScreen() {
                 <Text style={tw`text-gray-400 text-[11px] mb-1.5`}>To</Text>
                 <View style={tw`bg-[${LIGHT_GRAY}] rounded-xl px-4 h-[48px] flex-row items-center`}>
                   <Ionicons name="calendar-outline" size={16} color="#9CA3AF" style={tw`mr-2`} />
-                  <TextInput
-                    style={tw`flex-1 text-[14px] text-gray-900`}
-                    placeholder="YYYY-MM-DD"
-                    placeholderTextColor="#D1D5DB"
-                    value={endDate}
-                    onChangeText={setEndDate}
-                    maxLength={10}
-                  />
+                  <TouchableOpacity
+                    style={tw`flex-1 h-full justify-center`}
+                    onPress={() => setShowCalendar('end')}
+                  >
+                    <Text style={tw`text-[14px] ${endDate ? 'text-gray-900' : 'text-gray-300'}`}>
+                      {endDate || 'YYYY-MM-DD'}
+                    </Text>
+                  </TouchableOpacity>
                   {!endDate && (
                     <TouchableOpacity onPress={() => setEndDate(today)}>
                       <Text style={tw`text-blue-500 text-[11px] font-semibold`}>Today</Text>
@@ -134,6 +136,20 @@ export default function StatementsScreen() {
                   )}
                 </View>
               </View>
+              <DatePickerModal
+                visible={showCalendar === 'start'}
+                value={startDate}
+                onChange={setStartDate}
+                onClose={() => setShowCalendar(null)}
+                maxDate={new Date()}
+              />
+              <DatePickerModal
+                visible={showCalendar === 'end'}
+                value={endDate}
+                onChange={setEndDate}
+                onClose={() => setShowCalendar(null)}
+                maxDate={new Date()}
+              />
             </View>
           </View>
 
