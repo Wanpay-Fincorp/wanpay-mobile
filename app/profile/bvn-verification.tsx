@@ -5,11 +5,13 @@ import { ActivityIndicator, Alert, KeyboardAvoidingView, Platform, SafeAreaView,
 import tw from 'twrnc';
 import { LIGHT_GRAY } from '@/constants/customConstants';
 import { api } from '@/lib/api';
+import { useAuth } from '@/contexts/AuthContext';
 import RefreshableScrollView from '@/components/RefreshableScrollView';
 import DatePickerModal from '@/components/DatePickerModal';
 
 export default function BvnVerificationScreen() {
   const router = useRouter();
+  const { refreshUser } = useAuth();
   const [bvn, setBvn] = useState('');
   const [dateOfBirth, setDateOfBirth] = useState('');
   const [nin, setNin] = useState('');
@@ -31,6 +33,7 @@ export default function BvnVerificationScreen() {
     setLoading(true);
     try {
       const result = await api.post<{ verified: boolean; kycLevel: string }>('/users/verify-bvn', { bvn, dateOfBirth, nin });
+      await refreshUser();
       Alert.alert(
         'BVN Verified',
         `Your identity has been verified. Account upgraded to ${result.kycLevel.replace('_', ' ')}.`,

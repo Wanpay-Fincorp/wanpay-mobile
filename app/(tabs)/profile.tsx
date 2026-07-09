@@ -28,26 +28,27 @@ const menuItems = [
 
 export default function ProfileScreen() {
   const router = useRouter();
-  const { user, signOut } = useAuth();
+  const { user, signOut, refreshUser } = useAuth();
   const [wallet, setWallet] = useState<Wallet | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
-  useFocusEffect(
-    useCallback(() => {
-      loadProfile();
-    }, [])
-  );
-
-  const loadProfile = async () => {
+  const loadProfile = useCallback(async () => {
     try {
-      const walletData = await api.get<Wallet>('/wallet').catch(() => null);
+      const [walletData] = await Promise.all([
+        api.get<Wallet>('/wallet').catch(() => null),
+        refreshUser(),
+      ]);
       setWallet(walletData as Wallet);
     } catch {
     } finally {
       setLoading(false);
     }
-  };
+  }, [refreshUser]);
+
+  useFocusEffect(
+    useCallback(() => { loadProfile(); }, [loadProfile])
+  );
 
   const onRefresh = async () => {
     setRefreshing(true);

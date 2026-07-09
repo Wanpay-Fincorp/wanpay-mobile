@@ -16,6 +16,9 @@ export interface User {
   isTwoFactorEnabled: boolean;
   isBiometricEnabled: boolean;
   accountNumber: string | null;
+  bvn: string | null;
+  nin: string | null;
+  kycLevel: string | null;
   createdAt: string;
   updatedAt: string;
 }
