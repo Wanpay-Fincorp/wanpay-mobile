@@ -25,6 +25,7 @@ export default function RootLayout() {
           <Stack.Screen name="signup" options={{ headerShown: false }} />
           <Stack.Screen name="otp" options={{ headerShown: false }} />
           <Stack.Screen name="createPin" options={{ headerShown: false }} />
+          <Stack.Screen name="forgot-pin" options={{ headerShown: false }} />
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
           <Stack.Screen name="bills" options={{ headerShown: false }} />
           <Stack.Screen name="profile" options={{ headerShown: false }} />

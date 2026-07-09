@@ -14,12 +14,22 @@ import Button from '@/components/ui/Button';
 import type { Bank, AccountValidation } from '@/lib/types';
 import { PRIMARY_COLOR, CHARCOAL, LIGHT_GRAY, SUCCESS_GREEN } from '@/constants/customConstants';
 
+interface Beneficiary {
+  id: string;
+  bankId: string;
+  accountNumber: string;
+  accountName: string;
+  bank?: { name: string; code: string };
+  nickname?: string;
+}
+
 type TransferErrors = { bank: string; accountNumber: string; amount: string; pin: string };
 
 const QUICK_AMOUNTS = [500, 1000, 2000, 5000, 10000, 20000, 50000];
 
 export default function TransferScreen() {
   const router = useRouter();
+  const [isIntra, setIsIntra] = useState(false);
   const [banks, setBanks] = useState<Bank[]>([]);
   const [selectedBank, setSelectedBank] = useState<Bank | null>(null);
   const [accountNumber, setAccountNumber] = useState('');
@@ -34,6 +44,7 @@ export default function TransferScreen() {
   const [errors, setErrors] = useState<TransferErrors>({ bank: '', accountNumber: '', amount: '', pin: '' });
   const [refreshing, setRefreshing] = useState(false);
   const [bankSearch, setBankSearch] = useState('');
+  const [beneficiaries, setBeneficiaries] = useState<Beneficiary[]>([]);
 
   const fadeAnim = useRef(new Animated.Value(0)).current;
 
@@ -46,12 +57,14 @@ export default function TransferScreen() {
   useFocusEffect(
     useCallback(() => {
       loadBanks();
+      loadBeneficiaries();
     }, [])
   );
 
   const onRefresh = async () => {
     setRefreshing(true);
     await loadBanks();
+    await loadBeneficiaries();
     setRefreshing(false);
   };
 
@@ -59,6 +72,13 @@ export default function TransferScreen() {
     try {
       const data = await api.get<Bank[]>('/banks');
       if (Array.isArray(data)) setBanks(data);
+    } catch {}
+  };
+
+  const loadBeneficiaries = async () => {
+    try {
+      const data = await api.get<Beneficiary[]>('/beneficiaries');
+      if (Array.isArray(data)) setBeneficiaries(data);
     } catch {}
   };
 
@@ -103,7 +123,7 @@ export default function TransferScreen() {
         setAccountName('');
         setErrors(p => ({ ...p, accountNumber: '' }));
         if (validateTimer.current) clearTimeout(validateTimer.current);
-      } else if (numeric.length === 10 && selectedBank) {
+      } else if (numeric.length === 10 && selectedBank && !isIntra) {
         if (validateTimer.current) clearTimeout(validateTimer.current);
         validateTimer.current = setTimeout(() => doValidateAccount(numeric, selectedBank), 500);
       }
@@ -113,7 +133,7 @@ export default function TransferScreen() {
   const validateForm = () => {
     const newErrors: TransferErrors = { bank: '', accountNumber: '', amount: '', pin: '' };
     let isValid = true;
-    if (!selectedBank) { newErrors.bank = 'Please select a bank'; isValid = false; }
+    if (!isIntra && !selectedBank) { newErrors.bank = 'Please select a bank'; isValid = false; }
     if (accountNumber.length !== 10) { newErrors.accountNumber = 'Account number must be 10 digits'; isValid = false; }
     if (!parseFloat(amount) || parseFloat(amount) <= 0) { newErrors.amount = 'Enter a valid amount'; isValid = false; }
     if (pin.length !== 4) { newErrors.pin = 'PIN must be 4 digits'; isValid = false; }
@@ -125,7 +145,7 @@ export default function TransferScreen() {
     if (!validateForm()) return;
     setIsSubmitting(true);
     try {
-      if (selectedBank!.code === 'WANPAY') {
+      if (isIntra) {
         await api.post('/transfers/intra', {
           accountNumber,
           amount: parseFloat(amount),
@@ -141,9 +161,37 @@ export default function TransferScreen() {
           pin,
         });
       }
-      Alert.alert('Transfer initiated', `₦${formattedAmount || amount} sent to ${accountName || selectedBank!.name}.`, [
-        { text: 'Done', onPress: () => router.push('/(tabs)/history') },
-      ]);
+
+      const recipientName = accountName || selectedBank?.name || 'recipient';
+      const isExistingBeneficiary = beneficiaries.some(
+        b => b.accountNumber === accountNumber && (!selectedBank || b.bankId === selectedBank.id)
+      );
+      if (!isExistingBeneficiary && !isIntra && selectedBank) {
+        Alert.alert(
+          'Transfer initiated',
+          `₦${formattedAmount || amount} sent to ${recipientName}.`,
+          [
+            { text: 'Done', onPress: () => router.push('/(tabs)/history') },
+            {
+              text: 'Save beneficiary',
+              onPress: async () => {
+                try {
+                  await api.post('/beneficiaries', {
+                    bankId: selectedBank.id,
+                    accountNumber,
+                    accountName: accountName || recipientName,
+                  });
+                  loadBeneficiaries();
+                } catch {}
+              },
+            },
+          ]
+        );
+      } else {
+        Alert.alert('Transfer initiated', `₦${formattedAmount || amount} sent to ${recipientName}.`, [
+          { text: 'Done', onPress: () => router.push('/(tabs)/history') },
+        ]);
+      }
     } catch (err: any) {
       Alert.alert('Transfer failed', err?.message || 'Unable to complete transfer. Please try again.');
     } finally { setIsSubmitting(false); }
@@ -183,38 +231,58 @@ export default function TransferScreen() {
               </TouchableOpacity>
               <View>
                 <Text style={tw`text-[${CHARCOAL}] text-[22px] font-bold tracking-tight`}>Send money</Text>
-                <Text style={tw`text-gray-400 text-[12px] mt-0.5`}>Instant transfer to Nigerian banks</Text>
+                <Text style={tw`text-gray-400 text-[12px] mt-0.5`}>{isIntra ? 'Instant transfer to WanPay users' : 'Instant transfer to Nigerian banks'}</Text>
               </View>
+            </View>
+
+            <View style={tw`flex-row bg-white rounded-2xl p-1 mb-6 border border-gray-200`}>
+              <TouchableOpacity
+                style={tw`flex-1 py-2.5 rounded-xl ${isIntra ? '' : 'bg-blue-600 shadow-sm'}`}
+                activeOpacity={0.7}
+                onPress={() => { setIsIntra(false); setSelectedBank(null); setAccountName(''); setErrors({ bank: '', accountNumber: '', amount: '', pin: '' }); }}
+              >
+                <Text style={tw`text-center text-[12px] font-semibold ${isIntra ? 'text-gray-500' : 'text-white'}`}>Bank transfer</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={tw`flex-1 py-2.5 rounded-xl ${isIntra ? 'bg-blue-600 shadow-sm' : ''}`}
+                activeOpacity={0.7}
+                onPress={() => { setIsIntra(true); setSelectedBank(null); setAccountName(''); setErrors({ bank: '', accountNumber: '', amount: '', pin: '' }); }}
+              >
+                <Text style={tw`text-center text-[12px] font-semibold ${isIntra ? 'text-white' : 'text-gray-500'}`}>WanPay transfer</Text>
+              </TouchableOpacity>
             </View>
 
             <View style={tw`mb-6`}>
               <Text style={tw`text-gray-500 text-[12px] font-semibold tracking-wider uppercase mb-3`}>Recipient</Text>
               <View style={tw`bg-white rounded-2xl p-4`}>
-                <TouchableOpacity
-                  activeOpacity={0.8}
-                  style={tw`flex-row items-center gap-3 mb-4`}
-                  onPress={() => setIsSelectingBank(true)}
-                >
-                  <View style={tw`w-11 h-11 rounded-xl bg-[${PRIMARY_COLOR}]/10 items-center justify-center`}>
-                    <Ionicons name="business-outline" size={20} color={PRIMARY_COLOR} />
-                  </View>
-                  <View style={tw`flex-1`}>
-                    <Text style={tw`text-gray-400 text-[11px] font-medium mb-0.5`}>Select bank</Text>
-                    <Text style={tw`${selectedBank ? `text-[${CHARCOAL}]` : 'text-gray-300'} text-[14px] font-medium`}>
-                      {selectedBank ? selectedBank.name : 'Choose a bank...'}
-                    </Text>
-                  </View>
-                  <Ionicons name="chevron-down" size={18} color="#9CA3AF" />
-                </TouchableOpacity>
-                {errors.bank ? <Text style={tw`text-red-500 text-[12px] mb-3 ml-[52px]`}>{errors.bank}</Text> : null}
-
-                <View style={tw`h-px bg-[${LIGHT_GRAY}] mb-4`} />
+                {!isIntra && (
+                  <>
+                    <TouchableOpacity
+                      activeOpacity={0.8}
+                      style={tw`flex-row items-center gap-3 mb-4`}
+                      onPress={() => setIsSelectingBank(true)}
+                    >
+                      <View style={tw`w-11 h-11 rounded-xl bg-[${PRIMARY_COLOR}]/10 items-center justify-center`}>
+                        <Ionicons name="business-outline" size={20} color={PRIMARY_COLOR} />
+                      </View>
+                      <View style={tw`flex-1`}>
+                        <Text style={tw`text-gray-400 text-[11px] font-medium mb-0.5`}>Select bank</Text>
+                        <Text style={tw`${selectedBank ? `text-[${CHARCOAL}]` : 'text-gray-300'} text-[14px] font-medium`}>
+                          {selectedBank ? selectedBank.name : 'Choose a bank...'}
+                        </Text>
+                      </View>
+                      <Ionicons name="chevron-down" size={18} color="#9CA3AF" />
+                    </TouchableOpacity>
+                    {errors.bank ? <Text style={tw`text-red-500 text-[12px] mb-3 ml-[52px]`}>{errors.bank}</Text> : null}
+                    <View style={tw`h-px bg-[${LIGHT_GRAY}] mb-4`} />
+                  </>
+                )}
 
                 <Input
                   label="Account number"
                   value={accountNumber}
                   onChangeText={handleAccountNumberChange}
-                  placeholder="Enter 10-digit account number"
+                  placeholder={isIntra ? "Enter WanPay account number" : "Enter 10-digit account number"}
                   keyboardType="number-pad"
                   maxLength={10}
                   error={errors.accountNumber}
@@ -384,6 +452,40 @@ export default function TransferScreen() {
             </View>
 
             <ScrollView style={tw`flex-1 px-4 pt-1 pb-6`} showsVerticalScrollIndicator={false}>
+              {beneficiaries.length > 0 && !bankSearch && (
+                <>
+                  <Text style={tw`text-gray-400 text-[11px] font-semibold uppercase tracking-wider px-1 pb-2 pt-1`}>Saved beneficiaries</Text>
+                  {beneficiaries.map((b, i) => {
+                    const match = banks.find(bk => bk.id === b.bankId);
+                    return (
+                      <TouchableOpacity
+                        key={b.id}
+                        style={tw`flex-row items-center gap-3 px-3 py-3.5 ${i !== beneficiaries.length - 1 ? `border-b border-[${LIGHT_GRAY}]` : ''} mb-1`}
+                        activeOpacity={0.7}
+                        onPress={() => {
+                          setSelectedBank(match || null);
+                          setAccountNumber(b.accountNumber);
+                          setAccountName(b.accountName);
+                          setBankSearch('');
+                          setIsSelectingBank(false);
+                          if (errors.bank) setErrors(p => ({ ...p, bank: '' }));
+                          if (match && b.accountNumber.length === 10) doValidateAccount(b.accountNumber, match);
+                        }}
+                      >
+                        <View style={tw`w-10 h-10 rounded-xl bg-emerald-100 items-center justify-center`}>
+                          <Ionicons name="people-outline" size={18} color="#059669" />
+                        </View>
+                        <View style={tw`flex-1`}>
+                          <Text style={tw`text-[${CHARCOAL}] text-[14px] font-medium`}>{b.accountName}</Text>
+                          <Text style={tw`text-gray-400 text-[11px]`}>{match?.name || 'Unknown'} · {b.accountNumber}</Text>
+                        </View>
+                        <Ionicons name="chevron-forward" size={16} color="#D1D5DB" />
+                      </TouchableOpacity>
+                    );
+                  })}
+                  <View style={tw`h-px bg-[${LIGHT_GRAY}] my-2`} />
+                </>
+              )}
               {filteredBanks.length === 0 ? (
                 <View style={tw`items-center py-14`}>
                   <Ionicons name="business-outline" size={40} color="#D1D5DB" />

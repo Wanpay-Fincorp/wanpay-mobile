@@ -34,19 +34,7 @@ export default function PersonalInformationScreen() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [refreshing, setRefreshing] = useState(false);
 
-  useFocusEffect(
-    useCallback(() => {
-      loadProfile();
-    }, [])
-  );
-
-  const onRefresh = async () => {
-    setRefreshing(true);
-    await loadProfile();
-    setRefreshing(false);
-  };
-
-  const loadProfile = async () => {
+  const loadProfile = useCallback(async () => {
     setFetching(true);
     try {
       const userData = await api.get<User>('/users/me').catch(() => user);
@@ -67,6 +55,16 @@ export default function PersonalInformationScreen() {
     } finally {
       setFetching(false);
     }
+  }, [user]);
+
+  useFocusEffect(
+    useCallback(() => { loadProfile(); }, [loadProfile])
+  );
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await loadProfile();
+    setRefreshing(false);
   };
 
   const validateForm = () => {

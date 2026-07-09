@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter, useFocusEffect } from 'expo-router';
 import React, { useState, useCallback } from 'react';
-import { Alert, SafeAreaView, Text, TouchableOpacity, View, ActivityIndicator } from 'react-native';
+import { SafeAreaView, Text, TouchableOpacity, View, ActivityIndicator } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import tw from 'twrnc';
 import { LIGHT_GRAY } from '@/constants/customConstants';
@@ -22,7 +22,8 @@ const menuItems = [
   { id: 3, title: 'Transaction limits',   icon: 'wallet-outline',        subtitle: 'Daily and monthly limits',  route: '/profile/transaction-limits' },
   { id: 4, title: 'Notifications',        icon: 'notifications-outline', subtitle: 'Email and push alerts',     route: '/profile/notifications' },
   { id: 5, title: 'BVN Verification',     icon: 'finger-print-outline',  subtitle: 'Verify identity, upgrade tier', route: '/profile/bvn-verification' },
-  { id: 6, title: 'Help & support',       icon: 'help-circle-outline',   subtitle: 'FAQs, contact support',     route: '/profile/help-support' },
+  { id: 6, title: 'Statements',           icon: 'document-text-outline', subtitle: 'Download account statements', route: '/profile/statements' },
+  { id: 7, title: 'Help & support',       icon: 'help-circle-outline',   subtitle: 'FAQs, contact support',     route: '/profile/help-support' },
 ];
 
 export default function ProfileScreen() {

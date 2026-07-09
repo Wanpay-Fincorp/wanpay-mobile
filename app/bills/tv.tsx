@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   ActivityIndicator, Alert, FlatList, KeyboardAvoidingView, Modal,
   Platform, SafeAreaView, Text, TextInput, TouchableOpacity, View,
@@ -11,15 +11,15 @@ import { api } from '@/lib/api';
 import RefreshableScrollView from '@/components/RefreshableScrollView';
 import Button from '@/components/ui/Button';
 import { PRIMARY_COLOR, CHARCOAL, LIGHT_GRAY, SUCCESS_GREEN } from '@/constants/customConstants';
+import type { BillPlan } from '@/lib/types';
 
 interface TVProvider { id: string; name: string; color: string; }
-interface Package { id: string; name: string; price: number; validity: string; }
 
 export default function TVSubscriptionScreen() {
   const router = useRouter();
   const [selectedProvider, setSelectedProvider] = useState<TVProvider | null>(null);
   const [smartCardNumber, setSmartCardNumber] = useState('');
-  const [selectedPackage, setSelectedPackage] = useState<Package | null>(null);
+  const [selectedPackage, setSelectedPackage] = useState<BillPlan | null>(null);
   const [showPackages, setShowPackages] = useState(false);
   const [customerName, setCustomerName] = useState('');
   const [isValidating, setIsValidating] = useState(false);
@@ -27,6 +27,8 @@ export default function TVSubscriptionScreen() {
   const [showPin, setShowPin] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState({ provider: '', card: '', package: '', pin: '' });
+  const [tvPlans, setTvPlans] = useState<BillPlan[]>([]);
+  const [loadingPlans, setLoadingPlans] = useState(false);
 
   const tvProviders: TVProvider[] = [
     { id: 'dstv',     name: 'DSTV',     color: '#0033A0' },
@@ -35,12 +37,17 @@ export default function TVSubscriptionScreen() {
     { id: 'showmax',  name: 'Showmax',  color: '#E50914' },
   ];
 
-  const packages: Record<string, Package[]> = {
-    dstv:      [{ id:'1',name:'DSTV Padi',price:2500,validity:'1 Month'},{ id:'2',name:'DSTV Yanga',price:3500,validity:'1 Month'},{ id:'3',name:'DSTV Confam',price:6200,validity:'1 Month'},{ id:'4',name:'DSTV Compact',price:10500,validity:'1 Month'},{ id:'5',name:'DSTV Compact Plus',price:16600,validity:'1 Month'},{ id:'6',name:'DSTV Premium',price:24500,validity:'1 Month'}],
-    gotv:      [{ id:'1',name:'GOtv Smallie',price:1300,validity:'1 Month'},{ id:'2',name:'GOtv Jinja',price:2250,validity:'1 Month'},{ id:'3',name:'GOtv Jolli',price:3300,validity:'1 Month'},{ id:'4',name:'GOtv Max',price:4850,validity:'1 Month'},{ id:'5',name:'GOtv Supa',price:6400,validity:'1 Month'}],
-    startimes: [{ id:'1',name:'Nova',price:1200,validity:'1 Month'},{ id:'2',name:'Basic',price:2100,validity:'1 Month'},{ id:'3',name:'Smart',price:2800,validity:'1 Month'},{ id:'4',name:'Classic',price:3500,validity:'1 Month'},{ id:'5',name:'Super',price:5500,validity:'1 Month'}],
-    showmax:   [{ id:'1',name:'Showmax Pro',price:4200,validity:'1 Month'},{ id:'2',name:'Showmax Mobile',price:1200,validity:'1 Month'}],
-  };
+  const fetchPlans = useCallback(async (providerCode: string) => {
+    setLoadingPlans(true);
+    try {
+      const plans = await api.get<BillPlan[]>(`/bills/plans?providerCode=${providerCode}`);
+      if (Array.isArray(plans)) setTvPlans(plans);
+    } catch {
+      setTvPlans([]);
+    } finally {
+      setLoadingPlans(false);
+    }
+  }, []);
 
   const handleCardChange = (text: string) => {
     const numeric = text.replace(/[^0-9]/g, '');
@@ -86,7 +93,7 @@ export default function TVSubscriptionScreen() {
         category: 'tv',
         providerCode: selectedProvider!.id,
         recipient: smartCardNumber,
-        amount: selectedPackage!.price,
+        amount: Number(selectedPackage!.price),
         planId: selectedPackage!.id,
         pin,
       });
@@ -98,7 +105,6 @@ export default function TVSubscriptionScreen() {
   };
 
   const isDisabled = isSubmitting || !selectedProvider || smartCardNumber.length < 10 || !selectedPackage || pin.length !== 4;
-  const providerPlans = selectedProvider ? packages[selectedProvider.id] : [];
 
   return (
     <SafeAreaView style={tw`flex-1 bg-[${LIGHT_GRAY}]`}>
@@ -130,7 +136,7 @@ export default function TVSubscriptionScreen() {
                           ? { borderColor: `${provider.color}60`, backgroundColor: `${provider.color}18` }
                           : tw`border-gray-200 bg-[${LIGHT_GRAY}]`,
                       ]}
-                      onPress={() => { setSelectedProvider(provider); setSelectedPackage(null); if (errors.provider) setErrors(p => ({ ...p, provider: '' })); }}
+                      onPress={() => { setSelectedProvider(provider); setSelectedPackage(null); setTvPlans([]); fetchPlans(provider.id); if (errors.provider) setErrors(p => ({ ...p, provider: '' })); }}
                       activeOpacity={0.75}
                     >
                       <View style={[tw`w-10 h-10 rounded-xl items-center justify-center mb-2`, { backgroundColor: `${provider.color}20` }]}>
@@ -174,19 +180,24 @@ export default function TVSubscriptionScreen() {
             </View>
           </View>
 
-          {selectedProvider && providerPlans.length > 0 && (
+          {selectedProvider && (
             <View style={tw`mb-6`}>
               <Text style={tw`text-gray-500 text-[12px] font-semibold tracking-wider uppercase mb-3`}>Package</Text>
               <View style={tw`bg-white rounded-2xl p-4`}>
                 <TouchableOpacity
                   style={tw`bg-[${LIGHT_GRAY}] rounded-xl px-4 h-[56px] flex-row justify-between items-center ${errors.package ? 'border border-red-500' : ''}`}
-                  onPress={() => setShowPackages(true)}
+                  onPress={() => { if (tvPlans.length > 0) setShowPackages(true); }}
                   activeOpacity={0.75}
                 >
-                  {selectedPackage ? (
+                  {loadingPlans ? (
+                    <View style={tw`flex-row items-center gap-2`}>
+                      <ActivityIndicator size="small" color="#9CA3AF" />
+                      <Text style={tw`text-gray-400 text-[14px]`}>Loading packages...</Text>
+                    </View>
+                  ) : selectedPackage ? (
                     <View>
                       <Text style={tw`text-[${CHARCOAL}] text-[14px] font-semibold`}>{selectedPackage.name}</Text>
-                      <Text style={tw`text-gray-400 text-[11px]`}>{selectedPackage.validity} · ₦{selectedPackage.price.toLocaleString()}</Text>
+                      <Text style={tw`text-gray-400 text-[11px]`}>{selectedPackage.validity ? `${selectedPackage.validity} · ` : ''}₦{Number(selectedPackage.price).toLocaleString()}</Text>
                     </View>
                   ) : (
                     <Text style={tw`text-gray-400 text-[14px]`}>Choose a package</Text>
@@ -240,23 +251,30 @@ export default function TVSubscriptionScreen() {
                 <Ionicons name="close" size={22} color="#6B7280" />
               </TouchableOpacity>
             </View>
-            <FlatList
-              data={providerPlans}
-              keyExtractor={item => item.id}
-              renderItem={({ item }) => (
-                <TouchableOpacity
-                  style={tw`px-5 py-4 border-b border-[${LIGHT_GRAY}] flex-row justify-between items-center`}
-                  onPress={() => { setSelectedPackage(item); setShowPackages(false); if (errors.package) setErrors(p => ({ ...p, package: '' })); }}
-                  activeOpacity={0.75}
-                >
-                  <View>
-                    <Text style={tw`text-[${CHARCOAL}] font-bold text-[14px]`}>{item.name}</Text>
-                    <Text style={tw`text-gray-400 text-[12px] mt-0.5`}>{item.validity}</Text>
-                  </View>
-                  <Text style={tw`text-[${PRIMARY_COLOR}] font-bold text-[15px]`}>₦{item.price.toLocaleString()}</Text>
-                </TouchableOpacity>
-              )}
-            />
+            {loadingPlans ? (
+              <View style={tw`items-center py-16`}>
+                <ActivityIndicator size="large" color={PRIMARY_COLOR} />
+                <Text style={tw`text-gray-400 text-[13px] mt-3`}>Loading packages...</Text>
+              </View>
+            ) : (
+              <FlatList
+                data={tvPlans}
+                keyExtractor={item => item.id}
+                renderItem={({ item }) => (
+                  <TouchableOpacity
+                    style={tw`px-5 py-4 border-b border-[${LIGHT_GRAY}] flex-row justify-between items-center`}
+                    onPress={() => { setSelectedPackage(item); setShowPackages(false); if (errors.package) setErrors(p => ({ ...p, package: '' })); }}
+                    activeOpacity={0.75}
+                  >
+                    <View>
+                      <Text style={tw`text-[${CHARCOAL}] font-bold text-[14px]`}>{item.name}</Text>
+                      <Text style={tw`text-gray-400 text-[12px] mt-0.5`}>{item.validity || 'N/A'}</Text>
+                    </View>
+                    <Text style={tw`text-[${PRIMARY_COLOR}] font-bold text-[15px]`}>₦{Number(item.price).toLocaleString()}</Text>
+                  </TouchableOpacity>
+                )}
+              />
+            )}
           </TouchableOpacity>
         </TouchableOpacity>
       </Modal>

@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react';
-import { View, Text, TouchableOpacity, SafeAreaView, ActivityIndicator, Modal, Animated } from 'react-native';
+import { View, Text, TouchableOpacity, SafeAreaView, ActivityIndicator, Modal, Animated, Alert } from 'react-native';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { StatusBar } from 'expo-status-bar';
@@ -41,12 +41,18 @@ function DetailRow({ label, value, isMono }: { label: string; value: string; isM
   );
 }
 
+const PAGE_SIZE = 20;
+
 export default function HistoryScreen() {
   const router = useRouter();
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [selectedTxn, setSelectedTxn] = useState<Transaction | null>(null);
+  const [reversing, setReversing] = useState(false);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
   const slideAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
@@ -58,22 +64,40 @@ export default function HistoryScreen() {
 
   useFocusEffect(
     useCallback(() => {
-      loadTransactions();
+      loadTransactions(1, true);
     }, [])
   );
 
-  const loadTransactions = async () => {
+  const loadTransactions = async (p = 1, reset = false) => {
+    if (reset) { setPage(1); setTransactions([]); }
     try {
-      const data = await api.get<Transaction[]>('/transactions?limit=50');
-      if (Array.isArray(data)) setTransactions(data);
+      const data = await api.get<Transaction[]>(`/transactions?page=${p}&limit=${PAGE_SIZE}`);
+      if (Array.isArray(data)) {
+        if (reset) {
+          setTransactions(data);
+        } else {
+          setTransactions(prev => [...prev, ...data]);
+        }
+        if (data.length < PAGE_SIZE) setHasMore(false);
+        else setHasMore(true);
+      }
     } catch {}
-    setLoading(false);
+    if (reset) setLoading(false);
   };
 
   const onRefresh = async () => {
     setRefreshing(true);
-    await loadTransactions();
+    await loadTransactions(1, true);
     setRefreshing(false);
+  };
+
+  const handleLoadMore = async () => {
+    if (loadingMore || !hasMore) return;
+    setLoadingMore(true);
+    const nextPage = page + 1;
+    setPage(nextPage);
+    await loadTransactions(nextPage);
+    setLoadingMore(false);
   };
 
   return (
@@ -115,6 +139,20 @@ export default function HistoryScreen() {
                   {i < transactions.length - 1 && <View style={tw`h-px bg-[${LIGHT_GRAY}] mx-5`} />}
                 </View>
               ))}
+              {hasMore && (
+                <TouchableOpacity
+                  style={tw`py-4 items-center`}
+                  onPress={handleLoadMore}
+                  disabled={loadingMore}
+                  activeOpacity={0.7}
+                >
+                  {loadingMore ? (
+                    <ActivityIndicator size="small" color={PRIMARY_COLOR} />
+                  ) : (
+                    <Text style={tw`text-[${PRIMARY_COLOR}] text-[13px] font-semibold`}>Load more</Text>
+                  )}
+                </TouchableOpacity>
+              )}
             </View>
           )}
         </RefreshableScrollView>
@@ -161,7 +199,32 @@ export default function HistoryScreen() {
                       </View>
                     </View>
 
-                    <View style={tw`px-6 pb-8`}>
+                    <View style={tw`px-6 pb-8 gap-3`}>
+                      {txn.type === 'SENT' && (txn.status === 'COMPLETED' || txn.status === 'PENDING') && (
+                        <TouchableOpacity
+                          style={tw`bg-red-50 border border-red-200 rounded-2xl h-[50px] items-center justify-center flex-row gap-2 ${reversing ? 'opacity-60' : ''}`}
+                          activeOpacity={0.85}
+                          disabled={reversing}
+                          onPress={async () => {
+                            setReversing(true);
+                            try {
+                              await api.post('/transfers/reverse', { reference: txn.reference });
+                              Alert.alert('Reversal initiated', 'Your transfer reversal has been submitted.');
+                              setSelectedTxn(null);
+                              loadTransactions();
+                            } catch (err: any) {
+                              Alert.alert('Reversal failed', err?.message || 'Unable to reverse this transfer.');
+                            } finally { setReversing(false); }
+                          }}
+                        >
+                          {reversing ? (
+                            <ActivityIndicator size="small" color="#DC2626" />
+                          ) : (
+                            <Ionicons name="refresh-outline" size={18} color="#DC2626" />
+                          )}
+                          <Text style={tw`text-red-600 font-semibold text-[14px]`}>{reversing ? 'Reversing...' : 'Reverse transfer'}</Text>
+                        </TouchableOpacity>
+                      )}
                       <TouchableOpacity
                         style={tw`bg-[${LIGHT_GRAY}] rounded-2xl h-[50px] items-center justify-center`}
                         activeOpacity={0.85}

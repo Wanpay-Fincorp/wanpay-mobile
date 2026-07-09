@@ -1,8 +1,8 @@
 import { CHARCOAL, LIGHT_GRAY, PRIMARY_COLOR, SUCCESS_GREEN } from '@/constants/customConstants';
 import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
+import { useRouter, useFocusEffect } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   ActivityIndicator, Alert, FlatList, KeyboardAvoidingView, Modal,
   Platform, SafeAreaView, Text, TextInput, TouchableOpacity, View,
@@ -11,12 +11,13 @@ import tw from 'twrnc';
 import { api } from '@/lib/api';
 import RefreshableScrollView from '@/components/RefreshableScrollView';
 import Button from '@/components/ui/Button';
-
-interface DiscoProvider { id: string; name: string; shortName: string; }
+import type { BillProvider } from '@/lib/types';
 
 export default function ElectricityScreen() {
   const router = useRouter();
-  const [selectedDisco, setSelectedDisco] = useState<DiscoProvider | null>(null);
+  const [selectedDisco, setSelectedDisco] = useState<BillProvider | null>(null);
+  const [discoProviders, setDiscoProviders] = useState<BillProvider[]>([]);
+  const [loadingProviders, setLoadingProviders] = useState(true);
   const [meterNumber, setMeterNumber] = useState('');
   const [meterType, setMeterType] = useState<'prepaid' | 'postpaid'>('prepaid');
   const [amount, setAmount] = useState('');
@@ -28,14 +29,23 @@ export default function ElectricityScreen() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState({ disco: '', meter: '', amount: '', pin: '' });
 
-  const discoProviders: DiscoProvider[] = [
-    { id: 'ekedc', name: 'Eko Electricity Distribution Company',    shortName: 'EKEDC' },
-    { id: 'ikedc', name: 'Ikeja Electric',                         shortName: 'IKEDC' },
-    { id: 'aedc',  name: 'Abuja Electricity Distribution Company', shortName: 'AEDC'  },
-    { id: 'phed',  name: 'Port Harcourt Electricity Distribution', shortName: 'PHED'  },
-    { id: 'ibedc', name: 'Ibadan Electricity Distribution Company',shortName: 'IBEDC' },
-    { id: 'kedco', name: 'Kano Electricity Distribution Company',  shortName: 'KEDCO' },
-  ];
+  const fetchProviders = useCallback(async () => {
+    setLoadingProviders(true);
+    try {
+      const data = await api.get<BillProvider[]>('/bills/providers?category=electricity');
+      if (Array.isArray(data)) setDiscoProviders(data);
+    } catch {
+      setDiscoProviders([]);
+    } finally {
+      setLoadingProviders(false);
+    }
+  }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      fetchProviders();
+    }, [fetchProviders])
+  );
 
   const quickAmounts = [1000, 2000, 5000, 10000, 20000];
 
@@ -121,22 +131,27 @@ export default function ElectricityScreen() {
           <View style={tw`mb-5`}>
             <Text style={tw`text-gray-500 text-[12px] font-semibold tracking-wider uppercase mb-3`}>Select disco</Text>
             <View style={tw`bg-white rounded-2xl p-4`}>
-              <TouchableOpacity
-                onPress={() => setShowDiscos(true)}
-                activeOpacity={0.75}
-              >
-                <View style={tw`flex-row items-center justify-between`}>
-                  {selectedDisco ? (
-                    <View>
-                      <Text style={tw`text-gray-900 text-[14px] font-semibold`}>{selectedDisco.shortName}</Text>
-                      <Text style={tw`text-gray-400 text-[11px]`}>{selectedDisco.name}</Text>
-                    </View>
-                  ) : (
-                    <Text style={tw`text-gray-400 text-[14px]`}>Choose your electricity provider</Text>
-                  )}
-                  <Ionicons name="chevron-down" size={18} color="#D1D5DB" />
-                </View>
-              </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={() => setShowDiscos(true)}
+                  activeOpacity={0.75}
+                >
+                  <View style={tw`flex-row items-center justify-between`}>
+                    {loadingProviders ? (
+                      <View style={tw`flex-row items-center gap-2`}>
+                        <ActivityIndicator size="small" color="#9CA3AF" />
+                        <Text style={tw`text-gray-400 text-[14px]`}>Loading providers...</Text>
+                      </View>
+                    ) : selectedDisco ? (
+                      <View>
+                        <Text style={tw`text-gray-900 text-[14px] font-semibold`}>{selectedDisco.code || selectedDisco.name}</Text>
+                        <Text style={tw`text-gray-400 text-[11px]`}>{selectedDisco.name}</Text>
+                      </View>
+                    ) : (
+                      <Text style={tw`text-gray-400 text-[14px]`}>Choose your electricity provider</Text>
+                    )}
+                    <Ionicons name="chevron-down" size={18} color="#D1D5DB" />
+                  </View>
+                </TouchableOpacity>
             </View>
             {errors.disco ? <Text style={tw`text-red-500 text-[12px] mt-1.5 ml-1`}>{errors.disco}</Text> : null}
           </View>
@@ -262,20 +277,27 @@ export default function ElectricityScreen() {
                 <Ionicons name="close" size={18} color={CHARCOAL} />
               </TouchableOpacity>
             </View>
-            <FlatList
-              data={discoProviders}
-              keyExtractor={item => item.id}
-              renderItem={({ item }) => (
-                <TouchableOpacity
-                  style={tw`px-5 py-4 border-b border-gray-200`}
-                  onPress={() => { setSelectedDisco(item); setShowDiscos(false); if (errors.disco) setErrors(p => ({ ...p, disco: '' })); }}
-                  activeOpacity={0.75}
-                >
-                  <Text style={tw`text-gray-900 font-bold text-[14px]`}>{item.shortName}</Text>
-                  <Text style={tw`text-gray-400 text-[12px] mt-0.5`}>{item.name}</Text>
-                </TouchableOpacity>
-              )}
-            />
+            {loadingProviders && discoProviders.length === 0 ? (
+              <View style={tw`items-center py-16`}>
+                <ActivityIndicator size="large" color={PRIMARY_COLOR} />
+                <Text style={tw`text-gray-400 text-[13px] mt-3`}>Loading providers...</Text>
+              </View>
+            ) : (
+              <FlatList
+                data={discoProviders}
+                keyExtractor={item => item.id}
+                renderItem={({ item }) => (
+                  <TouchableOpacity
+                    style={tw`px-5 py-4 border-b border-gray-200`}
+                    onPress={() => { setSelectedDisco(item); setShowDiscos(false); if (errors.disco) setErrors(p => ({ ...p, disco: '' })); }}
+                    activeOpacity={0.75}
+                  >
+                    <Text style={tw`text-gray-900 font-bold text-[14px]`}>{item.code || item.name}</Text>
+                    <Text style={tw`text-gray-400 text-[12px] mt-0.5`}>{item.name}</Text>
+                  </TouchableOpacity>
+                )}
+              />
+            )}
           </View>
         </View>
       </Modal>
