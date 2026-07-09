@@ -1,6 +1,6 @@
 import { DARK_BG } from "@/constants/customConstants";
 import { Ionicons } from "@expo/vector-icons";
-import { useRouter } from "expo-router";
+
 import { StatusBar } from "expo-status-bar";
 import React, { useMemo, useState } from "react";
 import {
@@ -534,7 +534,6 @@ const BUSINESS_AIDS_RESOURCES: GrowthResourceSection[] = [
  * ────────────────────────────────────────────────────────────────────── */
 
 export default function GrowthHubScreen() {
-  const router = useRouter();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<
     GrantCategoryId | "all"

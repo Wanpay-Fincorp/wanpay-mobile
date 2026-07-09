@@ -10,6 +10,8 @@ const PROD_API = 'https://www.joinwanpay.app/api/v1';
 const API_BASE = process.env.EXPO_PUBLIC_API_URL || (__DEV__ ? DEV_API : PROD_API);
 
 let cachedToken: string | null = null;
+let isRefreshing = false;
+let refreshPromise: Promise<boolean> | null = null;
 
 function generateUUID(): string {
   return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
@@ -34,6 +36,10 @@ export async function getToken(): Promise<string | null> {
   return token;
 }
 
+export async function getRefreshToken(): Promise<string | null> {
+  return SecureStore.getItemAsync(REFRESH_KEY);
+}
+
 export async function setToken(token: string, refreshToken?: string) {
   cachedToken = token;
   await SecureStore.setItemAsync(TOKEN_KEY, token);
@@ -47,6 +53,36 @@ export async function removeToken() {
   await SecureStore.deleteItemAsync(TOKEN_KEY);
   await SecureStore.deleteItemAsync(REFRESH_KEY);
   await SecureStore.deleteItemAsync(USER_KEY);
+}
+
+async function refreshAccessToken(): Promise<boolean> {
+  try {
+    const refreshToken = await getRefreshToken();
+    if (!refreshToken) return false;
+
+    const deviceId = await getDeviceId();
+    const res = await fetch(`${API_BASE}/auth/token/refresh`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-device-id': deviceId },
+      body: JSON.stringify({ refreshToken }),
+    });
+
+    if (!res.ok) {
+      await removeToken();
+      return false;
+    }
+
+    const json = await res.json();
+    if (!json.success) {
+      await removeToken();
+      return false;
+    }
+
+    await setToken(json.data.token, json.data.refreshToken);
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 export async function saveUser(user: any) {
@@ -78,6 +114,16 @@ class ApiError extends Error {
   }
 }
 
+async function tryRefresh(): Promise<boolean> {
+  if (isRefreshing && refreshPromise) return refreshPromise;
+  isRefreshing = true;
+  refreshPromise = refreshAccessToken().finally(() => {
+    isRefreshing = false;
+    refreshPromise = null;
+  });
+  return refreshPromise;
+}
+
 async function request<T>(
   method: string,
   path: string,
@@ -101,12 +147,24 @@ async function request<T>(
 
   const url = `${API_BASE}${path}`;
 
-
-  const res = await fetch(url, {
+  let res = await fetch(url, {
     method,
     headers,
     body: body ? JSON.stringify(body) : undefined,
   });
+
+  if (res.status === 401 && authenticated) {
+    const refreshed = await tryRefresh();
+    if (refreshed) {
+      const newToken = await getToken();
+      headers['Authorization'] = `Bearer ${newToken}`;
+      res = await fetch(url, {
+        method,
+        headers,
+        body: body ? JSON.stringify(body) : undefined,
+      });
+    }
+  }
 
   const json: ApiResponse<T> = await res.json();
 

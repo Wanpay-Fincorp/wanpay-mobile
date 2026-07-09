@@ -2,6 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter, useFocusEffect } from 'expo-router';
 import React, { useState, useCallback } from 'react';
 import { ActivityIndicator, Alert, SafeAreaView, Text, TouchableOpacity, View } from 'react-native';
+import * as WebBrowser from 'expo-web-browser';
 import tw from 'twrnc';
 import { LIGHT_GRAY } from '@/constants/customConstants';
 import { api } from '@/lib/api';
@@ -65,6 +66,18 @@ export default function ManageCardsScreen() {
     ]);
   };
 
+  const handleAddCard = async () => {
+    try {
+      const res = await api.post<{ authorizationUrl: string }>('/cards', {});
+      if (res?.authorizationUrl) {
+        await WebBrowser.openBrowserAsync(res.authorizationUrl);
+        await loadCards();
+      }
+    } catch (err: any) {
+      Alert.alert('Error', err?.message || 'Failed to initiate card addition.');
+    }
+  };
+
   const getCardTypeIcon = (type?: string) => {
     switch (type?.toLowerCase()) {
       case 'visa': return 'card';
@@ -86,7 +99,7 @@ export default function ManageCardsScreen() {
               <Text style={tw`text-xs text-gray-500`}>View and manage your cards</Text>
             </View>
           </View>
-          <TouchableOpacity style={tw`bg-blue-600 w-9 h-9 rounded-full items-center justify-center`} onPress={() => Alert.alert('Add Card', 'Adding a new card coming soon.')} activeOpacity={0.7}>
+          <TouchableOpacity style={tw`bg-blue-600 w-9 h-9 rounded-full items-center justify-center`} onPress={handleAddCard} activeOpacity={0.7}>
             <Ionicons name="add" size={22} color="#fff" />
           </TouchableOpacity>
         </View>
@@ -102,7 +115,7 @@ export default function ManageCardsScreen() {
             <Ionicons name="card-outline" size={64} color="#D1D5DB" />
             <Text style={tw`text-gray-700 text-lg mt-4`}>No cards found</Text>
             <Text style={tw`text-gray-500 text-sm mt-2`}>Add a card to get started</Text>
-            <TouchableOpacity style={tw`bg-blue-600 px-6 py-3 rounded-xl mt-6`} onPress={() => Alert.alert('Add Card', 'Adding a new card coming soon.')} activeOpacity={0.8}>
+            <TouchableOpacity style={tw`bg-blue-600 px-6 py-3 rounded-xl mt-6`} onPress={handleAddCard} activeOpacity={0.8}>
               <Text style={tw`text-white font-bold`}>Add Card</Text>
             </TouchableOpacity>
           </View>

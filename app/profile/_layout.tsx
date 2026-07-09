@@ -10,6 +10,7 @@ export default function ProfileLayout() {
       <Stack.Screen name="notifications" options={{ headerShown: false }} />
       <Stack.Screen name="help-support" options={{ headerShown: false }} />
       <Stack.Screen name="increase-limits" options={{ headerShown: false }} />
+      <Stack.Screen name="statements" options={{ headerShown: false }} />
       <Stack.Screen name="manage-cards" options={{ headerShown: false }} />
     </Stack>
   );

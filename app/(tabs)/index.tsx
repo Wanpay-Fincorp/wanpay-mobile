@@ -1,8 +1,8 @@
-import { DARK_BG } from '@/constants/customConstants';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter, useFocusEffect } from 'expo-router';
+import * as WebBrowser from 'expo-web-browser';
 import React, { useState, useCallback } from 'react';
-import { Alert, SafeAreaView, StatusBar, Text, TouchableOpacity, View, ActivityIndicator, TextInput, Modal, KeyboardAvoidingView, Platform } from 'react-native';
+import { Alert, SafeAreaView, StatusBar, Text, TouchableOpacity, View, ActivityIndicator, TextInput, Modal, KeyboardAvoidingView, Platform, Share } from 'react-native';
 import tw from 'twrnc';
 import { api } from '@/lib/api';
 import { useAuth } from '@/contexts/AuthContext';
@@ -49,6 +49,7 @@ export default function HomeScreen() {
   const [showAddMoney, setShowAddMoney] = useState(false);
   const [addAmount, setAddAmount] = useState('');
   const [adding, setAdding] = useState(false);
+  const [showReceive, setShowReceive] = useState(false);
 
   const handleAddMoney = async () => {
     const amount = parseFloat(addAmount);
@@ -56,15 +57,23 @@ export default function HomeScreen() {
       Alert.alert('Invalid amount', 'Please enter a valid amount');
       return;
     }
+    const email = user?.email;
+    if (!email) {
+      Alert.alert('Email required', 'Please set your email in profile before funding your wallet.');
+      setShowAddMoney(false);
+      return;
+    }
     setAdding(true);
     try {
-      const res: any = await api.post('/wallet/credit', { amount });
-      Alert.alert('Success', res.message || `₦${amount.toLocaleString()} added successfully`);
+      const res = await api.post<{ authorizationUrl: string; reference: string }>('/wallet/fund', { email, amount });
       setShowAddMoney(false);
       setAddAmount('');
-      await loadData();
+      const result = await WebBrowser.openBrowserAsync(res.authorizationUrl);
+      if (result.type === 'success' || result.type === 'dismiss') {
+        await loadData();
+      }
     } catch (err: any) {
-      Alert.alert('Error', err?.message || 'Failed to add money');
+      Alert.alert('Error', err?.message || 'Failed to initiate payment');
     } finally {
       setAdding(false);
     }
@@ -148,7 +157,7 @@ export default function HomeScreen() {
                   key={action.id}
                   style={tw`flex-1 items-center gap-2`}
                   activeOpacity={0.75}
-                  onPress={() => action.id === 'receive' ? Alert.alert('Receive Money', 'Receiving money into your account will be available soon.') : router.push(`/(tabs)/${action.screen}` as any)}
+                  onPress={() => action.id === 'receive' ? setShowReceive(true) : router.push(`/(tabs)/${action.screen}` as any)}
                 >
                   <View style={tw`w-14 h-14 rounded-2xl items-center justify-center ${isGrowth ? 'bg-violet-100 border border-violet-200' : 'bg-blue-100 border border-blue-200'}`}>
                     <Ionicons name={action.icon as any} size={22} color={isGrowth ? '#7c3aed' : '#2563eb'} />
@@ -232,6 +241,55 @@ export default function HomeScreen() {
             </TouchableOpacity>
           </View>
         </KeyboardAvoidingView>
+      </Modal>
+      <Modal visible={showReceive} transparent animationType="slide" onRequestClose={() => setShowReceive(false)}>
+        <TouchableOpacity style={tw`flex-1 bg-black/40 justify-end`} activeOpacity={1} onPress={() => setShowReceive(false)}>
+          <TouchableOpacity activeOpacity={1} onPress={() => {}} style={tw`bg-white rounded-t-3xl p-6 pb-10`}>
+            <View style={tw`items-center mb-2`}>
+              <View style={tw`w-10 h-1 bg-gray-300 rounded-full mb-6`} />
+              <View style={tw`w-16 h-16 rounded-2xl bg-green-100 items-center justify-center mb-4`}>
+                <Ionicons name="arrow-down-outline" size={28} color="#16A34A" />
+              </View>
+              <Text style={tw`text-gray-900 text-xl font-bold`}>Receive Money</Text>
+              <Text style={tw`text-gray-500 text-[13px] mt-1 mb-6 text-center`}>
+                Share your account details below to receive money
+              </Text>
+            </View>
+
+            <View style={tw`bg-gray-50 border border-gray-200 rounded-2xl p-5 mb-6`}>
+              <Text style={tw`text-gray-400 text-[11px] font-semibold uppercase tracking-wider mb-2`}>Account Number</Text>
+              <Text style={tw`text-gray-900 text-[28px] font-bold tracking-wider text-center mb-4`}>
+                {wallet?.accountNumber || 'N/A'}
+              </Text>
+              <View style={tw`h-px bg-gray-200 mb-4`} />
+              <Text style={tw`text-gray-400 text-[11px] font-semibold uppercase tracking-wider mb-2`}>Account Name</Text>
+              <Text style={tw`text-gray-900 text-[16px] font-semibold text-center`}>
+                {getName()}
+              </Text>
+              <View style={tw`h-px bg-gray-200 my-4`} />
+              <Text style={tw`text-gray-400 text-[11px] font-semibold uppercase tracking-wider mb-2`}>Bank</Text>
+              <Text style={tw`text-gray-900 text-[16px] font-semibold text-center`}>
+                WanPay Microfinance Bank
+              </Text>
+            </View>
+
+            <TouchableOpacity
+              style={tw`bg-blue-600 rounded-xl py-4 items-center flex-row justify-center gap-2`}
+              activeOpacity={0.85}
+              onPress={async () => {
+                try {
+                  await Share.share({
+                    message: `Bank: WanPay Microfinance Bank\nAccount Name: ${getName()}\nAccount Number: ${wallet?.accountNumber || 'N/A'}`,
+                    title: 'My WanPay Account Details',
+                  });
+                } catch {}
+              }}
+            >
+              <Ionicons name="share-outline" size={18} color="white" />
+              <Text style={tw`text-white font-semibold text-base`}>Share Account Details</Text>
+            </TouchableOpacity>
+          </TouchableOpacity>
+        </TouchableOpacity>
       </Modal>
     </SafeAreaView>
   );

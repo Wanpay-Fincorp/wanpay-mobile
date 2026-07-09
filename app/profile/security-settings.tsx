@@ -1,15 +1,15 @@
 import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
-import React, { useEffect, useState } from 'react';
-import { Alert, SafeAreaView, Switch, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { useRouter, useFocusEffect } from 'expo-router';
+import React, { useEffect, useState, useCallback } from 'react';
+import { ActivityIndicator, Alert, SafeAreaView, Switch, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import * as SecureStore from 'expo-secure-store';
+import * as LocalAuthentication from 'expo-local-authentication';
 import tw from 'twrnc';
 import { LIGHT_GRAY } from '@/constants/customConstants';
 import { api } from '@/lib/api';
 import RefreshableScrollView from '@/components/RefreshableScrollView';
 
 const BIOMETRIC_KEY = 'wanpay_biometric_enabled';
-const TWO_FACTOR_KEY = 'wanpay_2fa_enabled';
 
 export default function SecuritySettingsScreen() {
   const router = useRouter();
@@ -20,6 +20,9 @@ export default function SecuritySettingsScreen() {
 
   const [pinData, setPinData] = useState({ currentPin: '', newPin: '', confirmPin: '' });
   const [changingPin, setChangingPin] = useState(false);
+  const [isFrozen, setIsFrozen] = useState(false);
+  const [freezeLoading, setFreezeLoading] = useState(true);
+  const [freezeToggling, setFreezeToggling] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -28,22 +31,85 @@ export default function SecuritySettingsScreen() {
     })();
   }, []);
 
-  const handleBiometricToggle = async (value: boolean) => {
+  useFocusEffect(
+    useCallback(() => {
+      checkFreezeStatus();
+    }, [])
+  );
+
+  const checkFreezeStatus = async () => {
+    setFreezeLoading(true);
+    try {
+      const res = await api.get<{ isFrozen: boolean }>('/restrictions/freeze');
+      setIsFrozen(res?.isFrozen ?? false);
+    } catch { setIsFrozen(false); }
+    finally { setFreezeLoading(false); }
+  };
+
+  const handleFreezeToggle = async (value: boolean) => {
     if (value) {
       Alert.alert(
-        'Biometric Authentication',
-        'Enable biometric authentication to skip PIN entry when logging in.\n\nYou can configure this in your device settings.',
+        'Freeze Account',
+        'Freezing your account will temporarily disable all transactions including transfers, bill payments, and withdrawals. You can unfreeze at any time.\n\nAre you sure?',
         [
-          { text: 'Cancel', style: 'cancel', onPress: () => {} },
+          { text: 'Cancel', style: 'cancel' },
           {
-            text: 'Enable',
-            onPress: async () => {
-              await SecureStore.setItemAsync(BIOMETRIC_KEY, 'true');
-              setBiometricEnabled(true);
+            text: 'Freeze', style: 'destructive', onPress: async () => {
+              setFreezeToggling(true);
+              try {
+                await api.post('/restrictions/freeze');
+                setIsFrozen(true);
+                Alert.alert('Account Frozen', 'Your account has been frozen. Unfreeze anytime from this screen.');
+              } catch (err: any) {
+                Alert.alert('Error', err.message || 'Failed to freeze account.');
+              } finally { setFreezeToggling(false); }
             },
           },
         ]
       );
+    } else {
+      Alert.alert(
+        'Unfreeze Account',
+        'Unfreeze your account to restore full access to all transactions.',
+        [
+          { text: 'Cancel', style: 'cancel' },
+          {
+            text: 'Unfreeze', onPress: async () => {
+              setFreezeToggling(true);
+              try {
+                await api.post('/restrictions/unfreeze');
+                setIsFrozen(false);
+                Alert.alert('Account Unfrozen', 'Your account is now fully active.');
+              } catch (err: any) {
+                Alert.alert('Error', err.message || 'Failed to unfreeze account.');
+              } finally { setFreezeToggling(false); }
+            },
+          },
+        ]
+      );
+    }
+  };
+
+  const handleBiometricToggle = async (value: boolean) => {
+    if (value) {
+      const compatible = await LocalAuthentication.hasHardwareAsync();
+      if (!compatible) {
+        Alert.alert('Not available', 'Biometric authentication is not available on this device.');
+        return;
+      }
+      const enrolled = await LocalAuthentication.isEnrolledAsync();
+      if (!enrolled) {
+        Alert.alert('No biometrics', 'Please enroll a fingerprint or face ID in your device settings first.');
+        return;
+      }
+      const result = await LocalAuthentication.authenticateAsync({
+        promptMessage: 'Verify your identity to enable biometric login',
+        fallbackLabel: 'Use PIN',
+      });
+      if (result.success) {
+        await SecureStore.setItemAsync(BIOMETRIC_KEY, 'true');
+        setBiometricEnabled(true);
+      }
     } else {
       await SecureStore.setItemAsync(BIOMETRIC_KEY, 'false');
       setBiometricEnabled(false);
@@ -180,6 +246,36 @@ export default function SecuritySettingsScreen() {
                 )}
               </TouchableOpacity>
             ))}
+          </View>
+        </View>
+
+        <View style={tw`mb-6`}>
+          <Text style={tw`text-gray-500 text-xs font-semibold uppercase tracking-wider mb-3`}>Account Status</Text>
+          <View style={tw`bg-white border border-gray-200 rounded-2xl`}>
+            <View style={tw`px-5 py-4 flex-row justify-between items-center`}>
+              <View style={tw`flex-row items-center flex-1`}>
+                <View style={tw`w-10 h-10 rounded-full bg-red-50 items-center justify-center mr-3`}>
+                  <Ionicons name={isFrozen ? 'snow-outline' : 'snow-outline'} size={20} color={isFrozen ? '#EF4444' : '#6B7280'} />
+                </View>
+                <View style={tw`flex-1`}>
+                  <Text style={tw`text-gray-900 font-semibold`}>{isFrozen ? 'Account Frozen' : 'Freeze Account'}</Text>
+                  <Text style={tw`text-gray-500 text-xs mt-1`}>
+                    {isFrozen ? 'All transactions are disabled' : 'Temporarily disable all transactions'}
+                  </Text>
+                </View>
+              </View>
+              {freezeLoading ? (
+                <ActivityIndicator size="small" color="#9CA3AF" />
+              ) : (
+                <Switch
+                  value={isFrozen}
+                  onValueChange={handleFreezeToggle}
+                  trackColor={{ false: '#D1D5DB', true: '#FCA5A5' }}
+                  thumbColor={isFrozen ? '#EF4444' : '#fff'}
+                  disabled={freezeToggling}
+                />
+              )}
+            </View>
           </View>
         </View>
 

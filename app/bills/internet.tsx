@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   ActivityIndicator, Alert, FlatList, KeyboardAvoidingView, Modal,
   Platform, SafeAreaView, Text, TextInput, TouchableOpacity, View,
@@ -11,15 +11,15 @@ import { api } from '@/lib/api';
 import RefreshableScrollView from '@/components/RefreshableScrollView';
 import Button from '@/components/ui/Button';
 import { PRIMARY_COLOR, CHARCOAL, LIGHT_GRAY, SUCCESS_GREEN } from '@/constants/customConstants';
+import type { BillPlan } from '@/lib/types';
 
 interface InternetProvider { id: string; name: string; color: string; }
-interface InternetPlan { id: string; name: string; speed: string; price: number; validity: string; }
 
 export default function InternetScreen() {
   const router = useRouter();
   const [selectedProvider, setSelectedProvider] = useState<InternetProvider | null>(null);
   const [accountNumber, setAccountNumber] = useState('');
-  const [selectedPlan, setSelectedPlan] = useState<InternetPlan | null>(null);
+  const [selectedPlan, setSelectedPlan] = useState<BillPlan | null>(null);
   const [showPlans, setShowPlans] = useState(false);
   const [customerName, setCustomerName] = useState('');
   const [isValidating, setIsValidating] = useState(false);
@@ -27,6 +27,8 @@ export default function InternetScreen() {
   const [showPin, setShowPin] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState({ provider: '', account: '', plan: '', pin: '' });
+  const [internetPlans, setInternetPlans] = useState<BillPlan[]>([]);
+  const [loadingPlans, setLoadingPlans] = useState(false);
 
   const internetProviders: InternetProvider[] = [
     { id: 'smile', name: 'Smile', color: '#FDB913' },
@@ -35,30 +37,17 @@ export default function InternetScreen() {
     { id: 'ipnx', name: 'IPNX', color: '#0066CC' },
   ];
 
-  const internetPlans: Record<string, InternetPlan[]> = {
-    smile: [
-      { id: '1', name: 'SmileVoice & Unlimited Lite', speed: '1.5Mbps', price: 4000, validity: '30 Days' },
-      { id: '2', name: 'UnlimitedEssential', speed: '2.5Mbps', price: 8000, validity: '30 Days' },
-      { id: '3', name: 'UnlimitedBasic', speed: '5Mbps', price: 12000, validity: '30 Days' },
-      { id: '4', name: 'UnlimitedPremium', speed: '10Mbps', price: 16000, validity: '30 Days' },
-    ],
-    spectranet: [
-      { id: '1', name: 'Spectra Lite', speed: '2Mbps', price: 5000, validity: '30 Days' },
-      { id: '2', name: 'Spectra Value', speed: '5Mbps', price: 10000, validity: '30 Days' },
-      { id: '3', name: 'Spectra Plus', speed: '10Mbps', price: 15000, validity: '30 Days' },
-      { id: '4', name: 'Spectra Premium', speed: '20Mbps', price: 20000, validity: '30 Days' },
-    ],
-    swift: [
-      { id: '1', name: 'Swift Lite', speed: '2Mbps', price: 4500, validity: '30 Days' },
-      { id: '2', name: 'Swift Value', speed: '5Mbps', price: 9500, validity: '30 Days' },
-      { id: '3', name: 'Swift Plus', speed: '10Mbps', price: 14000, validity: '30 Days' },
-    ],
-    ipnx: [
-      { id: '1', name: 'IPNX Basic', speed: '2Mbps', price: 5000, validity: '30 Days' },
-      { id: '2', name: 'IPNX Standard', speed: '5Mbps', price: 10000, validity: '30 Days' },
-      { id: '3', name: 'IPNX Premium', speed: '10Mbps', price: 15000, validity: '30 Days' },
-    ],
-  };
+  const fetchPlans = useCallback(async (providerCode: string) => {
+    setLoadingPlans(true);
+    try {
+      const plans = await api.get<BillPlan[]>(`/bills/plans?providerCode=${providerCode}`);
+      if (Array.isArray(plans)) setInternetPlans(plans);
+    } catch {
+      setInternetPlans([]);
+    } finally {
+      setLoadingPlans(false);
+    }
+  }, []);
 
   const handleAccountChange = (text: string) => {
     const numeric = text.replace(/[^0-9]/g, '');
@@ -104,7 +93,7 @@ export default function InternetScreen() {
         category: 'internet',
         providerCode: selectedProvider!.id,
         recipient: accountNumber,
-        amount: selectedPlan!.price,
+        amount: Number(selectedPlan!.price),
         planId: selectedPlan!.id,
         pin,
       });
@@ -116,7 +105,6 @@ export default function InternetScreen() {
   };
 
   const isDisabled = isSubmitting || !selectedProvider || accountNumber.length < 8 || !selectedPlan || pin.length !== 4;
-  const providerPlans = selectedProvider ? internetPlans[selectedProvider.id] : [];
 
   return (
     <SafeAreaView style={tw`flex-1 bg-[${LIGHT_GRAY}]`}>
@@ -148,7 +136,7 @@ export default function InternetScreen() {
                           ? { borderColor: provider.color, backgroundColor: `${provider.color}18` }
                           : tw`border-gray-200 bg-[${LIGHT_GRAY}]`,
                       ]}
-                      onPress={() => { setSelectedProvider(provider); setSelectedPlan(null); if (errors.provider) setErrors((prev) => ({ ...prev, provider: '' })); }}
+                      onPress={() => { setSelectedProvider(provider); setSelectedPlan(null); setInternetPlans([]); fetchPlans(provider.id); if (errors.provider) setErrors((prev) => ({ ...prev, provider: '' })); }}
                       activeOpacity={0.75}
                     >
                       <View style={[tw`w-10 h-10 rounded-xl items-center justify-center mb-2`, { backgroundColor: `${provider.color}20` }]}>
@@ -192,19 +180,24 @@ export default function InternetScreen() {
             </View>
           </View>
 
-          {selectedProvider && providerPlans && providerPlans.length > 0 && (
+          {selectedProvider && (
             <View style={tw`mb-6`}>
               <Text style={tw`text-gray-500 text-[12px] font-semibold tracking-wider uppercase mb-3`}>Plan</Text>
               <View style={tw`bg-white rounded-2xl p-4`}>
                 <TouchableOpacity
                   style={tw`bg-[${LIGHT_GRAY}] rounded-xl px-4 h-[56px] flex-row justify-between items-center ${errors.plan ? 'border border-red-500' : ''}`}
-                  onPress={() => setShowPlans(true)}
+                  onPress={() => { if (internetPlans.length > 0) setShowPlans(true); }}
                   activeOpacity={0.75}
                 >
-                  {selectedPlan ? (
+                  {loadingPlans ? (
+                    <View style={tw`flex-row items-center gap-2`}>
+                      <ActivityIndicator size="small" color="#9CA3AF" />
+                      <Text style={tw`text-gray-400 text-[14px]`}>Loading plans...</Text>
+                    </View>
+                  ) : selectedPlan ? (
                     <View>
                       <Text style={tw`text-[${CHARCOAL}] text-[14px] font-semibold`}>{selectedPlan.name}</Text>
-                      <Text style={tw`text-gray-400 text-[11px]`}>{selectedPlan.speed} · {selectedPlan.validity}</Text>
+                      <Text style={tw`text-gray-400 text-[11px]`}>{selectedPlan.speed ? `${selectedPlan.speed} · ` : ''}{selectedPlan.validity || ''}</Text>
                     </View>
                   ) : (
                     <Text style={tw`text-gray-400 text-[14px]`}>Choose a plan</Text>
@@ -258,23 +251,30 @@ export default function InternetScreen() {
                 <Ionicons name="close" size={22} color="#6B7280" />
               </TouchableOpacity>
             </View>
-            <FlatList
-              data={providerPlans}
-              keyExtractor={(item) => item.id}
-              renderItem={({ item }) => (
-                <TouchableOpacity
-                  style={tw`px-5 py-4 border-b border-[${LIGHT_GRAY}] flex-row justify-between items-center`}
-                  onPress={() => { setSelectedPlan(item); setShowPlans(false); if (errors.plan) setErrors((prev) => ({ ...prev, plan: '' })); }}
-                  activeOpacity={0.75}
-                >
-                  <View style={tw`flex-1 mr-3`}>
-                    <Text style={tw`text-[${CHARCOAL}] font-bold text-[14px]`}>{item.name}</Text>
-                    <Text style={tw`text-gray-400 text-[12px] mt-0.5`}>Speed: {item.speed} · {item.validity}</Text>
-                  </View>
-                  <Text style={tw`text-[${PRIMARY_COLOR}] font-bold text-[15px]`}>₦{item.price.toLocaleString()}</Text>
-                </TouchableOpacity>
-              )}
-            />
+            {loadingPlans ? (
+              <View style={tw`items-center py-16`}>
+                <ActivityIndicator size="large" color={PRIMARY_COLOR} />
+                <Text style={tw`text-gray-400 text-[13px] mt-3`}>Loading plans...</Text>
+              </View>
+            ) : (
+              <FlatList
+                data={internetPlans}
+                keyExtractor={(item) => item.id}
+                renderItem={({ item }) => (
+                  <TouchableOpacity
+                    style={tw`px-5 py-4 border-b border-[${LIGHT_GRAY}] flex-row justify-between items-center`}
+                    onPress={() => { setSelectedPlan(item); setShowPlans(false); if (errors.plan) setErrors((prev) => ({ ...prev, plan: '' })); }}
+                    activeOpacity={0.75}
+                  >
+                    <View style={tw`flex-1 mr-3`}>
+                      <Text style={tw`text-[${CHARCOAL}] font-bold text-[14px]`}>{item.name}</Text>
+                      <Text style={tw`text-gray-400 text-[12px] mt-0.5`}>{item.speed ? `Speed: ${item.speed} · ` : ''}{item.validity || ''}</Text>
+                    </View>
+                    <Text style={tw`text-[${PRIMARY_COLOR}] font-bold text-[15px]`}>₦{Number(item.price).toLocaleString()}</Text>
+                  </TouchableOpacity>
+                )}
+              />
+            )}
           </TouchableOpacity>
         </TouchableOpacity>
       </Modal>

@@ -2,29 +2,31 @@ import { PRIMARY_COLOR, CHARCOAL, LIGHT_GRAY } from '@/constants/customConstants
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
-  Alert, FlatList, KeyboardAvoidingView, Modal,
+  ActivityIndicator, Alert, FlatList, KeyboardAvoidingView, Modal,
   Platform, SafeAreaView, Text, TextInput, TouchableOpacity, View,
 } from 'react-native';
 import tw from 'twrnc';
 import { api } from '@/lib/api';
 import Button from '@/components/ui/Button';
 import RefreshableScrollView from '@/components/RefreshableScrollView';
+import type { BillPlan } from '@/lib/types';
 
 interface Network { id: string; name: string; color: string; }
-interface DataPlan { id: string; name: string; validity: string; price: number; }
 
 export default function DataScreen() {
   const router = useRouter();
   const [selectedNetwork, setSelectedNetwork] = useState<Network | null>(null);
   const [phoneNumber, setPhoneNumber] = useState('');
-  const [selectedPlan, setSelectedPlan] = useState<DataPlan | null>(null);
+  const [selectedPlan, setSelectedPlan] = useState<BillPlan | null>(null);
   const [showPlans, setShowPlans] = useState(false);
   const [pin, setPin] = useState('');
   const [showPin, setShowPin] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState({ network: '', phone: '', plan: '', pin: '' });
+  const [dataPlans, setDataPlans] = useState<BillPlan[]>([]);
+  const [loadingPlans, setLoadingPlans] = useState(false);
 
   const networks: Network[] = [
     { id: 'mtn',     name: 'MTN',     color: '#FFCC00' },
@@ -33,16 +35,17 @@ export default function DataScreen() {
     { id: '9mobile', name: '9mobile', color: '#00853E' },
   ];
 
-  const dataPlans: DataPlan[] = [
-    { id: '1', name: '500MB', validity: '1 Day',   price: 100  },
-    { id: '2', name: '1GB',   validity: '1 Day',   price: 200  },
-    { id: '3', name: '2GB',   validity: '2 Days',  price: 400  },
-    { id: '4', name: '3GB',   validity: '7 Days',  price: 1000 },
-    { id: '5', name: '5GB',   validity: '7 Days',  price: 1500 },
-    { id: '6', name: '10GB',  validity: '30 Days', price: 2500 },
-    { id: '7', name: '15GB',  validity: '30 Days', price: 3500 },
-    { id: '8', name: '20GB',  validity: '30 Days', price: 5000 },
-  ];
+  const fetchPlans = useCallback(async (providerCode: string) => {
+    setLoadingPlans(true);
+    try {
+      const plans = await api.get<BillPlan[]>(`/bills/plans?providerCode=${providerCode}`);
+      if (Array.isArray(plans)) setDataPlans(plans);
+    } catch {
+      setDataPlans([]);
+    } finally {
+      setLoadingPlans(false);
+    }
+  }, []);
 
   const handlePhoneChange = (text: string) => {
     const numeric = text.replace(/[^0-9]/g, '');
@@ -71,7 +74,7 @@ export default function DataScreen() {
         category: 'data',
         providerCode: selectedNetwork!.id,
         recipient: `+234${phoneNumber}`,
-        amount: selectedPlan!.price,
+        amount: Number(selectedPlan!.price),
         planId: selectedPlan!.id,
         pin,
       });
@@ -115,7 +118,7 @@ export default function DataScreen() {
                         ? { borderColor: `${network.color}60`, backgroundColor: `${network.color}18` }
                         : tw`border-gray-200 bg-[${LIGHT_GRAY}]`,
                     ]}
-                    onPress={() => { setSelectedNetwork(network); setSelectedPlan(null); if (errors.network) setErrors(p => ({ ...p, network: '' })); }}
+                    onPress={() => { setSelectedNetwork(network); setSelectedPlan(null); setDataPlans([]); fetchPlans(network.id); if (errors.network) setErrors(p => ({ ...p, network: '' })); }}
                     activeOpacity={0.75}
                   >
                     <View style={[tw`w-9 h-9 rounded-xl items-center justify-center mb-2`, { backgroundColor: `${network.color}20` }]}>
@@ -152,14 +155,21 @@ export default function DataScreen() {
               <Text style={tw`text-gray-500 text-[12px] font-semibold tracking-wider uppercase mb-3`}>Data plan</Text>
               <TouchableOpacity
                 style={tw`bg-[${LIGHT_GRAY}] border ${errors.plan ? 'border-red-500/70' : 'border-gray-200'} rounded-2xl px-4 h-[56px] flex-row justify-between items-center`}
-                onPress={() => setShowPlans(true)}
+                onPress={() => { if (selectedNetwork && dataPlans.length > 0) setShowPlans(true); }}
                 activeOpacity={0.75}
               >
-                {selectedPlan ? (
+                {loadingPlans ? (
+                  <View style={tw`flex-row items-center gap-2`}>
+                    <ActivityIndicator size="small" color="#9CA3AF" />
+                    <Text style={tw`text-gray-400 text-[14px]`}>Loading plans...</Text>
+                  </View>
+                ) : selectedPlan ? (
                   <View>
                     <Text style={tw`text-gray-900 text-[14px] font-semibold`}>{selectedPlan.name}</Text>
-                    <Text style={tw`text-gray-500 text-[11px]`}>{selectedPlan.validity} · ₦{selectedPlan.price.toLocaleString()}</Text>
+                    <Text style={tw`text-gray-500 text-[11px]`}>{selectedPlan.validity ? `${selectedPlan.validity} · ` : ''}₦{Number(selectedPlan.price).toLocaleString()}</Text>
                   </View>
+                ) : !selectedNetwork ? (
+                  <Text style={tw`text-gray-400 text-[14px]`}>Select a network first</Text>
                 ) : (
                   <Text style={tw`text-gray-400 text-[14px]`}>Choose a data plan</Text>
                 )}

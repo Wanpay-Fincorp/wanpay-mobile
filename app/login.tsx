@@ -115,7 +115,7 @@ export default function LoginScreen() {
               />
             </View>
 
-            <TouchableOpacity style={tw`mb-9 self-end`} activeOpacity={0.7} onPress={() => Alert.alert('Forgot PIN', 'Enter your phone number and we will send you an OTP to reset your PIN.')}>
+            <TouchableOpacity style={tw`mb-9 self-end`} activeOpacity={0.7} onPress={() => router.push('/forgot-pin')}>
               <Text style={tw`text-blue-500 text-[12px] font-semibold`}>Forgot PIN?</Text>
             </TouchableOpacity>
 

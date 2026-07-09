@@ -71,7 +71,8 @@ function PinDot({ filled, active, error }: DotProps) {
 
 export default function CreatePinScreen() {
   const router = useRouter();
-  const { userId } = useLocalSearchParams<{ userId: string }>();
+  const { userId, purpose } = useLocalSearchParams<{ userId: string; purpose?: string }>();
+  const isReset = purpose === 'forgot_pin';
   const { signIn } = useAuth();
   const [pin, setPin] = useState("");
   const [confirmPin, setConfirmPin] = useState("");
@@ -127,13 +128,20 @@ export default function CreatePinScreen() {
     if (!validatePin()) return;
     setIsSubmitting(true);
     try {
-      const tokens = await api.post<AuthTokens>("/auth/create-pin", { pin, userId });
-      if (tokens.user) await signIn(tokens.token, tokens.refreshToken, tokens.user);
-      Alert.alert("PIN Created", "Your account is now secured.", [
-        { text: "Continue", onPress: () => router.replace("/(tabs)") },
-      ]);
+      if (isReset) {
+        await api.post("/auth/reset-pin", { userId, pin }, false);
+        Alert.alert("PIN Reset", "Your PIN has been reset successfully. Please log in with your new PIN.", [
+          { text: "Go to Login", onPress: () => router.replace("/login") },
+        ]);
+      } else {
+        const tokens = await api.post<AuthTokens>("/auth/create-pin", { pin, userId });
+        if (tokens.user) await signIn(tokens.token, tokens.refreshToken, tokens.user);
+        Alert.alert("PIN Created", "Your account is now secured.", [
+          { text: "Continue", onPress: () => router.replace("/(tabs)") },
+        ]);
+      }
     } catch (err: any) {
-      Alert.alert("Error", err.message || "Unable to create PIN. Please try again.");
+      Alert.alert("Error", err.message || (isReset ? "Unable to reset PIN. Please try again." : "Unable to create PIN. Please try again."));
     } finally {
       setIsSubmitting(false);
     }
@@ -213,10 +221,10 @@ export default function CreatePinScreen() {
             <View style={{ width: 4, height: 40, backgroundColor: GOLD, borderRadius: 2, marginRight: 14 }} />
             <View style={tw`flex-1`}>
               <Text style={tw`text-gray-900 text-[26px] font-bold tracking-tight`}>
-                Create your PIN
+                {isReset ? 'Reset your PIN' : 'Create your PIN'}
               </Text>
               <Text style={tw`text-gray-500 text-[13px] mt-1 leading-5`}>
-                Authorises transactions on your WanPay account.
+                {isReset ? 'Choose a new PIN to secure your account.' : 'Authorises transactions on your WanPay account.'}
               </Text>
             </View>
           </View>
