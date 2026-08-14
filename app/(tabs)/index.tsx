@@ -168,6 +168,33 @@ export default function HomeScreen() {
             })}
           </View>
 
+          <TouchableOpacity
+            style={tw`bg-violet-600 rounded-3xl p-5 mb-7 overflow-hidden`}
+            activeOpacity={0.85}
+            onPress={() => router.push('/savings')}
+          >
+            <View style={tw`flex-row items-center gap-4`}>
+              <View style={tw`w-12 h-12 rounded-2xl bg-white/15 items-center justify-center`}>
+                <Ionicons name="flame" size={24} color="#fff" />
+              </View>
+              <View style={tw`flex-1`}>
+                <Text style={tw`text-white text-[15px] font-bold tracking-tight`}>Smart Savings</Text>
+                <Text style={tw`text-white/60 text-[12px] mt-0.5`}>Save towards goals and earn interest</Text>
+              </View>
+              <View style={tw`w-8 h-8 rounded-full bg-white/15 items-center justify-center`}>
+                <Ionicons name="arrow-forward" size={16} color="#fff" />
+              </View>
+            </View>
+            <View style={tw`mt-4 flex-row gap-2`}>
+              <View style={tw`bg-white/12 border border-white/15 px-3 py-1.5 rounded-full`}>
+                <Text style={tw`text-white text-[11px] font-semibold`}>Flexible & Fixed pots</Text>
+              </View>
+              <View style={tw`bg-white/12 border border-white/15 px-3 py-1.5 rounded-full`}>
+                <Text style={tw`text-white text-[11px] font-semibold`}>Up to 5% p.a.</Text>
+              </View>
+            </View>
+          </TouchableOpacity>
+
           <View style={tw`flex-row justify-between items-center mb-4`}>
             <Text style={tw`text-gray-800 text-[14px] font-semibold tracking-tight`}>Recent transactions</Text>
             <TouchableOpacity onPress={() => router.push('/(tabs)/history')} activeOpacity={0.7}>

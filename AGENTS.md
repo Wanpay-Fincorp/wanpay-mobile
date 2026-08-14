@@ -60,6 +60,7 @@ wanpay/
 │   │   ├── grants.tsx      # Growth Hub
 │   │   └── profile.tsx     # User profile
 │   ├── bills/              # Bill payment screens (airtime, data, electricity, tv, internet, education)
+│   ├── savings/            # Smart Savings: dashboard, create pot, pot detail + deposit/withdraw/auto-save
 │   └── profile/            # profile sub-screens (personal-info, security, limits, cards, BVN, delete-account, etc.)
 ├── components/             # Shared components
 │   ├── ui/                 # UI primitives (Button, Input) - defined but mostly unused
@@ -146,6 +147,7 @@ All types defined in `lib/types.ts`. Key types:
 - `BillProvider`, `BillPlan`, `BillUnlock`
 - `SupportTicket`, `Faq`, `Grant`, `GrantCategory`
 - `UserLimits`, `NotificationSetting`, `AuthTokens`
+- `SavingsAccount`, `SavingsMovement`, `SavingsSchedule`, `SavingsType`, `SavingsStatus`, `SavingsFrequency`
 
 ## Theme & Layout (Light Mode)
 
@@ -174,6 +176,7 @@ Fallback env: `EXPO_PUBLIC_API_URL`
 
 | Change | Detail |
 |---|---|
+| **Smart Savings screens (Aug 2026)** | New `app/savings/` stack (registered in root `_layout.tsx`). Dashboard (`index`) lists pots with goal progress + total saved; `create` builds FLEXIBLE/FIXED pots (goal, interest rate, lock-period chips, optional initial deposit); `[id]` shows balance/status/lock/maturity, recent movements, active auto-save plans (with cancel), and Deposit / Withdraw / Auto-save / Close actions. Withdraw + Close require the PIN (reauth token via `getReauthToken` → `x-reauth-token`). Entry point: Smart Savings banner on Home. Amounts use `balanceNaira`/kobo conversions from backend. |
 | **Server-side logout (Aug 2026)** | `AuthContext.signOut()` now calls `POST /auth/logout` before clearing tokens so refresh tokens + sessions are revoked server-side. |
 | **Re-auth for sensitive actions (Aug 2026)** | `getReauthToken(pin)` added to `lib/api.ts` (calls `/auth/pin/verify`); `api.post/put` now accept a 4th `customHeaders` arg. New `components/PinModal.tsx` used by: personal-info (email change), increase-limits, transfer (save beneficiary) to attach `x-reauth-token`. |
 | **Light theme** | All `text-white`, `bg-white`, `border-white` changed to `text-gray-*`, `bg-gray-*`, `border-gray-*`. All `bg-[#05050e]` → `bg-white`. |

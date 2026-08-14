@@ -45,6 +45,7 @@ export default function RootLayout() {
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
           <Stack.Screen name="bills" options={{ headerShown: false }} />
           <Stack.Screen name="profile" options={{ headerShown: false }} />
+          <Stack.Screen name="savings" options={{ headerShown: false }} />
         </Stack>
       </ThemeProvider>
     </AuthProvider>

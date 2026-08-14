@@ -193,3 +193,54 @@ export interface UserLimits {
   dailyBillPayment: { current: number; max: number };
   atmWithdrawal?: { current: number; max: number };
 }
+
+export type SavingsType = 'FLEXIBLE' | 'FIXED';
+export type SavingsStatus = 'ACTIVE' | 'LOCKED' | 'MATURED' | 'CLOSED';
+export type SavingsMovementType = 'DEPOSIT' | 'WITHDRAWAL' | 'INTEREST' | 'PENALTY';
+export type SavingsFrequency = 'ONCE' | 'DAILY' | 'WEEKLY' | 'MONTHLY';
+
+export interface SavingsAccount {
+  id: string;
+  name: string;
+  type: SavingsType;
+  status: SavingsStatus;
+  balance: number;
+  balanceNaira: number;
+  targetAmount: number | null;
+  interestRate: number | null;
+  lockedUntil: string | null;
+  maturedAt: string | null;
+  closedAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+  _count?: { schedules: number };
+  schedules?: SavingsSchedule[];
+  movements?: SavingsMovement[];
+}
+
+export interface SavingsMovement {
+  id: string;
+  savingsId: string;
+  type: SavingsMovementType;
+  amount: number;
+  balanceAfter: number;
+  reference: string;
+  metadata: any;
+  createdAt: string;
+}
+
+export interface SavingsSchedule {
+  id: string;
+  savingsId: string;
+  amount: number;
+  frequency: SavingsFrequency;
+  dayOfMonth: number | null;
+  dayOfWeek: number | null;
+  startDate: string;
+  nextRunAt: string | null;
+  lastRunAt: string | null;
+  totalRuns: number;
+  failedRuns: number;
+  active: boolean;
+  createdAt: string;
+}
