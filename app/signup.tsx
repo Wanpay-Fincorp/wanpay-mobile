@@ -80,7 +80,7 @@ export default function SignupScreen() {
       <StatusBar style="dark" />
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={tw`flex-1`}>
         <ScrollView style={tw`flex-1 px-7`} contentContainerStyle={tw`pb-8`} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
-          <TouchableOpacity onPress={() => router.back()} style={tw`mt-14 mb-8 w-[38px] h-[38px] rounded-xl bg-gray-100 items-center justify-center`} activeOpacity={0.7}>
+          <TouchableOpacity onPress={() => router.back()} style={tw`mt-5 mb-8 w-[38px] h-[38px] rounded-xl bg-gray-100 items-center justify-center`} activeOpacity={0.7}>
             <Ionicons name="arrow-back" size={20} color="#374151" />
           </TouchableOpacity>
 

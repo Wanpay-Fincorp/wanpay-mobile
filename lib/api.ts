@@ -5,8 +5,8 @@ const REFRESH_KEY = 'wanpay_refresh_token';
 const DEVICE_ID_KEY = 'wanpay_device_id';
 const USER_KEY = 'wanpay_user';
 
-const DEV_API  = 'https://www.joinwanpay.app/api/v1';
-const PROD_API = 'https://www.joinwanpay.app/api/v1';
+const DEV_API  = 'https://api.joinwanpay.app/api/v1';
+const PROD_API = 'https://api.joinwanpay.app/api/v1';
 const API_BASE = process.env.EXPO_PUBLIC_API_URL || (__DEV__ ? DEV_API : PROD_API);
 
 let cachedToken: string | null = null;
@@ -72,7 +72,14 @@ async function refreshAccessToken(): Promise<boolean> {
       return false;
     }
 
-    const json = await res.json();
+    const text = await res.text();
+    let json: any;
+    try {
+      json = JSON.parse(text);
+    } catch {
+      await removeToken();
+      return false;
+    }
     if (!json.success) {
       await removeToken();
       return false;
@@ -171,7 +178,19 @@ async function request<T>(
     }
   }
 
-  const json: ApiResponse<T> = await res.json();
+  const text = await res.text();
+  let json: ApiResponse<T>;
+  try {
+    json = JSON.parse(text);
+  } catch {
+    throw new ApiError(
+      'BAD_RESPONSE',
+      res.ok
+        ? 'The server returned an unexpected response.'
+        : `The server returned a non-JSON response (status ${res.status}). Check the API base URL or try again.`,
+      res.status
+    );
+  }
 
   if (!json.success || !res.ok) {
     const err = json.error || { code: 'UNKNOWN', message: 'An unexpected error occurred' };

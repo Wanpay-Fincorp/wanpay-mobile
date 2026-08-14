@@ -57,6 +57,7 @@ export default function LoginScreen() {
       if (tokens.user) await signIn(tokens.token, tokens.refreshToken, tokens.user);
       router.replace('/(tabs)');
     } catch (err: any) {
+      console.log('Login error:', err);
       Alert.alert('Login Failed', err.message || 'Please check your phone and PIN.');
     } finally { setLoading(false); }
   };
