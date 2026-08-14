@@ -14,7 +14,18 @@ npx expo start
 
 **Testing**: None. No testing framework installed.
 
-**Build**: EAS build (`eas.json`) with development, preview, and production profiles.
+**Build**: EAS build (`eas.json`) with development, preview, and production profiles. Preview builds publish to channel `preview`, production to channel `production`.
+
+## EAS Update (OTA auto-updates)
+
+- Uses `expo-updates` + EAS Update. `app.json` has `updates.url`, `checkAutomatically: ON_LOAD`, and `runtimeVersion` fingerprint policy.
+- On app load, `hooks/use-expo-updates.ts` checks for a new update and shows `components/UpdateModal.tsx` ("Update now" → fetch + reload). Wired in `app/_layout.tsx` via `UpdateGate`.
+- Publish a JS-only update (no native rebuild needed):
+  ```bash
+  npm run update:preview        # eas update --channel preview
+  npm run update:production     # eas update --channel production
+  ```
+- Requires a dev/preview/production build — does not apply in Expo Go.
 
 ## Tech Stack
 
@@ -49,11 +60,12 @@ wanpay/
 │   │   ├── grants.tsx      # Growth Hub
 │   │   └── profile.tsx     # User profile
 │   ├── bills/              # Bill payment screens (airtime, data, electricity, tv, internet, education)
-│   └── profile/            # profile sub-screens (personal-info, security, limits, cards, BVN, etc.)
+│   └── profile/            # profile sub-screens (personal-info, security, limits, cards, BVN, delete-account, etc.)
 ├── components/             # Shared components
 │   ├── ui/                 # UI primitives (Button, Input) - defined but mostly unused
 │   ├── BalanceCard.tsx     # Wallet balance display
 │   ├── TransactionItem.tsx # Transaction row
+│   ├── UpdateModal.tsx     # EAS update prompt (new version available)
 │   ├── FormattedDate.tsx   # Date formatter
 │   ├── QuickAction.tsx     # Action button
 │   └── RefreshableScrollView.tsx # ScrollView with optional pull-to-refresh

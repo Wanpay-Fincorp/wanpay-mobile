@@ -180,7 +180,7 @@ export const api = {
   get: <T>(path: string, authenticated = true) => request<T>('GET', path, undefined, authenticated),
   post: <T>(path: string, body?: any, authenticated = true) => request<T>('POST', path, body, authenticated),
   put: <T>(path: string, body?: any, authenticated = true) => request<T>('PUT', path, body, authenticated),
-  delete: <T>(path: string, authenticated = true) => request<T>('DELETE', path, undefined, authenticated),
+  delete: <T>(path: string, body?: any, authenticated = true) => request<T>('DELETE', path, body, authenticated),
 };
 
 export { ApiError };

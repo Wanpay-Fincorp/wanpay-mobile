@@ -12,6 +12,7 @@ export default function ProfileLayout() {
       <Stack.Screen name="increase-limits" options={{ headerShown: false }} />
       <Stack.Screen name="statements" options={{ headerShown: false }} />
       <Stack.Screen name="manage-cards" options={{ headerShown: false }} />
+      <Stack.Screen name="delete-account" options={{ headerShown: false }} />
     </Stack>
   );
 }

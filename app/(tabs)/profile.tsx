@@ -205,6 +205,14 @@ export default function ProfileScreen() {
           <Text style={tw`text-red-600 font-semibold text-[14px]`}>Log out</Text>
         </TouchableOpacity>
 
+        <TouchableOpacity
+          style={tw`mt-3 h-[52px] rounded-2xl flex-row justify-center items-center gap-2 border border-red-200`}
+          onPress={() => router.push('/profile/delete-account' as any)}
+          activeOpacity={0.85}
+        >
+          <Ionicons name="trash-outline" size={18} color="#dc2626" />
+          <Text style={tw`text-red-600 font-semibold text-[14px]`}>Delete account</Text>
+        </TouchableOpacity>
       </RefreshableScrollView>
     </SafeAreaView>
   );

@@ -20,6 +20,15 @@
       "predictiveBackGestureEnabled": false,
       "package": "com.peter2200.wanpay"
     },
+    "updates": {
+      "url": "https://u.expo.dev/52aaadfc-052a-4ecd-b58f-a8073c6ca489",
+      "checkAutomatically": "ON_LOAD",
+      "enabled": true,
+      "fallbackToCacheTimeout": 0
+    },
+    "runtimeVersion": {
+      "policy": "fingerprint"
+    },
     "web": {
       "output": "static",
       "favicon": "./assets/images/favicon.png"
