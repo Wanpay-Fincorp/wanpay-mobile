@@ -89,6 +89,11 @@ export async function saveUser(user: any) {
   await SecureStore.setItemAsync(USER_KEY, JSON.stringify(user));
 }
 
+export async function getReauthToken(pin: string): Promise<string> {
+  const data = await request<{ reauthToken: string }>('POST', '/auth/pin/verify', { pin }, true);
+  return data.reauthToken;
+}
+
 export async function getSavedUser(): Promise<any | null> {
   const raw = await SecureStore.getItemAsync(USER_KEY);
   return raw ? JSON.parse(raw) : null;
@@ -178,9 +183,12 @@ async function request<T>(
 
 export const api = {
   get: <T>(path: string, authenticated = true) => request<T>('GET', path, undefined, authenticated),
-  post: <T>(path: string, body?: any, authenticated = true) => request<T>('POST', path, body, authenticated),
-  put: <T>(path: string, body?: any, authenticated = true) => request<T>('PUT', path, body, authenticated),
-  delete: <T>(path: string, body?: any, authenticated = true) => request<T>('DELETE', path, body, authenticated),
+  post: <T>(path: string, body?: any, authenticated = true, customHeaders?: Record<string, string>) =>
+    request<T>('POST', path, body, authenticated, customHeaders),
+  put: <T>(path: string, body?: any, authenticated = true, customHeaders?: Record<string, string>) =>
+    request<T>('PUT', path, body, authenticated, customHeaders),
+  delete: <T>(path: string, body?: any, authenticated = true, customHeaders?: Record<string, string>) =>
+    request<T>('DELETE', path, body, authenticated, customHeaders),
 };
 
 export { ApiError };

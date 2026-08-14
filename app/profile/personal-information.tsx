@@ -7,11 +7,12 @@ import {
 } from 'react-native';
 import tw from 'twrnc';
 import { LIGHT_GRAY } from '@/constants/customConstants';
-import { api } from '@/lib/api';
+import { api, getReauthToken } from '@/lib/api';
 import { useAuth } from '@/contexts/AuthContext';
 import type { User } from '@/lib/types';
 import RefreshableScrollView from '@/components/RefreshableScrollView';
 import DatePickerModal from '@/components/DatePickerModal';
+import PinModal from '@/components/PinModal';
 
 export default function PersonalInformationScreen() {
   const router = useRouter();
@@ -19,6 +20,9 @@ export default function PersonalInformationScreen() {
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(true);
   const [editing, setEditing] = useState(false);
+  const [originalEmail, setOriginalEmail] = useState('');
+  const [showPinModal, setShowPinModal] = useState(false);
+  const [pinVerifying, setPinVerifying] = useState(false);
 
   const [formData, setFormData] = useState({
     fullName: '',
@@ -41,6 +45,7 @@ export default function PersonalInformationScreen() {
     try {
       const userData = await api.get<User>('/users/me').catch(() => user);
       if (userData) {
+        setOriginalEmail(userData.email || '');
         setFormData({
           fullName: userData.fullName || '',
           phoneNumber: userData.phone || '',
@@ -84,7 +89,47 @@ export default function PersonalInformationScreen() {
     if (!validateForm()) return;
     setLoading(true);
     try {
-      const user = await api.put<User>('/users/me', {
+      const emailChanged = originalEmail !== formData.email;
+      const payload: Record<string, unknown> = {
+        fullName: formData.fullName,
+        dateOfBirth: formData.dateOfBirth || undefined,
+        address: formData.address,
+        city: formData.city,
+        state: formData.state,
+        postalCode: formData.postalCode,
+      };
+      if (emailChanged) payload.email = formData.email;
+
+      if (emailChanged) {
+        setShowPinModal(true);
+      } else {
+        await saveProfile(payload);
+      }
+    } catch (err: any) {
+      Alert.alert('Error', err.message || 'Failed to update information. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const saveProfile = async (payload: Record<string, unknown>, reauthToken?: string) => {
+    const user = await api.put<User>(
+      '/users/me',
+      payload,
+      true,
+      reauthToken ? { 'x-reauth-token': reauthToken } : undefined
+    );
+    if (user) await refreshUser();
+    setEditing(false);
+    Alert.alert('Success', 'Your personal information has been updated successfully.');
+  };
+
+  const handlePinConfirm = async (pin: string) => {
+    setPinVerifying(true);
+    try {
+      const reauthToken = await getReauthToken(pin);
+      setShowPinModal(false);
+      await saveProfile({
         fullName: formData.fullName,
         email: formData.email,
         dateOfBirth: formData.dateOfBirth || undefined,
@@ -92,14 +137,11 @@ export default function PersonalInformationScreen() {
         city: formData.city,
         state: formData.state,
         postalCode: formData.postalCode,
-      });
-      if (user) await refreshUser();
-      setEditing(false);
-      Alert.alert('Success', 'Your personal information has been updated successfully.');
+      }, reauthToken);
     } catch (err: any) {
-      Alert.alert('Error', err.message || 'Failed to update information. Please try again.');
+      Alert.alert('Error', err.message || 'PIN verification failed. Please try again.');
     } finally {
-      setLoading(false);
+      setPinVerifying(false);
     }
   };
 
@@ -252,6 +294,15 @@ export default function PersonalInformationScreen() {
             <Text style={tw`text-xs text-gray-500`}>Some changes may require identity verification. You&apos;ll be notified if additional documents are needed.</Text>
           </View>
         </RefreshableScrollView>
+
+        <PinModal
+          visible={showPinModal}
+          loading={pinVerifying}
+          title="Security Check"
+          subtitle="Confirm your PIN to change your email address"
+          onConfirm={handlePinConfirm}
+          onClose={() => setShowPinModal(false)}
+        />
       </KeyboardAvoidingView>
     </SafeAreaView>
   );

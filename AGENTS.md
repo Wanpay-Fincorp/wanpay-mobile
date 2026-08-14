@@ -174,6 +174,8 @@ Fallback env: `EXPO_PUBLIC_API_URL`
 
 | Change | Detail |
 |---|---|
+| **Server-side logout (Aug 2026)** | `AuthContext.signOut()` now calls `POST /auth/logout` before clearing tokens so refresh tokens + sessions are revoked server-side. |
+| **Re-auth for sensitive actions (Aug 2026)** | `getReauthToken(pin)` added to `lib/api.ts` (calls `/auth/pin/verify`); `api.post/put` now accept a 4th `customHeaders` arg. New `components/PinModal.tsx` used by: personal-info (email change), increase-limits, transfer (save beneficiary) to attach `x-reauth-token`. |
 | **Light theme** | All `text-white`, `bg-white`, `border-white` changed to `text-gray-*`, `bg-gray-*`, `border-gray-*`. All `bg-[#05050e]` → `bg-white`. |
 | **StatusBar** | All `style="light"` → `style="dark"` across main + bill sub-screens. |
 | **Name display** | `getName()` on home/profile now ucwords (capitalizes each word). |

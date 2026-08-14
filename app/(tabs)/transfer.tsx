@@ -7,7 +7,7 @@ import {
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import tw from 'twrnc';
-import { api } from '@/lib/api';
+import { api, getReauthToken } from '@/lib/api';
 import RefreshableScrollView from '@/components/RefreshableScrollView';
 import Input from '@/components/ui/Input';
 import Button from '@/components/ui/Button';
@@ -176,11 +176,12 @@ export default function TransferScreen() {
               text: 'Save beneficiary',
               onPress: async () => {
                 try {
+                  const reauthToken = await getReauthToken(pin);
                   await api.post('/beneficiaries', {
                     bankId: selectedBank.id,
                     accountNumber,
                     accountName: accountName || recipientName,
-                  });
+                  }, true, { 'x-reauth-token': reauthToken });
                   loadBeneficiaries();
                 } catch {}
               },

@@ -4,12 +4,15 @@ import React, { useState } from 'react';
 import { ActivityIndicator, Alert, SafeAreaView, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import tw from 'twrnc';
 import { LIGHT_GRAY } from '@/constants/customConstants';
-import { api } from '@/lib/api';
+import { api, getReauthToken } from '@/lib/api';
 import RefreshableScrollView from '@/components/RefreshableScrollView';
+import PinModal from '@/components/PinModal';
 
 export default function IncreaseLimitsScreen() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const [showPinModal, setShowPinModal] = useState(false);
+  const [pinVerifying, setPinVerifying] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [formData, setFormData] = useState({
     dailyLimit: '',
@@ -32,17 +35,39 @@ export default function IncreaseLimitsScreen() {
     if (!validateForm()) return;
     setLoading(true);
     try {
+      setShowPinModal(true);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const submitRequest = async (reauthToken: string) => {
+    setLoading(true);
+    try {
       await api.post('/users/limits/request', {
         dailyLimit: parseInt(formData.dailyLimit) * 100,
         monthlyLimit: parseInt(formData.monthlyLimit) * 100,
         singleLimit: parseInt(formData.singleLimit) * 100,
         reason: formData.reason,
-      });
+      }, true, { 'x-reauth-token': reauthToken });
       Alert.alert('Request Submitted', 'Your limit increase request has been submitted successfully. We will review and get back to you within 24-48 hours.', [{ text: 'OK', onPress: () => router.back() }]);
     } catch (err: any) {
       Alert.alert('Error', err.message || 'Failed to submit request. Please try again.');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handlePinConfirm = async (pin: string) => {
+    setPinVerifying(true);
+    try {
+      const reauthToken = await getReauthToken(pin);
+      setShowPinModal(false);
+      await submitRequest(reauthToken);
+    } catch (err: any) {
+      Alert.alert('Error', err.message || 'PIN verification failed. Please try again.');
+    } finally {
+      setPinVerifying(false);
     }
   };
 
@@ -108,6 +133,15 @@ export default function IncreaseLimitsScreen() {
           {loading ? <ActivityIndicator color="#fff" /> : <Text style={tw`text-white font-bold text-lg`}>Submit Request</Text>}
         </TouchableOpacity>
       </RefreshableScrollView>
+
+      <PinModal
+        visible={showPinModal}
+        loading={pinVerifying}
+        title="Security Check"
+        subtitle="Confirm your PIN to submit this request"
+        onConfirm={handlePinConfirm}
+        onClose={() => setShowPinModal(false)}
+      />
     </SafeAreaView>
   );
 }
