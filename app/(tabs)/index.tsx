@@ -9,6 +9,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import RefreshableScrollView from '@/components/RefreshableScrollView';
 import TransactionItem from '@/components/TransactionItem';
 import type { Wallet, Transaction } from '@/lib/types';
+import { Colors } from '@/constants/theme';
 
 export default function HomeScreen() {
   const router = useRouter();
@@ -69,7 +70,7 @@ export default function HomeScreen() {
       setShowAddMoney(false);
       setAddAmount('');
       const result = await WebBrowser.openBrowserAsync(res.authorizationUrl);
-      if (result.type === 'success' || result.type === 'dismiss') {
+      if (result.type && (result.type === "success" || result.type === "dismiss")) {
         await loadData();
       }
     } catch (err: any) {
@@ -270,53 +271,106 @@ export default function HomeScreen() {
         </KeyboardAvoidingView>
       </Modal>
       <Modal visible={showReceive} transparent animationType="slide" onRequestClose={() => setShowReceive(false)}>
-        <TouchableOpacity style={tw`flex-1 bg-black/40 justify-end`} activeOpacity={1} onPress={() => setShowReceive(false)}>
-          <TouchableOpacity activeOpacity={1} onPress={() => {}} style={tw`bg-white rounded-t-3xl p-6 pb-10`}>
-            <View style={tw`items-center mb-2`}>
-              <View style={tw`w-10 h-1 bg-gray-300 rounded-full mb-6`} />
-              <View style={tw`w-16 h-16 rounded-2xl bg-green-100 items-center justify-center mb-4`}>
-                <Ionicons name="arrow-down-outline" size={28} color="#16A34A" />
+        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={tw`flex-1 justify-end`}>
+          <TouchableOpacity style={tw`flex-1`} activeOpacity={1} onPress={() => setShowReceive(false)} />
+          <View style={tw`bg-white rounded-t-[32px] p-6 pb-12 shadow-2xl`}>
+            <View style={tw`items-center mb-6`}>
+              <View style={tw`w-12 h-1.5 bg-gray-300 rounded-full mb-6`} />
+              <TouchableOpacity
+                style={tw`absolute top-2 right-2 w-10 h-10 rounded-full bg-gray-100 items-center justify-center`}
+                activeOpacity={0.7}
+                onPress={() => setShowReceive(false)}
+              >
+                <Ionicons name="close-outline" size={22} color="#6b7280" />
+              </TouchableOpacity>
+              <View style={tw`w-20 h-20 rounded-3xl bg-gradient-to-br from-green-400 to-emerald-500 items-center justify-center mb-5 shadow-lg shadow-green-200`}>
+                <Ionicons name="arrow-down-outline" size={36} color={Colors.light.primary} />
               </View>
-              <Text style={tw`text-gray-900 text-xl font-bold`}>Receive Money</Text>
-              <Text style={tw`text-gray-500 text-[13px] mt-1 mb-6 text-center`}>
-                Share your account details below to receive money
+              <Text style={tw`text-gray-900 text-2xl font-bold`}>Receive Money</Text>
+              <Text style={tw`text-gray-500 text-sm mt-2 text-center max-w-[280px]`}>
+                Share your account details below to receive money instantly
               </Text>
             </View>
 
-            <View style={tw`bg-gray-50 border border-gray-200 rounded-2xl p-5 mb-6`}>
-              <Text style={tw`text-gray-400 text-[11px] font-semibold uppercase tracking-wider mb-2`}>Account Number</Text>
-              <Text style={tw`text-gray-900 text-[28px] font-bold tracking-wider text-center mb-4`}>
-                {wallet?.accountNumber || 'N/A'}
-              </Text>
-              <View style={tw`h-px bg-gray-200 mb-4`} />
-              <Text style={tw`text-gray-400 text-[11px] font-semibold uppercase tracking-wider mb-2`}>Account Name</Text>
-              <Text style={tw`text-gray-900 text-[16px] font-semibold text-center`}>
-                {getName()}
-              </Text>
-              <View style={tw`h-px bg-gray-200 my-4`} />
-              <Text style={tw`text-gray-400 text-[11px] font-semibold uppercase tracking-wider mb-2`}>Bank</Text>
-              <Text style={tw`text-gray-900 text-[16px] font-semibold text-center`}>
-                WanPay Microfinance Bank
-              </Text>
+            <View style={tw`bg-white border border-blue-100 rounded-[24px] p-7 mb-6 shadow-sm`}>
+              <View style={tw`mb-5 flex flex-row items-center justify-center gap-2`}>
+                <Text style={tw`text-gray-500 text-xs font-semibold uppercase tracking-wider`}>Account Number:</Text>
+                <View style={tw`flex-row items-center justify-center gap-3`}>
+                  <Text style={tw`text-gray-900 text-md font-bold tracking-[0.2em]`}>
+                    {wallet?.accountNumber || 'N/A'}
+                  </Text>
+                  <TouchableOpacity
+                    style={tw`bg-blue-100 rounded-full p-2`}
+                    activeOpacity={0.7}
+                    onPress={() => {
+                      Alert.alert('Copied!', 'Account number copied to clipboard');
+                    }}
+                  >
+                    <Ionicons name="copy-outline" size={18} color="#2563eb" />
+                  </TouchableOpacity>
+                </View>
+              </View>
+              
+              <View style={tw`h-px bg-blue-200 my-5`} />
+              
+              <View style={tw`mb-5 flex flex-row items-center justify-center gap-2`}>
+                <Text style={tw`text-gray-500 text-xs font-semibold uppercase tracking-wider`}>Account Name:</Text>
+                <View style={tw`flex-row items-center justify-center gap-2`}>
+                  <Text style={tw`text-gray-900 text-md font-semibold`}>
+                    {getName()}
+                  </Text>
+                  <TouchableOpacity
+                    style={tw`bg-blue-100 rounded-full p-1.5`}
+                    activeOpacity={0.7}
+                    onPress={() => {
+                      Alert.alert('Copied!', 'Account name copied to clipboard');
+                    }}
+                  >
+                    <Ionicons name="copy-outline" size={16} color="#2563eb" />
+                  </TouchableOpacity>
+                </View>
+              </View>
+              
+              <View style={tw`h-px bg-blue-200 my-5`} />
+              
+              <View style={tw`flex flex-row items-center justify-center gap-2`}>
+                <Text style={tw`text-gray-500 text-xs font-semibold uppercase tracking-wider`}>Bank Name:</Text>
+                <View style={tw`flex-row items-center justify-center gap-2`}>
+                  <Text style={tw`text-gray-900 text-md font-semibold`}>
+                    WanPay Microfinance Bank
+                  </Text>
+                  <TouchableOpacity
+                    style={tw`bg-blue-100 rounded-full p-1.5`}
+                    activeOpacity={0.7}
+                    onPress={() => {
+                      Alert.alert('Copied!', 'Bank name copied to clipboard');
+                    }}
+                  >
+                    <Ionicons name="copy-outline" size={16} color="#2563eb" />
+                  </TouchableOpacity>
+                </View>
+              </View>
             </View>
 
-            <TouchableOpacity
-              style={tw`bg-blue-600 rounded-xl py-4 items-center flex-row justify-center gap-2`}
-              activeOpacity={0.85}
-              onPress={async () => {
-                try {
-                  await Share.share({
-                    message: `Bank: WanPay Microfinance Bank\nAccount Name: ${getName()}\nAccount Number: ${wallet?.accountNumber || 'N/A'}`,
-                    title: 'My WanPay Account Details',
-                  });
-                } catch {}
-              }}
-            >
-              <Ionicons name="share-outline" size={18} color="white" />
-              <Text style={tw`text-white font-semibold text-base`}>Share Account Details</Text>
-            </TouchableOpacity>
-          </TouchableOpacity>
-        </TouchableOpacity>
+            <View style={tw`flex-row gap-3`}>
+              <TouchableOpacity
+                style={tw`flex-1 bg-blue-600 rounded-2xl py-4.5 items-center flex-row justify-center gap-2 shadow-lg shadow-blue-200`}
+                activeOpacity={0.85}
+                onPress={async () => {
+                  try {
+                    await Share.share({
+                      message: `Bank: WanPay Microfinance Bank\nAccount Name: ${getName()}\nAccount Number: ${wallet?.accountNumber || 'N/A'}`,
+                      title: 'My WanPay Account Details',
+                    });
+                  } catch {}
+                }}
+              >
+                <Ionicons name="share-outline" size={20} color="white" />
+                <Text style={tw`text-white font-semibold text-base`}>Share Details</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </KeyboardAvoidingView>
       </Modal>
     </SafeAreaView>
   );
