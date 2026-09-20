@@ -1,5 +1,5 @@
 import React from 'react'
-import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
+// import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import 'react-native-reanimated';
@@ -31,7 +31,7 @@ export default function RootLayout() {
 
   return (
     <AuthProvider>
-      <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+      {/* <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}> */}
         <StatusBar style="dark" />
         <UpdateGate />
         <Stack screenOptions={{ headerShown: false, animation: 'slide_from_right' }}>
@@ -47,7 +47,7 @@ export default function RootLayout() {
           <Stack.Screen name="profile" options={{ headerShown: false }} />
           <Stack.Screen name="savings" options={{ headerShown: false }} />
         </Stack>
-      </ThemeProvider>
+      {/* </ThemeProvider> */}
     </AuthProvider>
   );
 }

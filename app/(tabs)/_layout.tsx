@@ -4,7 +4,7 @@ import { Animated } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '@/contexts/AuthContext';
 
-import { HapticTab } from '@/components/haptic-tab';
+// import { HapticTab } from '@/components/haptic-tab';
 import {
   PRIMARY_COLOR,
   ELECTRIC_BLUE,
@@ -14,6 +14,7 @@ import {
   CHARCOAL,
   WARNING_AMBER,
 } from "@/constants/customConstants";
+import { HapticTab } from '@/components/haptic-tab';
 
 type IoniconName = React.ComponentProps<typeof Ionicons>['name'];
 

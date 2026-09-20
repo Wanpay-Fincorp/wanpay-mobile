@@ -72,6 +72,7 @@ export default function TransferScreen() {
     try {
       const data = await api.get<Bank[]>('/banks');
       if (Array.isArray(data)) setBanks(data);
+      // console.log('Loaded banks:', data);
     } catch {}
   };
 
